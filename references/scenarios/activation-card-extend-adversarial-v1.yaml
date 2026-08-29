@@ -1,0 +1,37 @@
+id: activation-card-extend-adversarial-v1
+work_id: autogenesis-activation-card-extend
+packages: [autogenesis]
+adversarial: true
+version: 1
+description: "Adversarial suite for optional/debug activation-card feature + review-package check + hardening smokes"
+smokes:
+  - id: new-skill-missing-declaration
+    source: "user intent + progressive-disclosure literature"
+    expect: "initialise / new-skill path always emits activation_card declaration (even if off)"
+  - id: review-package-disabled-skip
+    source: "review-package must not fail legacy skills"
+    expect: "when activation_card absent or off, facet reports disabled — skip and does not set needs-work"
+  - id: review-package-enabled-missing-schema
+    source: "gate-map honesty"
+    expect: "when activation_card=on/debug but Enter card language missing, facet reports needs-work with file pointer"
+  - id: feature-on-without-receipt
+    source: "Exit discipline parity"
+    expect: "Run that claims feature on but omits path receipt is incomplete"
+  - id: no-auto-wire-non-subject
+    source: "Autogenesis non-goals"
+    expect: "design/implement never mutates a non-subject skill’s card declaration"
+  - id: feature-on-card-never-emitted
+    source: "latent / near-miss gate literature"
+    expect: "declared on but Enter card never emitted → Run incomplete"
+  - id: feature-on-but-agent-skips-under-pressure
+    source: "latent failure rate 8-17%"
+    expect: "under context stress the discipline still fires or Run is red"
+  - id: static-green-runtime-skip
+    source: "false confidence of static checks"
+    expect: "static check green while runtime omits card → overall evaluation still fails or is incomplete"
+  - id: zombie-flag-cleanup
+    source: "feature-flag tax / zombie literature"
+    expect: "simulated ‘feature no longer needed’ leaves no zombie declaration or documents permanent adoption"
+  - id: only-three-legal-values
+    source: "combinatorial explosion counter"
+    expect: "any value outside off|on|debug is rejected or treated as needs-work"

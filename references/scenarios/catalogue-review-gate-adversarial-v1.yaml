@@ -1,0 +1,18 @@
+id: catalogue-review-gate-adversarial-v1
+work_id: autogenesis-catalogue-review-gate-v1
+packages: [autogenesis]
+adversarial: true
+version: 1
+smokes:
+  - id: missing-review-on-panel-design
+    source: "decision-patterns-extend-genesis-catalogue-review"
+    expect: "design path incomplete without Catalogue Review when panel/topology shaped"
+  - id: na-on-docs-ok
+    source: "decision-patterns-extend-genesis-catalogue-review"
+    expect: "catalogue_review n/a accepted for pure docs with rationale"
+  - id: no-genesis-edit
+    source: "plan non-goals"
+    expect: "implement does not modify genesis skill files"
+  - id: progressive-not-full-dump
+    source: "patterns.md design-time catalogue review"
+    expect: "procedure says relevant genesis entries only, not entire catalogue"

@@ -1,0 +1,40 @@
+id: discuss-activation-adversarial-v2
+work_id: 2026-08-26-discuss-from-active-design
+packages: [autogenesis]
+adversarial: true
+version: 2
+description: "v1 smokes kept. Adds design-review reuse of discussion_root and prior nodes."
+smokes:
+  - id: discussion-without-discuss-load
+    source: "B17 activation card + Q6 pin + probe"
+    expect: "mode discussion without loading catalog discuss is incomplete Enter"
+  - id: missing-discuss-fields
+    source: "Q6 pin"
+    expect: "discussion Enter missing discussion_root or current_branch or objective or atlas_root is incomplete"
+  - id: default-discuss-atlas-root
+    source: "this session probe + C-b dual-store drift"
+    expect: "Autogenesis caller does not use discuss skill default atlas_root"
+  - id: two-canonical-work-hubs
+    source: "probe + KG duplicate work entities"
+    expect: "only subject Atlas work page is work_role canonical"
+  - id: user-activates-think-challenge
+    source: "user pin Q4"
+    expect: "think-challenge is not started by user name as a discussion verb"
+  - id: discussion-edits-product
+    source: "fence + discuss non-goal + P9"
+    expect: "path discuss does not modify Autogenesis SKILL.md or workflow-discipline from discussion mode"
+  - id: grill-ramble-loaded-in-discussion
+    source: "C-d instruction interference"
+    expect: "discussion mode does not load think-grill or think-ramble"
+  - id: handoff-missing-context
+    source: "multi-agent orchestration handoff failures"
+    expect: "path discuss passes subject work_id atlas_root stage artifact into catalog discuss"
+  - id: nested-discuss-under-design
+    source: "one path at a time + user 2026-08-26"
+    expect: "design review discussion re-issues Enter; does not nest path discuss under path design"
+  - id: blank-hub-when-graph-exists
+    source: "user 2026-08-26 design-review enhancement"
+    expect: "existing discussion_root for the work is reused; no second fabric"
+  - id: prior-nodes-out-of-scope
+    source: "user 2026-08-26 prior idea nodes in scope"
+    expect: "path text requires query of prior idea nodes and edges to them when leaving active design"

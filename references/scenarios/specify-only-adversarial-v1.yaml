@@ -1,0 +1,22 @@
+id: specify-only-adversarial-v1
+work_id: 2026-08-25-specify-only-behavioural-contract
+packages:
+  - autogenesis
+adversarial: true
+smokes:
+  - id: design-authors-feature-directly
+    source: dual-authoring drift literature / sole-producer pin
+    expect: red if design path or Autogenesis itself writes, pastes or edits .feature files under any agent-spec/ tree
+    description: Sole producer rule forbids Autogenesis from authoring Gherkin.
+  - id: design-missing-behavioural-hint
+    source: activation-card discipline
+    expect: red if a behaviour-in-scope design activation card lacks behavioural_contract: specify | deferred:<reason>
+    description: Hint must be present on Enter for behavioural designs.
+  - id: discussion-claims-contract-complete
+    source: discussion-mode zero-write / ownership boundary
+    expect: red if discussion mode asserts a finished behavioural contract or writes the section into a plan
+    description: Only formal design may materialise the contract.
+  - id: deferred-without-reason
+    source: G-BDD
+    expect: red if deferred appears without a one-line reason
+    description: Deferred must carry an explicit reason.

@@ -1,0 +1,106 @@
+id: atlas-migrate-activation-adherence-v1
+kind: skill-discipline
+version: "1"
+work_id: autogenesis-path-atlas-migrate-v1
+adversarial: false
+description: >
+  Activation and adherence checks for Autogenesis path atlas-migrate.
+  Activation: path module, SKILL registry, workflow-discipline enum, plan on disk.
+  Adherence: pins encoded in path module text (not a live agent run).
+packages:
+  - id: subject
+    root: /home/workdir/artifacts/construct-fixtures/atlas-migrate-activation-adherence-v1-subject
+    mode: mount
+project:
+  seed_knowledge: []
+smokes:
+  - id: path-module-exists
+    source: activation — path file on disk
+    cmd: 'test -f "$PKG_subject/references/paths/atlas-migrate.md" && echo "{\"ok\":true}"'
+    expect:
+      ok: true
+
+  - id: skill-registry-lists-path
+    source: activation — SKILL capabilities row
+    cmd: 'grep -q "atlas-migrate" "$PKG_subject/SKILL.md" && grep -q "references/paths/atlas-migrate.md" "$PKG_subject/SKILL.md" && echo "{\"ok\":true}"'
+    expect:
+      ok: true
+
+  - id: workflow-discipline-path-enum
+    source: activation — Enter card path list includes atlas-migrate
+    cmd: 'grep -q "atlas-migrate" "$PKG_subject/references/modules/workflow-discipline.md" && echo "{\"ok\":true}"'
+    expect:
+      ok: true
+
+  - id: path-frontmatter-path-id
+    source: activation — path_id and subject_scope
+    cmd: |
+      python3 -c "from pathlib import Path; import os,json; t=Path(os.environ['PKG_subject'],'references/paths/atlas-migrate.md').read_text(); ok=('path_id: atlas-migrate' in t and 'subject_scope: subject-atlas' in t and 'name: autogenesis/paths/atlas-migrate' in t); print(json.dumps({'ok':ok}))"
+    expect:
+      ok: true
+
+  - id: pin-default-source-wiki
+    source: pin1 — default references/wiki, override allowed
+    cmd: |
+      python3 -c "from pathlib import Path; import os,json; t=Path(os.environ['PKG_subject'],'references/paths/atlas-migrate.md').read_text(); ok=('references/wiki' in t and 'override' in t.lower()); print(json.dumps({'ok':ok}))"
+    expect:
+      ok: true
+
+  - id: pin-auto-initiate-atlas
+    source: pin2 — auto-initiate when no Atlas
+    cmd: 'grep -qi "auto-initiate" "$PKG_subject/references/paths/atlas-migrate.md" && echo "{\"ok\":true}"'
+    expect:
+      ok: true
+
+  - id: pin-full-claim-conversion
+    source: pin3 — claim-bearing under autogenesis/, no bulk defer
+    cmd: |
+      python3 -c "from pathlib import Path; import os,json; t=Path(os.environ['PKG_subject'],'references/paths/atlas-migrate.md').read_text(); ok=('autogenesis/' in t and 'claim-bearing' in t and 'bulk defer' in t.lower()); print(json.dumps({'ok':ok}))"
+    expect:
+      ok: true
+
+  - id: pin-compile-staging-empty
+    source: Exit gate — compile and staging empty
+    cmd: |
+      python3 -c "from pathlib import Path; import os,json; t=Path(os.environ['PKG_subject'],'references/paths/atlas-migrate.md').read_text(); ok=('compile' in t and 'staging' in t and 'empty' in t.lower()); print(json.dumps({'ok':ok}))"
+    expect:
+      ok: true
+
+  - id: pin-discipline-rewrite
+    source: pin4 — discipline rewrite after green compile
+    cmd: 'grep -qi "discipline rewrite" "$PKG_subject/references/paths/atlas-migrate.md" && echo "{\"ok\":true}"'
+    expect:
+      ok: true
+
+  - id: pin-atlas-cli-boundary
+    source: does not replace atlas CLI
+    cmd: |
+      python3 -c "from pathlib import Path; import os,json; t=Path(os.environ['PKG_subject'],'references/paths/atlas-migrate.md').read_text().lower(); ok=('migrate' in t) and ('does not replace' in t or 'does not reimplement' in t or 'mechanical' in t); print(json.dumps({'ok':ok}))"
+    expect:
+      ok: true
+
+  - id: claim-routing-autogenesis-prefix
+    source: targets under autogenesis/decisions|experiences|plans|work
+    cmd: |
+      python3 -c "from pathlib import Path; import os,json; t=Path(os.environ['PKG_subject'],'references/paths/atlas-migrate.md').read_text(); need=['autogenesis/decisions','autogenesis/experiences','autogenesis/plans','autogenesis/work']; print(json.dumps({'ok':all(n in t for n in need)}))"
+    expect:
+      ok: true
+
+  - id: path-receipt-required-fields
+    source: path receipt fields
+    cmd: |
+      python3 -c "from pathlib import Path; import os,json; t=Path(os.environ['PKG_subject'],'references/paths/atlas-migrate.md').read_text(); ok=('discipline_rewrite' in t and 'promoted_count' in t and 'atlas_root' in t and 'path: atlas-migrate' in t); print(json.dumps({'ok':ok}))"
+    expect:
+      ok: true
+
+  - id: plan-exists-in-atlas
+    source: plan stored in Autogenesis space
+    cmd: 'test -f "$PKG_subject/references/atlas/autogenesis/plans/autogenesis-path-atlas-migrate-v1.md" && grep -q "type: plan" "$PKG_subject/references/atlas/autogenesis/plans/autogenesis-path-atlas-migrate-v1.md" && echo "{\"ok\":true}"'
+    expect:
+      ok: true
+
+  - id: skill-version-documents-path
+    source: SKILL mentions atlas-migrate
+    cmd: 'grep -q "atlas-migrate" "$PKG_subject/SKILL.md" && echo "{\"ok\":true}"'
+    expect:
+      ok: true

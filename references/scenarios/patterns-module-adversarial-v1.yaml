@@ -1,0 +1,21 @@
+id: patterns-module-adversarial-v1
+work_id: autogenesis-patterns-module-v1
+packages: [autogenesis]
+adversarial: true
+version: 1
+smokes:
+  - id: no-scan-in-v1
+    source: "extraction/mining precision literature + deferred pin"
+    expect: "module does not implement Scan/detect"
+  - id: create-requires-repeated-use
+    source: "Alexander pattern definition + user admission bar"
+    expect: "Create procedure requires evidence of repeated use"
+  - id: known-use-recordable
+    source: "living Known uses lock"
+    expect: "Record known-use procedure exists and is cheap"
+  - id: load-progressive
+    source: "agent skills progressive disclosure research"
+    expect: "Load/List by id or category, not full catalogue dump"
+  - id: activation-card-first-pattern
+    source: "discussion seed"
+    expect: "Activation Card pattern exists against template with Known uses"

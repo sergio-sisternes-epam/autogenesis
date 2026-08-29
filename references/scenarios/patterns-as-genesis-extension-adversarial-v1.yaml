@@ -1,0 +1,17 @@
+id: patterns-as-genesis-extension-adversarial-v1
+packages: [autogenesis]
+work_id: autogenesis-patterns-as-genesis-extension-v1
+adversarial: true
+smokes:
+  - id: parallel-catalogue-gone
+    source: "user concern + prior design"
+    expect: "only Activation Card / B17 remains; triage-panel and panel-review absent or in deprecated/"
+  - id: genesis-untouched
+    source: "extension risk literature"
+    expect: "no file under the genesis skill is modified"
+  - id: injection-present
+    source: "hidden dependency counter"
+    expect: "when design path loads genesis it also loads the Autogenesis extension and B17 is visible"
+  - id: numbering-clarity
+    source: "ownership counter"
+    expect: "B17 is documented as Autogenesis extension number, not a native genesis ID"
