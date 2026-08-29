@@ -18,14 +18,14 @@ Required discuss fields on the card (missing ⇒ `incomplete: missing Enter`):
 
 ```text
 objective: <original objective>
-atlas_root: <subject>/references/atlas
+atlas_root: <subject>/references/atlas   # subject=autogenesis → .atlas/github.com/sergio-sisternes-epam/autogenesis-atlas/atlas
 discussion_root: <atlas-relative path>
 current_branch: <atlas-relative path>
 ```
 
 Pass when known: `work_id`, `stage`, `artifact`.
 
-`atlas_root` **must** be the subject Atlas. Do not use the discuss skill default store when Autogenesis is the caller.
+`atlas_root` **must** be the subject Atlas. Do not use the discuss skill default store when Autogenesis is the caller. When subject is autogenesis, that root is `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas/atlas` after `atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main`.
 
 ### From an active design (review problem)
 
@@ -45,7 +45,7 @@ The same pattern applies if the user asks to talk about a think-challenge result
 
 ## Procedure
 
-1. Resolve `subject_atlas = <subject>/references/atlas/` (this skill’s Atlas when subject is autogenesis). If SCHEMA.json is missing, stop and follow Subject Atlas resolution — do not fall back to discuss’s own Atlas.
+1. Resolve `subject_atlas = <subject>/references/atlas/` (when subject is autogenesis: `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas/atlas` after mount). If SCHEMA.json is missing, stop and follow Subject Atlas resolution — do not fall back to discuss’s own Atlas. Do not create `references/atlas/` in this repo.
 2. Apply the multi-harness substrate contract to catalog skill **discuss**:
    - Locate the skill by name.
    - Load its full `SKILL.md` body.

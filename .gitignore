@@ -4,3 +4,7 @@ __pycache__/
 .last-view-root
 .atlas/
 apm_modules/
+
+# Process memory must not live in this package
+references/atlas/
+references/wiki/
