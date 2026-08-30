@@ -18,4 +18,4 @@ atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main --targ
 
 Mount path = compile/query root: `references/atlas`
 
-See `SKILL.md`.
+See `SKILL.md` and `CHANGELOG.md`.
