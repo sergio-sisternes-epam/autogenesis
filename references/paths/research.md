@@ -10,7 +10,7 @@ subject_scope: subject-atlas
 
 ## Procedure
 
-1. Bind subject; process root = subject Atlas (`<subject>/references/atlas/`).
+1. Bind subject; process root = subject Atlas (`<subject>/references/atlas/`; when subject is autogenesis: `references/atlas` after mount).
 2. User material and/or controlled web research.
 3. Capture external material into the subject Atlas (prefer experiences/resources under `autogenesis/`; cite local paths only for derived knowledge).
 4. Optional knowledge extraction after capture; sources-check / validate; `atlas compile` green.

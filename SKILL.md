@@ -7,46 +7,7 @@ activation_card: on
 
 # autogenesis
 
-**v0.3.13** (semver) — parked future work is a protostar linked to the work hub. No `residuals/` bucket. Builds on 0.3.12.
-
-### Changelog (0.3.12 → 0.3.13)
-
-- **Exit / process memory:** deferred items are `type: protostar` with `work_id`, origin `derived_from`, work-hub `implements`. Folder `autogenesis/residuals/` is forbidden. Plan heading `Accepted risks` replaces `Residual risks` so leftover *risk* is not leftover *work*. Work_id `2026-08-26-residuals-vs-protostar`.
-
-### Changelog (0.3.11 → 0.3.12)
-
-- **path discuss / from active design:** a problem found in design review re-enters `mode: discussion` on the same `work_id`. `stage: design`, `artifact` = the plan, existing `discussion_root` reused, prior idea nodes in scope. No nested path, no blank hub. Work_id `2026-08-26-discuss-from-active-design`.
-
-### Changelog (0.3.10 → 0.3.11)
-
-- **path discuss:** `mode: discussion` must use `path: discuss`. Path module substrate-loads catalog skill discuss, passes subject `atlas_root`, fail-closed Enter if discuss load or discuss fields are missing. think-grill / think-ramble not loaded in discussion mode. think-challenge stays an internal validation gate. Work_id `2026-08-26-autogenesis-discuss-activation`.
-
-### Changelog (0.3.9 → 0.3.10)
-
-- **design path step 6b:** agent-spec path `specify` is now the **sole** legal producer of behavioural Gherkin. Direct authoring by Autogenesis forbidden. Explicit `deferred: <reason>` remains first-class. Activation card gains required `behavioural_contract: specify | deferred:<reason>` hint when behaviour is in scope. Discussion principles updated (explore via specify in discussion mode; only design materialises). Work_id `2026-08-25-specify-only-behavioural-contract`.
-
-### Changelog (0.3.8 → 0.3.9)
-
-- **card pattern (B17 / workflow-discipline):** Enter card and path receipt now begin with `skill:` and `skill_path:` (first two fields). Canonical schema updated; peers receive the same leading fields.
-
-### Changelog (0.3.7 → 0.3.8)
-
-- **design path step 6c:** `## Evaluation plan` required when behaviour is in scope — deterministic smokes primary, agent evaluations secondary; anti-pattern soft-only evaluation; gate **G-EVAL**.
-
-### Changelog (0.3.6 → 0.3.7)
-
-- **design path:** step 6b — agent-spec behavioural contract (`## Behavioural contract (agent-spec)`); G-BDD gate.
-- Depends on skill `agent-spec` for layout / coverage validation when the gate runs.
-
-### Changelog (0.3.5 → 0.3.6)
-
-- **atlas-migrate:** mandatory thorough relationship review + quality `relates_to` before Exit (from 0.3.5).
-- **Internal think modules** (challenge / grill / ramble): Atlas query/remember only; no okf-wiki substrate.
-- **Paths** initialise / learn-skill / research: Atlas-first process memory.
-- **activation-card / run-record-template:** `atlas_root` + compile on receipts.
-- **validate-okf-conformance:** prefers Atlas store; optional `atlas compile`.
-- **Canonical decision:** `wiki-folder-deletion-policy` — no auto-delete on migrate; human-gated archive removal.
-- **Package metadata:** `apm.yml` deps on atlas + okf (not okf-wiki).
+**v0.3.13** (semver). Version history lives in `CHANGELOG.md`.
 
 Grows a skillset from its own experience store, or initialises a brand-new package from scratch by fusing full genesis discipline with Autogenesis components.
 
@@ -74,22 +35,36 @@ change-class = hardening | new-surface | new-skill (see workflow-discipline)
 
 ## Experience source
 
-- **Primary change memory:** **subject** skill Atlas root (`<subject>/references/atlas/`) via **Atlas** paths (`query` / `remember` / `work`). Autogenesis-authored pages live under **`autogenesis/`** inside that root.
-- **This skill’s Atlas:** meta lineage when subject is autogenesis, or optional run **pointers** when subject is another skill.
+Process memory is **not** authored in this repo. Canonical store: `github.com/sergio-sisternes-epam/autogenesis-atlas`. Git root **is** the OKF root (`SCHEMA.json`).
+
+```text
+atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main --target references/atlas
+```
+
+**Canonical store (this skill):** `references/atlas` (git submodule)
+
+Always pass that path as card `atlas_root` / `--root`.
+
+- **Primary change memory:** **subject** skill Atlas via **Atlas** paths (`query` / `remember` / `work`). Autogenesis-authored pages live under **`autogenesis/`** inside that root.
+  - Other subjects: `<subject>/references/atlas/`
+  - **subject is autogenesis:** this skill’s `references/atlas` submodule
+- **This skill’s Atlas:** meta lineage when subject is autogenesis, or optional run **pointers** when subject is another skill. Same submodule store.
 - **Plans (Autogenesis space):** `autogenesis/plans/<work_id>.md` with `type: plan` (SCHEMA `autogenesis_space`). Not experiences. Not `artifacts/autogenesis-plans/` as primary.  
   **work_id format (new work):** `YYYY-MM-DD-<kebab-slug>`; with external id: `YYYY-MM-DD-<external_id>-<kebab-slug>`. No renames of historical work_ids.
 - **Atlas is the only ingestion authority** for process memory and design plans of this skill (no parallel ingest pipeline; okf-wiki is legacy read-only archive).
 
 ### Subject Atlas resolution (blocking before plan persist)
 
-1. Resolve `subject_atlas = <subject>/references/atlas/`.
-2. **Atlas present** (`SCHEMA.json` exists) → persist plans and memory there; `atlas compile` must go green.
-3. **No Atlas, but okf-wiki present** (`<subject>/references/wiki/` with SCHEMA/index) → **stop and inform the user**. Offer:
+1. If **subject is autogenesis:** `subject_atlas = references/atlas` after `atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main --target references/atlas`.
+2. Else resolve `subject_atlas = <subject>/references/atlas/`.
+3. **Atlas present** (`SCHEMA.json` exists) → persist plans and memory there; `atlas compile` must go green.
+4. **No Atlas, but okf-wiki present** (`<subject>/references/wiki/` with SCHEMA/index) → **stop and inform the user**. Offer:
    - **(A) Initiate Atlas** for the subject (bootstrap `references/atlas/` via Atlas patterns), then continue;
    - **(B) Migrate okf-wiki → Atlas** (`atlas migrate` + promote/claims), then continue;
    - **(C) Abort** this Run’s plan persist.
-4. **Neither Atlas nor okf-wiki** → **stop and inform the user**. Offer **(A) Initiate Atlas** or **(C) Abort**.
-5. Never invent a silent fallback plan directory outside the subject Atlas.
+   When subject is autogenesis, mount the submodule instead of initiating a new store.
+5. **Neither Atlas nor okf-wiki** → **stop and inform the user**. Offer **(A) Initiate Atlas** or **(C) Abort**. When subject is autogenesis, offer **mount autogenesis-atlas** (`--target references/atlas`) instead of initiate.
+6. Never invent a silent fallback plan directory outside the subject Atlas.
 
 ## Progressive disclosure (path modules are not skills)
 

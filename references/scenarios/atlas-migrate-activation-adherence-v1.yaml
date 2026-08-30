@@ -94,8 +94,8 @@ smokes:
       ok: true
 
   - id: plan-exists-in-atlas
-    source: plan stored in Autogenesis space
-    cmd: 'test -f "$PKG_subject/references/atlas/autogenesis/plans/autogenesis-path-atlas-migrate-v1.md" && grep -q "type: plan" "$PKG_subject/references/atlas/autogenesis/plans/autogenesis-path-atlas-migrate-v1.md" && echo "{\"ok\":true}"'
+    source: process memory is the autogenesis-atlas git submodule (gitlink), not vendored store files
+    cmd: 'grep -q "path = references/atlas" "$PKG_subject/.gitmodules" && grep -q "sergio-sisternes-epam/autogenesis-atlas" "$PKG_subject/.gitmodules" && git -C "$PKG_subject" ls-files -s references/atlas | grep -q "^160000" && echo "{\"ok\":true}"'
     expect:
       ok: true
 

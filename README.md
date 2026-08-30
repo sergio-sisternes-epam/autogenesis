@@ -1,15 +1,21 @@
 # autogenesis
 
-Private APM package: `sergio-sisternes-epam/autogenesis`
+Private APM package (`SKILL.md` + `apm.yml` at repo root): `sergio-sisternes-epam/autogenesis`
 
-Process memory is **not** in this repo. Canonical store:
+```text
+apm install sergio-sisternes-epam/autogenesis
+```
+
+Process memory is **not** authored here. Canonical store:
 
 https://github.com/sergio-sisternes-epam/autogenesis-atlas
 
-OKF root inside that repo is `atlas/`.
+Git root **is** the OKF root (`SCHEMA.json`). Mount it at `references/atlas` as a git submodule:
 
 ```text
-atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main
+atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main --target references/atlas
 ```
 
-See `SKILL.md`.
+Mount path = compile/query root: `references/atlas`
+
+See `SKILL.md` and `CHANGELOG.md`.

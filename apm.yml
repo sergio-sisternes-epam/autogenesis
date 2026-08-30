@@ -1,9 +1,12 @@
 name: autogenesis
-version: 0.3.12
+version: 0.3.13
 description: Grows a skillset from its own experience store. Core design process is genesis; memory via Atlas. Grok-native APM skill.
 author: Sergio Sisternes
 license: Apache-2.0
+type: skill
 dependencies:
   apm:
     - sergio-sisternes-epam/atlas
     - sergio-sisternes-epam/okf
+    - sergio-sisternes-epam/discuss
+    - sergio-sisternes-epam/think

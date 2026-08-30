@@ -89,9 +89,9 @@ Named `## Genesis Artifacts`: intent+scope, component diagram, sequence diagram,
 | Rule | Statement |
 |------|-----------|
 | Subject | Every Run declares `subject`. |
-| Atlas | Always resolve subject Atlas root = `<subject>/references/atlas/` (or this skill’s own Atlas when subject is autogenesis). Use Atlas paths only. |
+| Atlas | Always resolve subject Atlas root = `<subject>/references/atlas/` (when subject is autogenesis: this skill’s `references/atlas` submodule after `atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main --target references/atlas`). Use Atlas paths only. |
 | Plan home | Design plans persist **only** under subject Atlas **`autogenesis/plans/<work_id>.md`** (`type: plan`). Not experiences; not `artifacts/autogenesis-plans/` as primary. |
-| Atlas missing | If subject has no Atlas: **inform user** and offer **initiate Atlas** (and **migrate okf-wiki→Atlas** when `references/wiki/` exists). Do not silent-fallback. |
+| Atlas missing | If subject has no Atlas: **inform user** and offer **initiate Atlas** (and **migrate okf-wiki→Atlas** when `references/wiki/` exists). When subject is autogenesis, mount `github.com/sergio-sisternes-epam/autogenesis-atlas --ref main --target references/atlas`. Do not silent-fallback. |
 | Approval | Implement forbidden until a **persisted plan produced by formal design** is explicitly approved. |
 | Discussion→Implement | Forbidden. Discussion has zero implement authority; short-circuit is incomplete. |
 | Wiring | Human approval + version provenance only. |
@@ -141,14 +141,14 @@ Examples: `2026-08-24-work-id-date-prefix`, `2026-08-24-gh-1234-output-agnostic`
 
 ### Subject Atlas resolution (before plan persist or memory write)
 
-Resolve `subject_atlas = <subject>/references/atlas/` (when subject is autogenesis: this skill’s own Atlas).
+Resolve `subject_atlas = <subject>/references/atlas/` (when subject is autogenesis: `references/atlas` after `atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main --target references/atlas`).
 
 | Situation | Agent action |
 |-----------|----------------|
 | `SCHEMA.json` present under subject Atlas | Persist plans + memory there; `atlas compile` green required |
 | No Atlas, but `<subject>/references/wiki/` looks like okf-wiki | **Inform user.** Offer **(A) Initiate Atlas**, **(B) Migrate okf-wiki → Atlas**, **(C) Abort**. Do not persist plan until A or B completes or user aborts |
-| Neither Atlas nor okf-wiki | **Inform user.** Offer **(A) Initiate Atlas** or **(C) Abort** |
-| User chooses Initiate Atlas | Bootstrap subject Atlas (SCHEMA with `autogenesis_space`, full `autogenesis/` tree, templates including plan.md, empty staging) using Atlas skill patterns; then continue |
+| Neither Atlas nor okf-wiki | **Inform user.** Offer **(A) Initiate Atlas** or **(C) Abort**. When subject is autogenesis, mount with `--target references/atlas` instead of initiate |
+| User chooses Initiate Atlas | Bootstrap subject Atlas (SCHEMA with `autogenesis_space`, full `autogenesis/` tree, templates including plan.md, empty staging) using Atlas skill patterns; then continue. When subject is autogenesis, mount the `references/atlas` submodule instead of bootstrapping a new store |
 | User chooses Migrate | `atlas migrate <wiki> --root <subject_atlas>` then promote/claims until staging empty and compile green; then continue |
 
 Primary plan home is **never** `artifacts/autogenesis-plans/`. External copies are optional provenance only.
@@ -203,12 +203,12 @@ Evidence of Exit success is in the subject Atlas root (and its `log.md` / compil
 
 ### Exit activation checklist
 
-1. Resolve subject Atlas root: `<subject>/references/atlas/` (or this skill’s own Atlas when subject is autogenesis).
-2. **Cheap existence check:** does `<subject>/references/atlas/SCHEMA.json` exist?
-3. **If SCHEMA.json is missing:** bootstrap a minimal Atlas root (SCHEMA, index.md, log.md, templates, empty staging) following the atlas skill patterns; then continue. Prefer the atlas skill’s own guidance over inventing structure.
+1. Resolve subject Atlas root: `<subject>/references/atlas/` (when subject is autogenesis: `references/atlas` after `atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main --target references/atlas`).
+2. **Cheap existence check:** does `<atlas_root>/SCHEMA.json` exist?
+3. **If SCHEMA.json is missing:** when subject is autogenesis, **stop** and mount `github.com/sergio-sisternes-epam/autogenesis-atlas --ref main --target references/atlas`. Other subjects: bootstrap a minimal Atlas root (SCHEMA, index.md, log.md, templates, empty staging) following the atlas skill patterns; then continue. Prefer the atlas skill’s own guidance over inventing structure.
 4. Apply the multi-harness substrate contract to the skill named `atlas`.
 5. Because Atlas defers format rules, also apply the substrate contract to the skill named `okf` when format questions arise.
-6. Set `--root <subject>/references/atlas/`.
+6. Set `--root` to the resolved subject Atlas root.
 7. Load the appropriate Atlas path module (`remember` / `query` / `work`) via the multi-harness substrate contract and follow it exactly.
 8. **Changed-files linkage (mandatory when product files were created or edited):** the experience body must contain a structured `## Changed files` section that lists every relative path touched. Missing or incomplete list → `incomplete: G8`.
 9. **Claim-bearing page rule (hard):** If any decision/experience/work page was created or materially updated during the Run, an Atlas `remember` + green `atlas compile` **must** have been executed **or** the experience body must contain an explicit one-line deferral with reason. Path/plan completion is forbidden while only a textual “remember requested” exists.
@@ -223,7 +223,7 @@ skill_path: <resolved path to that skill’s root directory>
 subject: …
 path: …
 approved: yes | n/a | no
-atlas_root: <subject>/references/atlas
+atlas_root: <subject>/references/atlas   # subject=autogenesis → references/atlas
 nested_skills_loaded: …
 substrate_contract: applied | missing
 remember: yes | no
