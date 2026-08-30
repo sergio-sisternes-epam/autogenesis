@@ -5,6 +5,7 @@ All notable changes to this package are documented here. The skill body stays in
 ## 0.3.13
 
 - **Exit / process memory:** deferred items are `type: protostar` with `work_id`, origin `derived_from`, work-hub `implements`. Folder `autogenesis/residuals/` is forbidden. Plan heading `Accepted risks` replaces `Residual risks` so leftover *risk* is not leftover *work*. Work_id `2026-08-26-residuals-vs-protostar`.
+- **APM:** `apm.yml` depends on atlas, okf, and discuss. Path discuss substrate-loads catalog skill discuss (fail-closed Enter if missing).
 
 ## 0.3.12
 

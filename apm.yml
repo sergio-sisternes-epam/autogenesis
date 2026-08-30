@@ -8,3 +8,4 @@ dependencies:
   apm:
     - sergio-sisternes-epam/atlas
     - sergio-sisternes-epam/okf
+    - sergio-sisternes-epam/discuss
