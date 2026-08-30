@@ -74,13 +74,13 @@ change-class = hardening | new-surface | new-skill (see workflow-discipline)
 
 ## Experience source
 
-Process memory is **not** in this repo. Canonical store: `github.com/sergio-sisternes-epam/autogenesis-atlas`. OKF root there is `atlas/` (`atlas/SCHEMA.json`), not git root.
+Process memory is **not** in this repo. Canonical store: `github.com/sergio-sisternes-epam/autogenesis-atlas`. OKF root is the git clone root (`SCHEMA.json`), not a nested `atlas/` folder.
 
 ```text
 atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main
 ```
 
-**Default store (this skill):** `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas/atlas`
+**Default store (this skill):** `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas`
 
 Do not add `references/atlas/` here.
 
@@ -94,7 +94,7 @@ Do not add `references/atlas/` here.
 
 ### Subject Atlas resolution (blocking before plan persist)
 
-1. If **subject is autogenesis:** `subject_atlas = .atlas/github.com/sergio-sisternes-epam/autogenesis-atlas/atlas` after `atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main`. Do not use or create `references/atlas/` in this repo.
+1. If **subject is autogenesis:** `subject_atlas = .atlas/github.com/sergio-sisternes-epam/autogenesis-atlas` after `atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main`. Do not use or create `references/atlas/` in this repo.
 2. Else resolve `subject_atlas = <subject>/references/atlas/`.
 3. **Atlas present** (`SCHEMA.json` exists) → persist plans and memory there; `atlas compile` must go green.
 4. **No Atlas, but okf-wiki present** (`<subject>/references/wiki/` with SCHEMA/index) → **stop and inform the user**. Offer:

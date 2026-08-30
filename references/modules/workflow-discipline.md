@@ -89,7 +89,7 @@ Named `## Genesis Artifacts`: intent+scope, component diagram, sequence diagram,
 | Rule | Statement |
 |------|-----------|
 | Subject | Every Run declares `subject`. |
-| Atlas | Always resolve subject Atlas root = `<subject>/references/atlas/` (when subject is autogenesis: mount `github.com/sergio-sisternes-epam/autogenesis-atlas` and use `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas/atlas`). Use Atlas paths only. Never write this skill’s process memory to `references/atlas/`. |
+| Atlas | Always resolve subject Atlas root = `<subject>/references/atlas/` (when subject is autogenesis: mount `github.com/sergio-sisternes-epam/autogenesis-atlas` and use `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas`). Use Atlas paths only. Never write this skill’s process memory to `references/atlas/`. |
 | Plan home | Design plans persist **only** under subject Atlas **`autogenesis/plans/<work_id>.md`** (`type: plan`). Not experiences; not `artifacts/autogenesis-plans/` as primary. |
 | Atlas missing | If subject has no Atlas: **inform user** and offer **initiate Atlas** (and **migrate okf-wiki→Atlas** when `references/wiki/` exists). When subject is autogenesis, offer **mount autogenesis-atlas** instead of initiating `references/atlas/` here. Do not silent-fallback. |
 | Approval | Implement forbidden until a **persisted plan produced by formal design** is explicitly approved. |
@@ -141,7 +141,7 @@ Examples: `2026-08-24-work-id-date-prefix`, `2026-08-24-gh-1234-output-agnostic`
 
 ### Subject Atlas resolution (before plan persist or memory write)
 
-Resolve `subject_atlas = <subject>/references/atlas/` (when subject is autogenesis: `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas/atlas` after `atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main`).
+Resolve `subject_atlas = <subject>/references/atlas/` (when subject is autogenesis: `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas` after `atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main`).
 
 | Situation | Agent action |
 |-----------|----------------|
@@ -203,7 +203,7 @@ Evidence of Exit success is in the subject Atlas root (and its `log.md` / compil
 
 ### Exit activation checklist
 
-1. Resolve subject Atlas root: `<subject>/references/atlas/` (when subject is autogenesis: `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas/atlas` after `atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main`).
+1. Resolve subject Atlas root: `<subject>/references/atlas/` (when subject is autogenesis: `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas` after `atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main`).
 2. **Cheap existence check:** does `<atlas_root>/SCHEMA.json` exist?
 3. **If SCHEMA.json is missing:** when subject is autogenesis, **stop** and mount `github.com/sergio-sisternes-epam/autogenesis-atlas` — do not create `references/atlas/` in this repo. Other subjects: bootstrap a minimal Atlas root (SCHEMA, index.md, log.md, templates, empty staging) following the atlas skill patterns; then continue. Prefer the atlas skill’s own guidance over inventing structure.
 4. Apply the multi-harness substrate contract to the skill named `atlas`.
@@ -223,7 +223,7 @@ skill_path: <resolved path to that skill’s root directory>
 subject: …
 path: …
 approved: yes | n/a | no
-atlas_root: <subject>/references/atlas   # subject=autogenesis → .atlas/github.com/sergio-sisternes-epam/autogenesis-atlas/atlas
+atlas_root: <subject>/references/atlas   # subject=autogenesis → .atlas/github.com/sergio-sisternes-epam/autogenesis-atlas
 nested_skills_loaded: …
 substrate_contract: applied | missing
 remember: yes | no

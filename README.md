@@ -10,13 +10,12 @@ Process memory is **not** in this repo. Do not add `references/atlas/` here. Can
 
 https://github.com/sergio-sisternes-epam/autogenesis-atlas
 
-OKF root inside that repo is `atlas/` (`atlas/SCHEMA.json`), not git root.
+OKF root is the git clone root (`SCHEMA.json`), not a nested `atlas/` folder.
 
 ```text
 atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main
 ```
 
-Default clone path: `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas`  
-Compile/query root: `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas/atlas`
+Default clone path and compile/query root: `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas`
 
 See `SKILL.md`.

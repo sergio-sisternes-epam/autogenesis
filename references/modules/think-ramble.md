@@ -13,7 +13,7 @@ Capture unstructured thinking into the **subject Atlas** via atlas remember.
 
 1. Accept the user’s free-form text (even if messy or incomplete).
 2. Hand off to the multi-harness substrate contract applied to the skill named `atlas`, loading its `remember` path:
-   - Target: subject Atlas root (`<subject>/references/atlas/`; when subject is autogenesis: `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas/atlas` after mount) under `autogenesis/experiences/` (or appropriate type).
+   - Target: subject Atlas root (`<subject>/references/atlas/`; when subject is autogenesis: `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas` after mount) under `autogenesis/experiences/` (or appropriate type).
    - Type-correct frontmatter; `relates_to` with `autogenesis/…` paths only for Autogenesis-authored edges.
    - `atlas compile` must go green.
 3. Confirm briefly what was captured; offer grill, challenge, or Medium/Gamma next steps.
