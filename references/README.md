@@ -1,12 +1,15 @@
-# Process memory is not in this package
+# Atlas store lives in its own repository
 
-Do not add `references/atlas/` or any process-memory tree to this repo.
+This skill’s process memory is **not** authored here. It is mounted from `autogenesis-atlas` as the `references/atlas` submodule.
 
 **Remote:** `https://github.com/sergio-sisternes-epam/autogenesis-atlas`
 
+On a machine with git and Atlas CLI:
+
 ```text
-atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main
+atlas auth login --host github.com
+atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main --target references/atlas
 ```
 
-Default clone path and compile/query root: `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas`  
-OKF root is the git clone root (`SCHEMA.json`), not a nested `atlas/` folder.
+Mount path = compile/query root: `references/atlas`  
+Git root of the store **is** the OKF root (`SCHEMA.json`).

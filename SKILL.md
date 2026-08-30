@@ -74,35 +74,35 @@ change-class = hardening | new-surface | new-skill (see workflow-discipline)
 
 ## Experience source
 
-Process memory is **not** in this repo. Canonical store: `github.com/sergio-sisternes-epam/autogenesis-atlas`. OKF root is the git clone root (`SCHEMA.json`), not a nested `atlas/` folder.
+Process memory is **not** authored in this repo. Canonical store: `github.com/sergio-sisternes-epam/autogenesis-atlas`. Git root **is** the OKF root (`SCHEMA.json`).
 
 ```text
-atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main
+atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main --target references/atlas
 ```
 
-**Default store (this skill):** `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas`
+**Canonical store (this skill):** `references/atlas` (git submodule)
 
-Do not add `references/atlas/` here.
+Always pass that path as card `atlas_root` / `--root`.
 
 - **Primary change memory:** **subject** skill Atlas via **Atlas** paths (`query` / `remember` / `work`). Autogenesis-authored pages live under **`autogenesis/`** inside that root.
   - Other subjects: `<subject>/references/atlas/`
-  - **subject is autogenesis:** this skill’s default store (mounted path above)
-- **This skill’s Atlas:** meta lineage when subject is autogenesis, or optional run **pointers** when subject is another skill. Same mounted default store.
+  - **subject is autogenesis:** this skill’s `references/atlas` submodule
+- **This skill’s Atlas:** meta lineage when subject is autogenesis, or optional run **pointers** when subject is another skill. Same submodule store.
 - **Plans (Autogenesis space):** `autogenesis/plans/<work_id>.md` with `type: plan` (SCHEMA `autogenesis_space`). Not experiences. Not `artifacts/autogenesis-plans/` as primary.  
   **work_id format (new work):** `YYYY-MM-DD-<kebab-slug>`; with external id: `YYYY-MM-DD-<external_id>-<kebab-slug>`. No renames of historical work_ids.
 - **Atlas is the only ingestion authority** for process memory and design plans of this skill (no parallel ingest pipeline; okf-wiki is legacy read-only archive).
 
 ### Subject Atlas resolution (blocking before plan persist)
 
-1. If **subject is autogenesis:** `subject_atlas = .atlas/github.com/sergio-sisternes-epam/autogenesis-atlas` after `atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main`. Do not use or create `references/atlas/` in this repo.
+1. If **subject is autogenesis:** `subject_atlas = references/atlas` after `atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main --target references/atlas`.
 2. Else resolve `subject_atlas = <subject>/references/atlas/`.
 3. **Atlas present** (`SCHEMA.json` exists) → persist plans and memory there; `atlas compile` must go green.
 4. **No Atlas, but okf-wiki present** (`<subject>/references/wiki/` with SCHEMA/index) → **stop and inform the user**. Offer:
    - **(A) Initiate Atlas** for the subject (bootstrap `references/atlas/` via Atlas patterns), then continue;
    - **(B) Migrate okf-wiki → Atlas** (`atlas migrate` + promote/claims), then continue;
    - **(C) Abort** this Run’s plan persist.
-   Do not offer initiate-into-this-repo when subject is autogenesis.
-5. **Neither Atlas nor okf-wiki** → **stop and inform the user**. Offer **(A) Initiate Atlas** or **(C) Abort**. When subject is autogenesis, offer **mount autogenesis-atlas** instead of initiate.
+   When subject is autogenesis, mount the submodule instead of initiating a new store.
+5. **Neither Atlas nor okf-wiki** → **stop and inform the user**. Offer **(A) Initiate Atlas** or **(C) Abort**. When subject is autogenesis, offer **mount autogenesis-atlas** (`--target references/atlas`) instead of initiate.
 6. Never invent a silent fallback plan directory outside the subject Atlas.
 
 ## Progressive disclosure (path modules are not skills)

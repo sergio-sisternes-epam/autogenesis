@@ -49,10 +49,10 @@ Package the discipline learned from Autogenesis self-migration: atlas CLI perfor
 
 ### 2. Resolve / initiate subject Atlas
 
-- `subject_atlas = <subject>/references/atlas/` (when subject is autogenesis: `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas` after `atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main`. Do not initiate `references/atlas/` in this repo.)
+- `subject_atlas = <subject>/references/atlas/` (when subject is autogenesis: `references/atlas` after `atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main --target references/atlas`.)
 - If `SCHEMA.json` present → use it; ensure `autogenesis/{experiences,decisions,work,plans}/` exist (create indexes if missing).
 - If missing → **auto-initiate** (not when subject is autogenesis — mount the canonical store instead):
-  - SCHEMA with `autogenesis_space` (copy pattern from this skill’s default store SCHEMA 1.2+ at `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas`)
+  - SCHEMA with `autogenesis_space` (copy pattern from this skill’s default store SCHEMA 1.2+ at `references/atlas`)
   - `autogenesis/` tree per initiate_includes
   - root `templates/` (experience, decision, work, plan)
   - empty `staging/`, `index.md`, `log.md`
@@ -136,7 +136,7 @@ If rewrite cannot be completed safely → set `discipline_rewrite: deferred: <re
 subject: …
 path: atlas-migrate
 source: …
-atlas_root: <subject>/references/atlas   # subject=autogenesis → .atlas/github.com/sergio-sisternes-epam/autogenesis-atlas
+atlas_root: <subject>/references/atlas   # subject=autogenesis → references/atlas
 autogenesis_space: autogenesis/
 promoted_count: N
 staging_empty: yes

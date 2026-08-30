@@ -94,8 +94,8 @@ smokes:
       ok: true
 
   - id: plan-exists-in-atlas
-    source: process memory is the mounted autogenesis-atlas store, not this package
-    cmd: 'test ! -e "$PKG_subject/references/atlas" && grep -q "sergio-sisternes-epam/autogenesis-atlas" "$PKG_subject/README.md" && echo "{\"ok\":true}"'
+    source: process memory is the autogenesis-atlas submodule at references/atlas
+    cmd: 'test -f "$PKG_subject/references/atlas/SCHEMA.json" && grep -q "sergio-sisternes-epam/autogenesis-atlas" "$PKG_subject/README.md" && echo "{\"ok\":true}"'
     expect:
       ok: true
 
