@@ -117,7 +117,8 @@ Vague-only language banned as sole content: “consider”, “maybe”, “some
 ## Hard rules
 
 - **Subject always** gets a full proposal block after material knowledge change.
-- **Advisory only** — no same-run mutation of any skill’s SKILL.md, paths, or package wiki as “the update.”
+- **Advisory only** — no same-run mutation of any skill's SKILL.md, paths, or
+  process store as "the update."
 - **No self-chain** — this run must not schedule another reevaluate from its own outputs.
 - **No whole-harness fan-out** by default.
 - **No automatic promotion** into skill packages (recurrence + human Git PR still required for generalisation).

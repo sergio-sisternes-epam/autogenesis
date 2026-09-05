@@ -24,7 +24,7 @@ Deep multi-facet evaluation of a target skill package. Combines:
 - Genesis design-quality lens (mandatory first step)
 - Nested substrate-contract check
 - Progressive-disclosure hygiene
-- OKF conformance of any embedded wiki
+- OKF conformance of the repository-declared Atlas
 - Gate-map and non-goals honesty
 
 Produces a single structured REPORT. Does **not** replace the narrow `validate-skill-import-links` module (which remains available for fast link-only checks).

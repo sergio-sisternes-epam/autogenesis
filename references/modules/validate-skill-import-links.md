@@ -8,11 +8,13 @@ internal: true
 
 Advisory audit only. Does **not** mutate the target package.
 
-Given a target skill directory (or list of skills), verify that every skill-to-skill invocation follows the portable multi-harness substrate contract defined in the autogenesis knowledge page `skill-nesting-invocation-pattern.md`.
+Given a target skill directory (or list of skills), verify that every skill-to-skill invocation follows the portable multi-harness substrate contract defined in the Autogenesis Atlas page `autogenesis/decisions/skill-nesting-invocation-pattern.md`.
 
 ## Procedure
 
-1. Load the nesting knowledge page `skill-nesting-invocation-pattern.md` from the autogenesis wiki (use the path the harness surfaces for that knowledge page; do not hard-code absolute paths).
+1. Resolve the subject Atlas through workflow-discipline, then load
+   `autogenesis/decisions/skill-nesting-invocation-pattern.md`. Do not
+   hard-code an absolute filesystem path.
 
 2. Identify the target(s).  
    Accept a path such as `/home/workdir/.grok/skills/<name>/` or a list of skill names.  

@@ -2,7 +2,7 @@
 name: autogenesis/modules/workflow-discipline
 description: Internal Autogenesis module. Source of truth for the workflow engine (activation card, Enter | Change | Exit clusters, G0–G8 gates, path loading contract, discussion/run rules, path receipt, substrate-contract reminder). Progressive disclosure only — never a catalog skill. Designed for clean future extraction.
 internal: true
-version: 2026-08-26
+version: 2026-09-05
 ---
 
 # workflow-discipline (internal)
@@ -22,6 +22,7 @@ subject: <skill under change>
 path: design | implement | research | reflect-challenge | learn-skill | reevaluate | aware-runtime | wire | review-package | atlas-migrate | discuss
 path_module: references/paths/<path>.md
 intent: <one line>
+atlas_id: <host/org/repo>   # required for Atlas-backed paths unless exactly one mesh store exists
 behavioural_contract: specify | deferred:<one-line reason>   # required on design when behaviour is in scope
 ```
 
@@ -29,7 +30,7 @@ behavioural_contract: specify | deferred:<one-line reason>   # required on desig
 
 1. **Read** `path_module` via `read_file` (or harness equivalent) before executing that path — do not run from the registry stub or prior memory alone.
 2. **One path at a time** — no silent path→path invokes. An in-flight design review that needs a discussion **re-issues** Enter for `mode: discussion`, `path: discuss` (same `work_id`, `stage: design`, `artifact` = the plan, existing `discussion_root`). It does not nest discuss under design.
-3. **Discussion mode:** zero implement authority; no product file writes; no “Run complete” claim. Path **must** be `discuss`. Load `references/paths/discuss.md`, then substrate-load catalog skill **discuss** and follow its full body. Pass `atlas_root` = subject Atlas. Required extra card fields: `objective`, `atlas_root`, `discussion_root`, `current_branch`. Missing discuss load or missing those fields ⇒ `incomplete: missing Enter`. Do not load internal think-grill or think-ramble. Do not load internal think-challenge as a user verb. To change code/plan, re-issue card with `mode: run`.  
+3. **Discussion mode:** zero implement authority; no product file writes; no “Run complete” claim. Path **must** be `discuss`. Load `references/paths/discuss.md`, then substrate-load catalog skill **discuss** and follow its full body. Pass `atlas_id` and resolved `atlas_root` for the subject Atlas. Required extra card fields: `objective`, `atlas_id`, `atlas_root`, `discussion_root`, `current_branch`. Missing discuss load or missing those fields ⇒ `incomplete: missing Enter`. Do not load internal think-grill or think-ramble. Do not load internal think-challenge as a user verb. To change code/plan, re-issue card with `mode: run`.
    - Discussion **may** invoke agent-spec path `specify` (mode=discussion) purely for exploration or review of candidate behaviours.  
    - Discussion may **never** materialise a finished `## Behavioural contract (agent-spec)` section into a plan, nor claim that a behavioural contract is complete. Only a formal design Run (via `specify` or explicit deferred) may write the section.
 4. **No discussion → implement short-circuit:** Discussion mode must never transition directly to implement. The only legal path is discussion → formal design (`mode: run`, path: design) → persisted + challenged plan → explicit approval → implement. Any attempt to jump the gate is refused; the agent re-issues Enter for formal design.
@@ -89,9 +90,9 @@ Named `## Genesis Artifacts`: intent+scope, component diagram, sequence diagram,
 | Rule | Statement |
 |------|-----------|
 | Subject | Every Run declares `subject`. |
-| Atlas | Always resolve subject Atlas root = `<subject>/references/atlas/` (when subject is autogenesis: this skill’s `references/atlas` submodule after `atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main --target references/atlas`). Use Atlas paths only. |
+| Atlas | Resolve the subject repository's declared `atlas_id` through Atlas path `mount` (no `--target`) and `atlas resolve`. Use only that returned root. |
 | Plan home | Design plans persist **only** under subject Atlas **`autogenesis/plans/<work_id>.md`** (`type: plan`). Not experiences; not `artifacts/autogenesis-plans/` as primary. |
-| Atlas missing | If subject has no Atlas: **inform user** and offer **initiate Atlas** (and **migrate okf-wiki→Atlas** when `references/wiki/` exists). When subject is autogenesis, mount `github.com/sergio-sisternes-epam/autogenesis-atlas --ref main --target references/atlas`. Do not silent-fallback. |
+| Atlas missing | No git root, no declared/explicit store, ambiguous mesh, failed mount/resolve, or missing SCHEMA is blocking. Offer Atlas initiate/migrate/abort as applicable; never guess or silently fall back. |
 | Approval | Implement forbidden until a **persisted plan produced by formal design** is explicitly approved. |
 | Discussion→Implement | Forbidden. Discussion has zero implement authority; short-circuit is incomplete. |
 | Wiring | Human approval + version provenance only. |
@@ -126,8 +127,7 @@ Examples: `2026-08-24-work-id-date-prefix`, `2026-08-24-gh-1234-output-agnostic`
 | Artifact | Requirement |
 |----------|-------------|
 | Plan page (subject Atlas) | `type: plan` at **`autogenesis/plans/<work_id>.md`**. `plan_path` Atlas-relative. |
-| Work node (subject Atlas) | `autogenesis/work/<work_id>.md` (type: work) |
-| Work node (autogenesis meta) | Same `work_id` when subject ≠ autogenesis; single home when subject is autogenesis |
+| Work node (subject Atlas) | `autogenesis/work/<work_id>.md` (type: work); this is the single canonical home for every subject |
 | Implement experience | Frontmatter: `work_id`, `implements`, `closes`, `plan_path`, `construct_eval` |
 | Backlog rows | Keyed by `work_id` (local aliases like C-P1 optional) |
 
@@ -141,17 +141,38 @@ Examples: `2026-08-24-work-id-date-prefix`, `2026-08-24-gh-1234-output-agnostic`
 
 ### Subject Atlas resolution (before plan persist or memory write)
 
-Resolve `subject_atlas = <subject>/references/atlas/` (when subject is autogenesis: `references/atlas` after `atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main --target references/atlas`).
+The subject's active git repository is the write-home boundary. The installed
+skill tree is never a memory root.
+
+1. Require an active git root for the subject repository. No git repository
+   means refuse persistence.
+2. Determine `atlas_id`:
+   - use the explicit activation-card value when present;
+   - otherwise infer only when `atlas-mesh.json` has exactly one store;
+   - zero or multiple stores without an explicit id is ambiguous and must fail
+     closed.
+3. Apply the multi-harness substrate contract to skill `atlas`, emit its
+   `mount` card, load `references/paths/mount.md`, and mount `atlas_id` with
+   the declared `ref` and no `--target`.
+4. Run `atlas resolve <atlas_id>`. Set `subject_atlas` / `atlas_root` only to
+   the returned path. Verify it is inside the active git root and contains
+   `SCHEMA.json`.
+5. Persist plans and memory only there and pass the exact root to every Atlas
+   CLI call. `atlas compile --root <subject_atlas>` must go green.
 
 | Situation | Agent action |
 |-----------|----------------|
-| `SCHEMA.json` present under subject Atlas | Persist plans + memory there; `atlas compile` green required |
-| No Atlas, but `<subject>/references/wiki/` looks like okf-wiki | **Inform user.** Offer **(A) Initiate Atlas**, **(B) Migrate okf-wiki → Atlas**, **(C) Abort**. Do not persist plan until A or B completes or user aborts |
-| Neither Atlas nor okf-wiki | **Inform user.** Offer **(A) Initiate Atlas** or **(C) Abort**. When subject is autogenesis, mount with `--target references/atlas` instead of initiate |
-| User chooses Initiate Atlas | Bootstrap subject Atlas (SCHEMA with `autogenesis_space`, full `autogenesis/` tree, templates including plan.md, empty staging) using Atlas skill patterns; then continue. When subject is autogenesis, mount the `references/atlas` submodule instead of bootstrapping a new store |
-| User chooses Migrate | `atlas migrate <wiki> --root <subject_atlas>` then promote/claims until staging empty and compile green; then continue |
+| Resolved root contains `SCHEMA.json` | Persist plans + memory there; compile green required |
+| Legacy `<subject>/references/atlas` gitlink or mesh path | Stop normal work; load Atlas path `migrate`, relocate to `.atlas/<atlas_id>`, resolve, and compile before continuing |
+| No declared store, but legacy okf-wiki exists | Inform user; offer **(A) Atlas init using an existing remote**, **(B) Autogenesis `atlas-migrate` after init**, **(C) Abort** |
+| No declared store and no legacy store | Inform user; offer **(A) Atlas init using an existing remote** or **(C) Abort** |
+| Multiple mesh stores and no explicit `atlas_id` | Stop and require a specific store id; never select by order |
+| Mount/resolve/SCHEMA verification fails | Stop with the Atlas error; do not create a compatibility path or fallback root |
 
-Primary plan home is **never** `artifacts/autogenesis-plans/`. External copies are optional provenance only.
+No symlink, copy, dual-write, or silent fallback at `references/atlas` is
+allowed. Primary plan home is never `artifacts/autogenesis-plans/`.
+
+External plan copies are optional provenance only.
 
 ### Path-load rule (reevaluate / challenged_plan honesty)
 
@@ -203,12 +224,17 @@ Evidence of Exit success is in the subject Atlas root (and its `log.md` / compil
 
 ### Exit activation checklist
 
-1. Resolve subject Atlas root: `<subject>/references/atlas/` (when subject is autogenesis: `references/atlas` after `atlas mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main --target references/atlas`).
-2. **Cheap existence check:** does `<atlas_root>/SCHEMA.json` exist?
-3. **If SCHEMA.json is missing:** when subject is autogenesis, **stop** and mount `github.com/sergio-sisternes-epam/autogenesis-atlas --ref main --target references/atlas`. Other subjects: bootstrap a minimal Atlas root (SCHEMA, index.md, log.md, templates, empty staging) following the atlas skill patterns; then continue. Prefer the atlas skill’s own guidance over inventing structure.
-4. Apply the multi-harness substrate contract to the skill named `atlas`.
+1. Require the active subject git root and resolve `atlas_id` using the Subject
+   Atlas resolution procedure above.
+2. Apply the multi-harness substrate contract to the skill named `atlas`.
+3. Load Atlas path `mount`. If the declared store is not mounted, mount it with
+   no `--target`; if it is already registered, do not remount a checkout that
+   may contain this Run's writes. In both cases set `atlas_root` from
+   `atlas resolve <atlas_id>`.
+4. **Cheap existence check:** does `<atlas_root>/SCHEMA.json` exist? Missing
+   schema stops Exit; use Atlas init/migrate rather than hand-crafting.
 5. Because Atlas defers format rules, also apply the substrate contract to the skill named `okf` when format questions arise.
-6. Set `--root` to the resolved subject Atlas root.
+6. Set every `--root` to the exact resolved subject Atlas root.
 7. Load the appropriate Atlas path module (`remember` / `query` / `work`) via the multi-harness substrate contract and follow it exactly.
 8. **Changed-files linkage (mandatory when product files were created or edited):** the experience body must contain a structured `## Changed files` section that lists every relative path touched. Missing or incomplete list → `incomplete: G8`.
 9. **Claim-bearing page rule (hard):** If any decision/experience/work page was created or materially updated during the Run, an Atlas `remember` + green `atlas compile` **must** have been executed **or** the experience body must contain an explicit one-line deferral with reason. Path/plan completion is forbidden while only a textual “remember requested” exists.
@@ -223,7 +249,8 @@ skill_path: <resolved path to that skill’s root directory>
 subject: …
 path: …
 approved: yes | n/a | no
-atlas_root: <subject>/references/atlas   # subject=autogenesis → references/atlas
+atlas_id: <host/org/repo>
+atlas_root: <resolved path from atlas resolve>
 nested_skills_loaded: …
 substrate_contract: applied | missing
 remember: yes | no

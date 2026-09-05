@@ -10,6 +10,7 @@ subject: <skill>
 path: <path_id>
 path_module: references/paths/<path_id>.md
 intent: <one line>
+atlas_id: <host/org/repo>   # required unless exactly one mesh store exists
 ```
 
 ## Path receipt (Exit)
@@ -20,7 +21,8 @@ skill_path: <resolved path to that skill’s root directory>
 subject: …
 path: …
 approved: yes | n/a | no
-atlas_root: <subject>/references/atlas   # subject=autogenesis → references/atlas
+atlas_id: <host/org/repo>
+atlas_root: <resolved path from atlas resolve>
 nested_skills_loaded: …
 substrate_contract: applied | missing
 remember: yes | no
