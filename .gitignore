@@ -2,5 +2,4 @@ __pycache__/
 *.pyc
 .DS_Store
 .last-view-root
-.atlas/
 apm_modules/

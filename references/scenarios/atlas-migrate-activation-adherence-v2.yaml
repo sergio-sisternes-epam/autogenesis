@@ -1,0 +1,105 @@
+id: atlas-migrate-activation-adherence-v2
+kind: skill-discipline
+version: "2"
+work_id: 2026-09-05-atlas-storage-semantics
+adversarial: false
+description: >
+  Activation and adherence checks for the storage-first Autogenesis
+  atlas-migrate path under current Atlas mount and resolve semantics.
+packages:
+  - id: subject
+    root: /home/workdir/artifacts/construct-fixtures/atlas-migrate-activation-adherence-v2-subject
+    mode: mount
+project:
+  seed_knowledge: []
+smokes:
+  - id: path-module-exists
+    source: activation - path file on disk
+    cmd: >
+      test -f "$PKG_subject/references/paths/atlas-migrate.md" &&
+      echo '{"ok":true}'
+    expect:
+      ok: true
+
+  - id: skill-registry-lists-storage-first-path
+    source: activation - SKILL capability row matches path semantics
+    cmd: |
+      python3 -c 'import json,os; from pathlib import Path; t=(Path(os.environ["PKG_subject"])/"SKILL.md").read_text(); print(json.dumps({"ok":"atlas-migrate" in t and "Relocate legacy `references/atlas`" in t and "references/paths/atlas-migrate.md" in t}))'
+    expect:
+      ok: true
+
+  - id: workflow-discipline-path-enum
+    source: activation - Enter card path list includes atlas-migrate
+    cmd: >
+      grep -q "atlas-migrate" "$PKG_subject/references/modules/workflow-discipline.md"
+      && echo '{"ok":true}'
+    expect:
+      ok: true
+
+  - id: path-frontmatter-and-atlas-id
+    source: activation - path identity and required store identity
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/paths/atlas-migrate.md').read_text(); need=['path_id: atlas-migrate','subject_scope: subject-atlas','name: autogenesis/paths/atlas-migrate','atlas_id: <host/org/repo>']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true
+
+  - id: atlas-id-selection-matches-shared-contract
+    source: workflow-discipline subject Atlas selection
+    cmd: |
+      python3 -c 'import json,os; from pathlib import Path; t=(Path(os.environ["PKG_subject"])/"references/paths/atlas-migrate.md").read_text(); need=["explicit `atlas_id`","exactly one store","fail closed","never select by"]; print(json.dumps({"ok":all(x in t for x in need)}))'
+    expect:
+      ok: true
+
+  - id: storage-migration-precedes-content-intake
+    source: current Atlas migrate contract
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/paths/atlas-migrate.md').read_text(); a=t.index('### 2. Relocate the Atlas mount'); b=t.index('### 3. Optional legacy okf-wiki intake'); print(json.dumps({'ok':a < b}))"
+    expect:
+      ok: true
+
+  - id: mount-resolve-no-target
+    source: current Atlas write-home contract
+    cmd: |
+      python3 -c 'import json,os; from pathlib import Path; t=(Path(os.environ["PKG_subject"])/"references/paths/atlas-migrate.md").read_text(); print(json.dumps({"ok":"no `--target`" in t and "atlas resolve <atlas_id>" in t and ".atlas/<host>/<org>/<repo>" in t}))'
+    expect:
+      ok: true
+
+  - id: single-writer-migration
+    source: no compatibility split authority
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/paths/atlas-migrate.md').read_text().lower(); print(json.dumps({'ok':'single-writer' in t and 'no symlink, copy, dual-write' in t}))"
+    expect:
+      ok: true
+
+  - id: claim-and-relationship-gates-preserved
+    source: Autogenesis legacy-content migration contract
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/paths/atlas-migrate.md').read_text(); need=['Claim conversion','Thorough relationship review','quality_edges_added','staging_empty']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true
+
+  - id: canonical-store-gitlink
+    source: source package storage metadata
+    cmd: |
+      python3 -c "import configparser,json,os; from pathlib import Path; p=Path(os.environ['PKG_subject']); c=configparser.ConfigParser(); c.read(p/'.gitmodules'); s=c['submodule \".atlas/github.com/sergio-sisternes-epam/autogenesis-atlas\"']; m=json.loads((p/'atlas-mesh.json').read_text())['stores'][0]; assert s['path']==m['path']=='.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas' and s['branch']==m['ref']=='main'" &&
+      git -C "$PKG_subject" ls-files -s .atlas/github.com/sergio-sisternes-epam/autogenesis-atlas |
+      grep -q "^160000" && echo '{"ok":true}'
+    expect:
+      ok: true
+
+  - id: canonical-store-compiles-green
+    source: Atlas resolve authority and compile-green Exit gate
+    cmd: |
+      resolved="$(cd "$PKG_subject" && python3 "${ATLAS_SKILL:-$HOME/.agents/skills/atlas}/scripts/atlas.py" resolve github.com/sergio-sisternes-epam/autogenesis-atlas)" &&
+      test "$resolved" = "$PKG_subject/.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas" &&
+      result="$(python3 "${ATLAS_SKILL:-$HOME/.agents/skills/atlas}/scripts/atlas.py" compile --root "$resolved" --json)" &&
+      RESULT="$result" python3 -c "import json,os; d=json.loads(os.environ['RESULT']); print(json.dumps({'ok':d['ok'] and not d['critical'] and not d['warnings'] and d['staging_count']==0}))"
+    expect:
+      ok: true
+
+  - id: skill-version-documents-migration
+    source: v0.4.0 release contract
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; p=Path(os.environ['PKG_subject']); print(json.dumps({'ok':'version: 0.4.0' in (p/'SKILL.md').read_text() and '## 0.4.0' in (p/'CHANGELOG.md').read_text()}))"
+    expect:
+      ok: true

@@ -19,7 +19,7 @@ subject: <skill-name>
 (What the subject / agent is doing now)
 
 ## Recalled behaviours
-(What the subject wiki / prior experiences say)
+(What the subject Atlas / prior experiences say)
 
 ## Tension
 (Where current, recalled, and declared process disagree)

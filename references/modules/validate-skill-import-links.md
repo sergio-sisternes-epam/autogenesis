@@ -8,23 +8,30 @@ internal: true
 
 Advisory audit only. Does **not** mutate the target package.
 
-Given a target skill directory (or list of skills), verify that every skill-to-skill invocation follows the portable multi-harness substrate contract defined in the autogenesis knowledge page `skill-nesting-invocation-pattern.md`.
+Given a target skill directory (or list of skills), verify that every skill-to-skill invocation follows the portable multi-harness substrate contract defined in the Autogenesis Atlas page `autogenesis/decisions/skill-nesting-invocation-pattern.md`.
 
 ## Procedure
 
-1. Load the nesting knowledge page `skill-nesting-invocation-pattern.md` from the autogenesis wiki (use the path the harness surfaces for that knowledge page; do not hard-code absolute paths).
+1. Resolve the activated Autogenesis package root from `skill_path` and read
+   its `atlas-mesh.json` to obtain the canonical Autogenesis `atlas_id` and
+   `ref`. Do not use the target subject's mesh for this lookup.
+2. From the active git root, apply Atlas path `mount` to that Autogenesis store
+   (mount-if-missing with no `--target`), set `atlas_root` only from
+   `atlas resolve <atlas_id>`, and load
+   `autogenesis/decisions/skill-nesting-invocation-pattern.md` from that root.
+   Do not hard-code an absolute filesystem path.
 
-2. Identify the target(s).  
+3. Identify the target(s).
    Accept a path such as `/home/workdir/.grok/skills/<name>/` or a list of skill names.  
    Default if unspecified: the skill named in the current subject (if any).
 
-3. For each target SKILL.md (and any referenced path modules inside it):
+4. For each target SKILL.md (and any referenced path modules inside it):
 
    - Locate every place that claims to invoke, load, call, or nest another skill.
    - Check for presence of the **substrate contract** (the three mandatory steps).
    - If the package claims multi-target or lists specific harnesses, also check that the corresponding rows from the per-harness mapping table are present or clearly delegated.
 
-4. Emit a structured report fragment with **exactly** this shape:
+5. Emit a structured report fragment with **exactly** this shape:
 
    ```text
    FACET: validate-skill-import-links
@@ -38,10 +45,10 @@ Given a target skill directory (or list of skills), verify that every skill-to-s
    status: pass | needs-work
    ```
 
-5. Do **not** edit the target.  
+6. Do **not** edit the target.
    If the operator wants the gaps fixed, they must later run an implement path (or edit manually) after reviewing the aggregated REPORT.
 
-6. Optional protocol check: when the target under review implements or claims nesting, the report may recommend re-running the canonical reference fixture **skill-test-a → skill-test-b** on the current harness.
+7. Optional protocol check: when the target under review implements or claims nesting, the report may recommend re-running the canonical reference fixture **skill-test-a → skill-test-b** on the current harness.
 
 ## Non-goals
 

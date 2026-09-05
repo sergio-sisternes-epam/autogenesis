@@ -22,7 +22,7 @@ This path **stops for approval**. Activate **implement** only after explicit app
    Format: `YYYY-MM-DD-<kebab-slug>`. When an external tracker id is known: `YYYY-MM-DD-<external_id>-<kebab-slug>`.  
    Required for **all** change-classes including **hardening**. Date = plan-creation date.  
    Do **not** rename existing historical work_ids.  
-   Persist on the plan; optional `external_ref` (full opaque reference) for outside trackers; create/update work node(s) at status `designed` (subject Atlas + autogenesis meta when subject ≠ autogenesis).
+   Persist on the plan; optional `external_ref` (full opaque reference) for outside trackers; create/update the canonical work node at status `designed` in the subject Atlas only.
 
 0b. **Classify change-class** (blocking)  
    State in the plan: `hardening` | `new-surface` | `new-skill`.  

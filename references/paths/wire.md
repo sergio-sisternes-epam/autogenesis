@@ -11,8 +11,10 @@ subject_scope: either
 ## Procedure
 1. Explicit human approval to wire.
 2. Record provenance: skill name + version/hash trusted.
-3. Apply minimal wiring change; record approval experience in the appropriate wiki.
+3. Apply minimal wiring change; record approval experience in the resolved
+   subject Atlas.
 4. Wiring must remain reversible in documentation.
+5. Compile the resolved subject Atlas and require exit 0.
 
 ## Gates
 G0, G1, G4-style human approval, G6.

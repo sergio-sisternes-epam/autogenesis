@@ -30,7 +30,7 @@ This path **stops for approval**. Activate **implement** only after explicit app
 
 3. **Apply substrate contract to skill named `genesis`**  
    Locate the skill by name from the harness’s available skills list, load its full SKILL.md body with the harness’s on-demand skill-loader, then follow that body exactly.  
-   Design artifacts as needed; **persist plan in the subject Atlas** as a `type: plan` at `autogenesis/plans/<work_id>.md`. Record Atlas-relative `plan_path`. New packages: initiate subject Atlas as part of initialise (or offer initiate if blocked). Memory writes use Atlas paths (G2).  
+   Design artifacts as needed; **persist plan in the subject Atlas** as a `type: plan` at `autogenesis/plans/<work_id>.md`. Record Atlas-relative `plan_path`. New packages: use Atlas path `init` with an existing remote, then mount with no `--target` and resolve the root (or stop if blocked). Memory writes use Atlas paths (G2).
    **Integrated plan rule (G3):** the Autogenesis plan **must** contain a named section `## Genesis Artifacts` that includes:
    - intent + scope
    - component diagram

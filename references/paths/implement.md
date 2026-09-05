@@ -26,7 +26,7 @@ Activation card: `path: implement`, this module **read**.
    If **change-class: new-skill**, verify full Genesis Artifacts section.  
 2. Apply only that scope.
 3. Assign version / content identity where producing material skill changes.
-4. No automatic wiring; no peer-wiki mutation.
+4. No automatic wiring; no peer Atlas mutation.
 5. When the plan introduces or changes skill chaining, verify the multi-harness substrate contract is present (or first run `review-package` on the target).
 6. **Post-implement construct evaluation (R2):**  
    If the subject owns scenarios covering this change, **or** change-class is `new-surface` affecting runtime behaviour, **or** the plan lists construct expects:  
@@ -45,7 +45,7 @@ Activation card: `path: implement`, this module **read**.
 7. **Exit:** Apply the multi-harness substrate contract to the skills named `atlas` and `okf` (see root Exit activation checklist).  
    Load the Atlas path module `remember` (or `work`) via substrate contract and follow it exactly; require green `atlas compile`.  
    The remember experience **must** contain a structured `## Changed files` section listing every product file created or edited in this Run. Missing list → `incomplete: G8`.
-8. **Update work node(s):** set status `done` | `deferred` | `waived`; link implement experience, plan_path, construct_report if any; mirror to autogenesis meta when subject ≠ autogenesis.  
+8. **Update the subject work node:** set status `done` | `deferred` | `waived`; link implement experience, plan_path, and construct_report if any. Do not mirror it to a second Atlas.
 9. Emit **path receipt** including `work_id`, `nested_skills_loaded`, `substrate_contract`, `atlas_root` and `compile`.
 
 ## Gates

@@ -1,6 +1,6 @@
 ---
 name: autogenesis/modules/validate-okf-conformance
-description: Internal Autogenesis module. When a target skill contains a process store (prefer references/atlas/, else legacy references/wiki/), apply the substrate contract to the skill named okf and run its pure-format validator (frontmatter, type, reserved files). Advisory only.
+description: Internal Autogenesis module. Resolve the target repository's declared Atlas, apply the substrate contract to the skill named okf, and run its pure-format validator (frontmatter, type, reserved files). Legacy wiki is read-only evidence, never the live store. Advisory only.
 internal: true
 ---
 
@@ -11,7 +11,10 @@ Advisory only. Does **not** mutate the target.
 ## Procedure
 
 1. Locate the target skill root.
-2. Prefer `references/atlas/` as the process store; fall back to legacy `references/wiki/` only if Atlas is absent. If neither exists → report `n/a` and stop.
+2. Resolve the target repository's declared Atlas through workflow-discipline
+   (Atlas mount with no `--target`, then `atlas resolve`). If no store is
+   declared or resolution fails, report the blocking gap; do not validate a
+   legacy `references/wiki/` as the live store.
 3. Apply the multi-harness substrate contract to the skill named `okf`:
    - Locate by name from the harness’s available skills list.
    - Load the full SKILL.md body with the on-demand loader.
@@ -22,7 +25,7 @@ Advisory only. Does **not** mutate the target.
    ```text
    FACET: validate-okf-conformance
    target: <path or name>
-   store: atlas | wiki | none
+   store: atlas | none
    okf_status: pass | gaps | n/a
    atlas_compile: pass | fail | n/a
    gaps:

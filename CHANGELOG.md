@@ -2,6 +2,29 @@
 
 All notable changes to this package are documented here. The skill body stays in `SKILL.md`.
 
+## 0.4.0
+
+- **Atlas storage:** process memory now writes home to the active subject
+  repository's declared `.atlas/<host>/<org>/<repo>` mount. Autogenesis loads
+  Atlas path `mount`, mounts with no `--target`, and uses only the root returned
+  by `atlas resolve`.
+- **Migration:** the Autogenesis store gitlink moved from
+  `references/atlas` to
+  `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas`. Path
+  `atlas-migrate` composes Atlas storage migration before optional legacy
+  okf-wiki intake.
+- **Safety:** missing or ambiguous store identity, failed resolution, and
+  missing SCHEMA fail closed. Compatibility symlinks, dual-write, and silent
+  fallback are forbidden.
+- **Evaluation:** adds current happy-path
+  `atlas-migrate-activation-adherence-v2` and adversarial
+  `atlas-storage-semantics-adversarial-v1` scenarios while retaining v1 as
+  historical evidence.
+- **Compatibility:** existing repositories must migrate their Atlas metadata
+  before using this release. Global APM consumers update only after release,
+  using dry-run and explicit approval.
+- Work_id `2026-09-05-atlas-storage-semantics`.
+
 ## 0.3.13
 
 - **Exit / process memory:** deferred items are `type: protostar` with `work_id`, origin `derived_from`, work-hub `implements`. Folder `autogenesis/residuals/` is forbidden. Plan heading `Accepted risks` replaces `Residual risks` so leftover *risk* is not leftover *work*. Work_id `2026-08-26-residuals-vs-protostar`.
