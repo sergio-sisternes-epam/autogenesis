@@ -44,8 +44,10 @@ This path does not reimplement those mechanics.
 
 ## Pins (normative)
 
-1. Require the active subject git root and explicit `atlas_id`. Do not infer
-   from multiple mesh rows.
+1. Require the active subject git root. Use an explicit `atlas_id` when
+   supplied; otherwise infer only when `atlas-mesh.json` has exactly one store.
+   Zero or multiple rows without an explicit id fail closed; never select by
+   order.
 2. Apply the multi-harness substrate contract to Atlas and load its `migrate`
    path before relocating a legacy mount.
 3. Mount with no `--target`, then obtain `subject_atlas` only from
@@ -65,7 +67,8 @@ This path does not reimplement those mechanics.
 
 ### 1. Resolve subject and migration inputs
 
-- Require `subject`, active subject git root, and canonical `atlas_id`.
+- Require `subject` and the active subject git root. Select the canonical
+  `atlas_id` using the explicit-or-exactly-one rule above.
 - Inspect `atlas-mesh.json`, `.gitmodules`, and the git index.
 - If a legacy `references/atlas` gitlink exists, its remote identity must
   normalize to `atlas_id`; identity mismatch stops migration.

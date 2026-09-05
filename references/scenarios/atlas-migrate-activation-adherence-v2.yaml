@@ -43,6 +43,13 @@ smokes:
     expect:
       ok: true
 
+  - id: atlas-id-selection-matches-shared-contract
+    source: workflow-discipline subject Atlas selection
+    cmd: |
+      python3 -c 'import json,os; from pathlib import Path; t=(Path(os.environ["PKG_subject"])/"references/paths/atlas-migrate.md").read_text(); need=["explicit `atlas_id`","exactly one store","fail closed","never select by"]; print(json.dumps({"ok":all(x in t for x in need)}))'
+    expect:
+      ok: true
+
   - id: storage-migration-precedes-content-intake
     source: current Atlas migrate contract
     cmd: |
