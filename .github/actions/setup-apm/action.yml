@@ -50,8 +50,8 @@ runs:
         binary_dir="$extract_dir/apm-linux-x86_64"
         chmod 0755 "$binary_dir/apm"
         actual_version="$("$binary_dir/apm" --version)"
-        expected_version="Agent Package Manager (APM) CLI version $APM_VERSION ($APM_BUILD)"
-        if [ "$actual_version" != "$expected_version" ]; then
+        expected_identity="version $APM_VERSION ($APM_BUILD)"
+        if [[ "$actual_version" != *"$expected_identity"* ]]; then
           echo "::error title=APM binary identity mismatch::Downloaded binary did not report the reviewed version and build."
           exit 1
         fi

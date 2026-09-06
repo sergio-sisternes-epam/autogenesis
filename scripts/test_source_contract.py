@@ -75,6 +75,7 @@ class SourceContractTests(unittest.TestCase):
         )
         self.assertLess(action.index("sha256sum"), action.index("tar -xzf"))
         self.assertLess(action.index("tar -xzf"), action.index('"$binary_dir/apm" --version'))
+        self.assertIn('expected_identity="version $APM_VERSION ($APM_BUILD)"', action)
 
     def test_release_uses_isolated_authoritative_tag_and_inherited_secret(self) -> None:
         release = (ROOT / ".github/workflows/release.yml").read_text(
@@ -99,6 +100,15 @@ class SourceContractTests(unittest.TestCase):
         self.assertIn("GITHUB_APM_PAT_SERGIO_SISTERNES_EPAM", ci)
         self.assertIn("Authorization: Bearer $APM_READ_TOKEN", ci)
         self.assertIn("Mutable package source", ci)
+
+    def test_pull_request_jobs_validate_exact_head(self) -> None:
+        ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+
+        candidate = (
+            "${{ inputs.candidate_revision || "
+            "github.event.pull_request.head.sha || github.sha }}"
+        )
+        self.assertGreaterEqual(ci.count(candidate), 8)
 
 
 if __name__ == "__main__":
