@@ -3,3 +3,14 @@ __pycache__/
 .DS_Store
 .last-view-root
 apm_modules/
+.agents/
+.claude/
+.codex/
+.cursor/
+.gemini/
+.grok/
+.kiro/
+.opencode/
+.windsurf/
+atlas-compile.json
+atlas-validate.json
