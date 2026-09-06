@@ -75,7 +75,7 @@ class SourceContractTests(unittest.TestCase):
         )
         self.assertLess(action.index("sha256sum"), action.index("tar -xzf"))
         self.assertLess(action.index("tar -xzf"), action.index('"$binary_dir/apm" --version'))
-        self.assertIn('expected_identity="version $APM_VERSION ($APM_BUILD)"', action)
+        self.assertIn('expected_identity="version $APM_VERSION"', action)
 
     def test_release_uses_isolated_authoritative_tag_and_inherited_secret(self) -> None:
         release = (ROOT / ".github/workflows/release.yml").read_text(
