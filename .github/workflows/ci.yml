@@ -293,7 +293,7 @@ jobs:
       - name: Record candidate decision
         if: always()
         env:
-          CANDIDATE_REVISION: ${{ inputs.candidate_revision || github.sha }}
+          CANDIDATE_REVISION: ${{ inputs.candidate_revision || github.event.pull_request.head.sha || github.sha }}
           CONSUMER_RESULT: ${{ needs.consumer.result }}
           DEPENDENCY_RESULT: ${{ needs.dependencies.result }}
           EVENT_NAME: ${{ github.event_name }}

@@ -108,7 +108,11 @@ class SourceContractTests(unittest.TestCase):
             "${{ inputs.candidate_revision || "
             "github.event.pull_request.head.sha || github.sha }}"
         )
-        self.assertGreaterEqual(ci.count(candidate), 8)
+        self.assertEqual(ci.count(candidate), 9)
+        self.assertNotIn(
+            "${{ inputs.candidate_revision || github.sha }}",
+            ci,
+        )
 
 
 if __name__ == "__main__":
