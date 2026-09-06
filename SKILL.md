@@ -1,13 +1,13 @@
 ---
 name: autogenesis
 description: Use this skill when the user wants to grow an existing skillset from its Atlas experience store, run Autogenesis discipline, or initialise a brand-new skill/package from scratch. Core design process is genesis (fused, never superseded); activation uses path modules with default path design (stops for approval). Triggers on autogenesis, grow skills from references, expand a skillset from Atlas memory, path design, implement, or initialise / create new skill. Do not use for automatic wiring of new skills into parents.
-version: 0.4.0
+version: 0.4.1
 activation_card: on
 ---
 
 # autogenesis
 
-**v0.4.0** (semver). Version history lives in `CHANGELOG.md`.
+**v0.4.1** (semver). Version history lives in `CHANGELOG.md`.
 
 Grows a skillset from its own experience store, or initialises a brand-new package from scratch by fusing full genesis discipline with Autogenesis components.
 

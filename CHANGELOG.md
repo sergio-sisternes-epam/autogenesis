@@ -1,8 +1,38 @@
 # Changelog
 
-All notable changes to this package are documented here. The skill body stays in `SKILL.md`.
+All notable changes to this package are documented here. The format follows
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and releases follow
+[Semantic Versioning](https://semver.org/spec/v2.0.0.html). The skill body stays
+in `SKILL.md`.
 
-## 0.4.0
+## [Unreleased]
+
+## [0.4.1] - 2026-09-06
+
+### Added
+
+- Add local release-candidate automation with checksum-pinned APM setup,
+  stable named CI checks, isolated annotated-tag verification, and
+  re-verification immediately before GitHub Release creation.
+- Add repository-owned offline contract tests and disposable consumer
+  validation for Agent Skills and stable runtime targets.
+
+### Changed
+
+- Pin Atlas `v0.9.0`, OKF `v0.2.1`, Discuss `v0.3.8`, and Think `v0.1.0`
+  as immutable direct dependencies and commit their resolved lock state.
+- Advance the mutable Autogenesis Atlas store gitlink to
+  `56d81a3034b2454520bcc6461a4ff4402a9ba0df`; the mesh intentionally continues
+  to track `main` for governed process-memory evolution.
+- Add deterministic source, dependency, store, consumer, release-readiness,
+  and annotated-tag validation with a tag-triggered GitHub Release workflow.
+- Document the reviewed contribution and release procedure, including the
+  direct OKF invocation contract and its expected different-parent-anchor
+  warning.
+- Treat root direct released pins as authoritative while retaining and
+  reporting the reviewed Atlas-to-OKF and Discuss-to-Atlas anchor divergence.
+
+## [0.4.0]
 
 - **Atlas storage:** process memory now writes home to the active subject
   repository's declared `.atlas/<host>/<org>/<repo>` mount. Autogenesis loads
@@ -64,3 +94,7 @@ All notable changes to this package are documented here. The skill body stays in
 - **validate-okf-conformance:** prefers Atlas store; optional `atlas compile`.
 - **Canonical decision:** `wiki-folder-deletion-policy` — no auto-delete on migrate; human-gated archive removal.
 - **Package metadata:** `apm.yml` deps on atlas + okf (not okf-wiki).
+
+[Unreleased]: https://github.com/sergio-sisternes-epam/autogenesis/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.4.1
+[0.4.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.4.0
