@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -96,6 +97,30 @@ class StoreContractTests(unittest.TestCase):
             ),
             ("atlas_uri_unmounted",),
         )
+
+    def test_atlas_commands_run_from_selected_store(self) -> None:
+        store = Path("/tmp/selected-store")
+        calls: list[Path] = []
+
+        def fake_run_command(args, *, cwd, **kwargs):
+            del kwargs
+            calls.append(cwd)
+            stdout = (
+                "atlas, version 0.9.0"
+                if "--version" in args
+                else '{"ok": true, "critical": [], "warnings": [], '
+                '"staging_count": 0}'
+            )
+            return subprocess.CompletedProcess(args, 0, stdout, "")
+
+        with mock.patch.object(
+            store_contract,
+            "run_command",
+            side_effect=fake_run_command,
+        ):
+            store_contract.run_atlas(Path("/tmp/atlas.py"), store)
+
+        self.assertEqual(calls, [store, store, store])
 
 
 if __name__ == "__main__":

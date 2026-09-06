@@ -140,7 +140,7 @@ def run_atlas(
     allowed = allowed_warnings or set()
     version = run_command(
         ["python3", str(atlas_cli), "--version"],
-        cwd=ROOT,
+        cwd=store,
         timeout=60,
         label="Atlas version check",
     ).stdout
@@ -153,7 +153,7 @@ def run_atlas(
     for command, phase in (("validate", "lint"), ("compile", "compile")):
         completed = run_command(
             ["python3", str(atlas_cli), command, "--root", str(store), "--json"],
-            cwd=ROOT,
+            cwd=store,
             timeout=COMMAND_TIMEOUT_SECONDS,
             label=f"Atlas {phase}",
             check=False,

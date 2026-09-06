@@ -73,6 +73,7 @@ class ValidateConsumerTests(unittest.TestCase):
     def test_root_skill_can_use_local_source_directory_name(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             consumer = Path(directory)
+            contract = validate_consumer.package_contract()
             skill_file = (
                 consumer
                 / ".agents"
@@ -82,13 +83,13 @@ class ValidateConsumerTests(unittest.TestCase):
             )
             skill_file.parent.mkdir(parents=True)
             skill_file.write_text(
-                "---\nname: autogenesis\nversion: 0.4.1\n---\n",
+                f"---\nname: {contract.name}\nversion: {contract.version}\n---\n",
                 encoding="utf-8",
             )
 
             actual = validate_consumer.validate_skill_root(
                 consumer / ".agents" / "skills",
-                validate_consumer.package_contract(),
+                contract,
             )
 
             self.assertEqual(actual, skill_file)
