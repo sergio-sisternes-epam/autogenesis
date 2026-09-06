@@ -92,6 +92,8 @@ class SourceContractTests(unittest.TestCase):
         self.assertIn("EXPECTED_TAG_OBJECT", release)
         self.assertIn("REVERIFIED_TAG_OBJECT", release)
         self.assertIn("--generate-notes", release)
+        self.assertIn('--notes-file "$notes_file"', release)
+        self.assertNotIn('release_notes="$(<"$notes_file")"', release)
 
     def test_private_reads_are_explicitly_credentialed(self) -> None:
         ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")

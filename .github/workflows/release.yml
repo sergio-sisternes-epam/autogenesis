@@ -113,8 +113,7 @@ jobs:
           python3 scripts/release_notes.py \
             --version "$VERSION" \
             --output "$notes_file"
-          release_notes="$(<"$notes_file")"
-          args=(release create "$TAG" --verify-tag --generate-notes --notes "$release_notes" --title "$TAG")
+          args=(release create "$TAG" --verify-tag --generate-notes --notes-file "$notes_file" --title "$TAG")
           if [ "$IS_PRERELEASE" = true ]; then
             args+=(--prerelease)
           else

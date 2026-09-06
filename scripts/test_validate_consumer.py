@@ -25,7 +25,7 @@ class ValidateConsumerTests(unittest.TestCase):
     def write_lock(self, consumer: Path, target: str, source: str) -> None:
         contract = validate_consumer.package_contract()
         root_lines = [
-            "- name: autogenesis",
+            f"- name: {contract.name}",
             f"  version: {contract.version}",
             "  deployed_file_hashes:",
         ]
@@ -98,7 +98,11 @@ class ValidateConsumerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             consumer = Path(directory)
             target = "agent-skills"
-            source = "sergio-sisternes-epam/autogenesis#v0.4.1"
+            contract = validate_consumer.package_contract()
+            source = (
+                "sergio-sisternes-epam/autogenesis"
+                f"#v{contract.version}"
+            )
             self.deploy(consumer, target)
             self.write_lock(consumer, target, source)
             validate_consumer.validate_lock(
