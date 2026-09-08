@@ -56,7 +56,7 @@ class ValidateConsumerTests(unittest.TestCase):
         )[0]
         (consumer / "apm.lock.yaml").write_text(
             "lockfile_version: '1'\n"
-            "apm_version: 0.29.0\n"
+            "apm_version: 0.30.0\n"
             "dependencies:\n"
             + "\n".join(root_lines)
             + "\n"

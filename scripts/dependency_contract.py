@@ -12,7 +12,8 @@ from ci_output import emit_error, emit_warning, print_summary, write_github_outp
 
 
 ROOT = Path(__file__).resolve().parents[1]
-APM_VERSION = "0.29.0"
+APM_VERSION = "0.30.0"
+MARKETPLACE = "sergio-sisternes-epam"
 
 
 @dataclass(frozen=True)
@@ -25,55 +26,41 @@ class Dependency:
 
     @property
     def source(self) -> str:
-        return f"{self.repo}#{self.ref}"
+        return f"{self.name}@{MARKETPLACE}"
 
 
 EXPECTED_DEPENDENCIES = (
     Dependency(
         "atlas",
         "sergio-sisternes-epam/atlas",
-        "v0.9.0",
-        "0.9.0",
-        "2b6659e5440886c7abbd9ad10686fa3a0100813b",
+        "a1074e5dfd8cc8236132e7615063628407e35b6a",
+        "0.9.1",
+        "a1074e5dfd8cc8236132e7615063628407e35b6a",
     ),
     Dependency(
         "okf",
         "sergio-sisternes-epam/okf",
-        "v0.2.1",
+        "5246f7b193b58a32ac8a15fc76aedf37c42b042c",
         "0.2.1",
         "5246f7b193b58a32ac8a15fc76aedf37c42b042c",
     ),
     Dependency(
         "discuss",
         "sergio-sisternes-epam/discuss",
-        "v0.3.8",
-        "0.3.8",
-        "d77c9f9c4c952d327811bfec9cfa764a6c56d1d6",
+        "95b51910378fa8245b67e70a42cbf1be840b620b",
+        "0.3.9",
+        "95b51910378fa8245b67e70a42cbf1be840b620b",
     ),
     Dependency(
         "think",
         "sergio-sisternes-epam/think",
-        "v0.1.0",
+        "874613a67018c74ee95f857416fb315d2f80b92b",
         "0.1.0",
         "874613a67018c74ee95f857416fb315d2f80b92b",
     ),
 )
 
-KNOWN_ANCHOR_DIVERGENCES = (
-    (
-        "atlas-okf-anchor",
-        "Atlas v0.9.0 pins OKF commit "
-        "9088a99a613d9ccc53ec2a15341714139291633f while the root directly "
-        "pins released OKF v0.2.1 at "
-        "5246f7b193b58a32ac8a15fc76aedf37c42b042c",
-    ),
-    (
-        "discuss-atlas-anchor",
-        "Discuss v0.3.8 pins Atlas v0.8.15 while the root directly pins "
-        "released Atlas v0.9.0 at "
-        "2b6659e5440886c7abbd9ad10686fa3a0100813b",
-    ),
-)
+KNOWN_ANCHOR_DIVERGENCES: tuple[tuple[str, str], ...] = ()
 
 
 class DependencyContractError(RuntimeError):
@@ -83,14 +70,25 @@ class DependencyContractError(RuntimeError):
 def manifest_sources(root: Path = ROOT) -> tuple[str, ...]:
     content = (root / "apm.yml").read_text(encoding="utf-8")
     match = re.search(
-        r"(?ms)^dependencies:\s*\n\s+apm:\s*\n(?P<body>(?:\s+-[^\n]+\n?)+)",
+        r"(?ms)^dependencies:\s*\n\s+apm:\s*\n(?P<body>.*)",
         content,
     )
     if not match:
         raise DependencyContractError("apm.yml: dependencies.apm is missing")
+    body = match.group("body")
+    names = re.findall(r"(?m)^\s+-\s+name:\s+(\S+)\s*$", body)
+    marketplaces = re.findall(r"(?m)^\s+marketplace:\s+(\S+)\s*$", body)
+    if not names or len(names) != len(marketplaces):
+        raise DependencyContractError(
+            "apm.yml: dependencies.apm must use name+marketplace object form"
+        )
+    if any(marketplace != MARKETPLACE for marketplace in marketplaces):
+        raise DependencyContractError(
+            f"apm.yml: marketplace must be {MARKETPLACE}"
+        )
     return tuple(
-        value.strip()
-        for value in re.findall(r"(?m)^\s+-\s+(\S+)\s*$", match.group("body"))
+        f"{name}@{marketplace}"
+        for name, marketplace in zip(names, marketplaces)
     )
 
 

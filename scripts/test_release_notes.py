@@ -9,10 +9,10 @@ import release_notes
 
 class ReleaseNotesTests(unittest.TestCase):
     def test_current_release_has_curated_notes(self) -> None:
-        notes = release_notes.release_notes("0.4.1")
-        self.assertTrue(notes.startswith("### Added"))
-        self.assertIn("checksum-pinned APM setup", notes)
-        self.assertNotIn("## [0.4.0]", notes)
+        notes = release_notes.release_notes("0.4.2")
+        self.assertTrue(notes.startswith("### Changed"))
+        self.assertIn("marketplace objects", notes)
+        self.assertNotIn("## [0.4.1]", notes)
 
     def test_missing_release_is_rejected(self) -> None:
         with self.assertRaisesRegex(ValueError, "release notes not found"):

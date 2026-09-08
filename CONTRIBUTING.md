@@ -6,7 +6,7 @@
 |---|---|---|
 | Git | 2.x | Source and gitlink verification |
 | Python | 3.12 | Repository-owned checks |
-| APM CLI | 0.29.0 (`b75a02b1c`) | Frozen install and audit |
+| APM CLI | 0.30.0 (`8c2e0d9`) | Frozen install and audit |
 
 The private repositories used by this package require a read-only token with
 Metadata and Contents read access. Export it locally without writing it to a
@@ -23,10 +23,13 @@ secret named `APM_READ_TOKEN` and fails closed when it is absent.
 ## Repository contract
 
 The package root contains `SKILL.md` and `apm.yml`. Direct dependency refs in
-`apm.yml` are released tags and their exact resolutions are committed in
-`apm.lock.yaml`. The lock is generated state: commit it, but never edit it by
-hand. `apm_modules/` and harness deployment directories are disposable and
-must remain untracked.
+`apm.yml` are marketplace objects (`name` + `marketplace:
+sergio-sisternes-epam`). APM 0.30.0 rejects `package@marketplace` string
+shorthand in the manifest (it is parsed as an unsupported alias). Catalog
+entries resolve to released tags, and their exact resolutions are committed
+in `apm.lock.yaml`. The lock is generated state: commit it, but never edit
+it by hand. `apm_modules/` and harness deployment directories are disposable
+and must remain untracked.
 
 The Autogenesis Atlas uses mutable `main` semantics in `.gitmodules` and
 `atlas-mesh.json`; the gitlink itself must match the reviewed commit. Updating
@@ -43,13 +46,20 @@ python3 scripts/dependency_contract.py
 python3 scripts/store_contract.py
 ```
 
-With the private read credential configured, replay the exact dependency lock
-and audit source:
+With the private read credential configured, register the catalog (required
+`--name`; do not use alias `me` or default `apm-marketplace`), then replay
+the exact dependency lock and audit source:
 
 ```text
-apm install --frozen --dry-run --target agent-skills --no-policy
+apm marketplace add sergio-sisternes-epam/apm-marketplace --name sergio-sisternes-epam
+apm lock --no-policy --target agent-skills
 python3 scripts/audit_source.py --jobs 8
 ```
+
+APM 0.30.0 `apm install --frozen` compares marketplace placeholder keys
+(`_marketplace/sergio-sisternes-epam/<name>`) to resolved git lock keys and
+cannot validate this manifest. Replay with `apm lock` and require the
+committed lock to stay byte-identical.
 
 For the complete consumer checks:
 
@@ -64,17 +74,16 @@ green APM audit. Transitive dependency skills are expected and permitted.
 
 ## Reviewed dependency divergence
 
-Do not remove direct OKF: two Autogenesis modules invoke it directly. Atlas
-v0.9.0's OKF commit anchor differs from root OKF v0.2.1, and Discuss v0.3.8's
-Atlas v0.8.15 anchor differs from root Atlas v0.9.0. The root direct released
-pins are authoritative. CI reports these two warnings; it does not suppress
-them. Any new divergence requires an explicit dependency review.
+Do not remove direct OKF: two Autogenesis modules invoke it directly.
+Catalog Atlas v0.9.1 and Discuss v0.3.9 now resolve nested OKF/Atlas through
+the same marketplace pins as this root. There are no reviewed graph
+divergences. Any new divergence requires an explicit dependency review.
 
 ## Release handoff
 
 1. Keep `apm.yml`, `SKILL.md`, both README install commands, the bug-report
    example, the current changelog section, and changelog links on one version.
-2. Regenerate `apm.lock.yaml` with APM 0.29.0 only when dependency declarations
+2. Regenerate `apm.lock.yaml` with APM 0.30.0 only when dependency declarations
    change, then verify every expected commit.
 3. Run the local checks and obtain normal review before merge.
 4. After merge, manually dispatch **Autogenesis CI** with the exact current

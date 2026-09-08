@@ -40,9 +40,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  APM_VERSION: "0.29.0"
-  APM_BUILD: "b75a02b1c"
-  APM_LINUX_X64_SHA256: "53c98c50f436a8b5ac1d6a3cf443f94d29ed1e5385af52859cf1b1b512f71578"
+  APM_VERSION: "0.30.0"
+  APM_BUILD: "8c2e0d9"
+  APM_LINUX_X64_SHA256: "8b84bebf19c350faf36d21aebb350dc656d04c0b7a1c2bf8ea35c0caa0e44bb9"
 
 jobs:
   metadata:
@@ -136,16 +136,24 @@ jobs:
           archive-sha256: ${{ env.APM_LINUX_X64_SHA256 }}
       - name: Verify exact dependency source and lock contract
         run: python3 scripts/dependency_contract.py
+      - name: Register Autogenesis catalog
+        env:
+          GITHUB_APM_PAT_SERGIO_SISTERNES_EPAM: ${{ secrets.APM_READ_TOKEN }}
+        run: apm marketplace add sergio-sisternes-epam/apm-marketplace --name sergio-sisternes-epam
       - name: Replay committed dependency lock
         env:
           GITHUB_APM_PAT_SERGIO_SISTERNES_EPAM: ${{ secrets.APM_READ_TOKEN }}
         run: |
           set -euo pipefail
           before="$(sha256sum apm.lock.yaml | awk '{print $1}')"
-          apm install --frozen --dry-run --target agent-skills --no-policy
+          # APM 0.30.0 --frozen compares marketplace placeholder keys
+          # (_marketplace/<catalog>/<name>) to resolved git lock keys, so it
+          # cannot validate this manifest. Replay with `apm lock` instead and
+          # require a byte-identical lock.
+          apm lock --no-policy --target agent-skills
           after="$(sha256sum apm.lock.yaml | awk '{print $1}')"
           if [ "$before" != "$after" ]; then
-            echo "::error title=Frozen lock mutation::apm install --frozen --dry-run changed apm.lock.yaml."
+            echo "::error title=Lock replay mutation::apm lock changed apm.lock.yaml."
             exit 1
           fi
           git diff --exit-code -- apm.yml apm.lock.yaml
@@ -250,6 +258,10 @@ jobs:
           version: ${{ env.APM_VERSION }}
           build: ${{ env.APM_BUILD }}
           archive-sha256: ${{ env.APM_LINUX_X64_SHA256 }}
+      - name: Register Autogenesis catalog
+        env:
+          GITHUB_APM_PAT_SERGIO_SISTERNES_EPAM: ${{ secrets.APM_READ_TOKEN }}
+        run: apm marketplace add sergio-sisternes-epam/apm-marketplace --name sergio-sisternes-epam
       - name: Install and replay in a disposable consumer
         env:
           EXPECTED_REVISION: ${{ inputs.candidate_revision }}
