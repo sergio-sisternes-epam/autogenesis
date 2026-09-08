@@ -4,22 +4,22 @@ dependencies:
 - repo_url: sergio-sisternes-epam/atlas
   name: atlas
   host: github.com
-  resolved_commit: 2b6659e5440886c7abbd9ad10686fa3a0100813b
-  resolved_ref: 2b6659e5440886c7abbd9ad10686fa3a0100813b
-  version: 0.9.0
+  resolved_commit: a1074e5dfd8cc8236132e7615063628407e35b6a
+  resolved_ref: a1074e5dfd8cc8236132e7615063628407e35b6a
+  version: 0.9.1
   package_type: hybrid
-  content_hash: sha256:82a66b5d2b629c4ba0930426f3268f689bdd15578687ebbd9e39cd85afdfe400
+  content_hash: sha256:f5f70b6a0bbb8bc5a6117bad0d3dceb02f433eb61d2941e2e7a37e2836b37504
   discovered_via: sergio-sisternes-epam
   marketplace_plugin_name: atlas
   declared_license: Apache-2.0
 - repo_url: sergio-sisternes-epam/discuss
   name: discuss
   host: github.com
-  resolved_commit: d77c9f9c4c952d327811bfec9cfa764a6c56d1d6
-  resolved_ref: d77c9f9c4c952d327811bfec9cfa764a6c56d1d6
-  version: 0.3.8
+  resolved_commit: 95b51910378fa8245b67e70a42cbf1be840b620b
+  resolved_ref: 95b51910378fa8245b67e70a42cbf1be840b620b
+  version: 0.3.9
   package_type: hybrid
-  content_hash: sha256:0fbb6ced43cd6015d7d4e3457dc05e973a44cdeb0e193133d2074ff869811ba0
+  content_hash: sha256:ebfcde07bab0059787f83e343f20a4718a4c62711c913d777124f975e74981cb
   discovered_via: sergio-sisternes-epam
   marketplace_plugin_name: discuss
   declared_license: Apache-2.0

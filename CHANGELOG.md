@@ -13,9 +13,10 @@ in `SKILL.md`.
 
 - Declare Atlas, OKF, Discuss, and Think as marketplace objects
   (`name` + `marketplace: sergio-sisternes-epam`; equivalent to
-  `package@sergio-sisternes-epam`) while keeping the same released package
-  versions and commits. APM 0.30.0 rejects the string shorthand in
-  `apm.yml`; catalog `source.ref` values are the peeled release commits,
+  `package@sergio-sisternes-epam`). Lock catalog Atlas `v0.9.1`
+  (`a1074e5`), Discuss `v0.3.9` (`95b5191`), OKF `v0.2.1` (`5246f7b`),
+  and Think `v0.1.0` (`874613a`). APM 0.30.0 rejects the string shorthand
+  in `apm.yml`; catalog `source.ref` values are the peeled release commits,
   so the lock records those SHAs as `resolved_ref`.
 - Register catalog `sergio-sisternes-epam` before lock replay and
   consumer validation so marketplace refs resolve in CI. Replay the
