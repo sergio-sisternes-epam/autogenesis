@@ -17,14 +17,14 @@ class SourceContractTests(unittest.TestCase):
         ignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
         agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
         self.assertIn("name: autogenesis\n", manifest)
-        self.assertIn("version: 0.4.1\n", manifest)
+        self.assertIn("version: 0.4.2\n", manifest)
         self.assertIn("license: Apache-2.0\n", manifest)
         self.assertIn(
             "repository: https://github.com/sergio-sisternes-epam/autogenesis\n",
             manifest,
         )
         self.assertIn("name: autogenesis\n", skill)
-        self.assertIn("version: 0.4.1\n", skill)
+        self.assertIn("version: 0.4.2\n", skill)
         self.assertTrue((ROOT / "apm.lock.yaml").is_file())
         self.assertIn("apm_modules/", ignore)
         self.assertIn("Commit `apm.lock.yaml`", agents)
@@ -67,10 +67,10 @@ class SourceContractTests(unittest.TestCase):
             encoding="utf-8"
         )
         ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
-        self.assertIn("0.29.0", action)
-        self.assertIn("b75a02b1c", action)
+        self.assertIn("0.30.0", action)
+        self.assertIn("8c2e0d9", action)
         self.assertIn(
-            "53c98c50f436a8b5ac1d6a3cf443f94d29ed1e5385af52859cf1b1b512f71578",
+            "8b84bebf19c350faf36d21aebb350dc656d04c0b7a1c2bf8ea35c0caa0e44bb9",
             ci,
         )
         self.assertLess(action.index("sha256sum"), action.index("tar -xzf"))

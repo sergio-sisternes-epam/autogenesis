@@ -1,41 +1,48 @@
 lockfile_version: '1'
-generated_at: '2026-09-06T00:53:55.592841+00:00'
-apm_version: 0.29.0
+apm_version: 0.30.0
 dependencies:
 - repo_url: sergio-sisternes-epam/atlas
   name: atlas
   host: github.com
   resolved_commit: 2b6659e5440886c7abbd9ad10686fa3a0100813b
-  resolved_ref: v0.9.0
+  resolved_ref: 2b6659e5440886c7abbd9ad10686fa3a0100813b
   version: 0.9.0
   package_type: hybrid
   content_hash: sha256:82a66b5d2b629c4ba0930426f3268f689bdd15578687ebbd9e39cd85afdfe400
+  discovered_via: sergio-sisternes-epam
+  marketplace_plugin_name: atlas
   declared_license: Apache-2.0
 - repo_url: sergio-sisternes-epam/discuss
   name: discuss
   host: github.com
   resolved_commit: d77c9f9c4c952d327811bfec9cfa764a6c56d1d6
-  resolved_ref: v0.3.8
+  resolved_ref: d77c9f9c4c952d327811bfec9cfa764a6c56d1d6
   version: 0.3.8
   package_type: hybrid
   content_hash: sha256:0fbb6ced43cd6015d7d4e3457dc05e973a44cdeb0e193133d2074ff869811ba0
+  discovered_via: sergio-sisternes-epam
+  marketplace_plugin_name: discuss
   declared_license: Apache-2.0
 - repo_url: sergio-sisternes-epam/okf
   name: okf
   host: github.com
   resolved_commit: 5246f7b193b58a32ac8a15fc76aedf37c42b042c
-  resolved_ref: v0.2.1
+  resolved_ref: 5246f7b193b58a32ac8a15fc76aedf37c42b042c
   version: 0.2.1
   package_type: hybrid
   content_hash: sha256:48d5e79752e6a448975da0fef2981938f7c6149810e30aca805a77cf123a10d8
+  discovered_via: sergio-sisternes-epam
+  marketplace_plugin_name: okf
   declared_license: Apache-2.0
 - repo_url: sergio-sisternes-epam/think
   name: think
   host: github.com
   resolved_commit: 874613a67018c74ee95f857416fb315d2f80b92b
-  resolved_ref: v0.1.0
+  resolved_ref: 874613a67018c74ee95f857416fb315d2f80b92b
   version: 0.1.0
   package_type: apm_package
   content_hash: sha256:ebeffcdcbe7a1e62bf877b4f5954dc890cff3e5b371723f83130b5d984e1f455
+  discovered_via: sergio-sisternes-epam
+  marketplace_plugin_name: think
   declared_license: Apache-2.0
 deployments: []

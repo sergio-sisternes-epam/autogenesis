@@ -13,8 +13,13 @@ class DependencyContractTests(unittest.TestCase):
 
     def test_all_direct_refs_are_released_tags(self) -> None:
         for dependency in dependency_contract.EXPECTED_DEPENDENCIES:
-            self.assertRegex(dependency.ref, r"^v[0-9]+\.[0-9]+\.[0-9]+$")
+            self.assertEqual(
+                dependency.source,
+                f"{dependency.name}@{dependency_contract.MARKETPLACE}",
+            )
+            self.assertRegex(dependency.version, r"^[0-9]+\.[0-9]+\.[0-9]+$")
             self.assertRegex(dependency.commit, r"^[0-9a-f]{40}$")
+            self.assertEqual(dependency.ref, dependency.commit)
 
     def test_lock_commit_drift_is_rejected(self) -> None:
         content = (dependency_contract.ROOT / "apm.lock.yaml").read_text(

@@ -7,6 +7,23 @@ in `SKILL.md`.
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-09-08
+
+### Changed
+
+- Declare Atlas, OKF, Discuss, and Think as marketplace objects
+  (`name` + `marketplace: sergio-sisternes-epam`; equivalent to
+  `package@sergio-sisternes-epam`) while keeping the same released package
+  versions and commits. APM 0.30.0 rejects the string shorthand in
+  `apm.yml`; catalog `source.ref` values are the peeled release commits,
+  so the lock records those SHAs as `resolved_ref`.
+- Register catalog `sergio-sisternes-epam` before lock replay and
+  consumer validation so marketplace refs resolve in CI. Replay the
+  committed lock with `apm lock` because APM 0.30.0 `--frozen` cannot
+  match marketplace placeholder keys to resolved git lock keys.
+- Pin the reviewed APM CLI to 0.30.0 (`8c2e0d9`) with checksum
+  `8b84bebf19c350faf36d21aebb350dc656d04c0b7a1c2bf8ea35c0caa0e44bb9`.
+
 ## [0.4.1] - 2026-09-06
 
 ### Added
@@ -95,6 +112,7 @@ in `SKILL.md`.
 - **Canonical decision:** `wiki-folder-deletion-policy` — no auto-delete on migrate; human-gated archive removal.
 - **Package metadata:** `apm.yml` deps on atlas + okf (not okf-wiki).
 
-[Unreleased]: https://github.com/sergio-sisternes-epam/autogenesis/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/sergio-sisternes-epam/autogenesis/compare/v0.4.2...HEAD
+[0.4.2]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.4.2
 [0.4.1]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.4.1
 [0.4.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.4.0

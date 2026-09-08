@@ -12,7 +12,7 @@ and `references/` are authoritative package source. Do not introduce a
 - `references/`: skill-relative path modules, internal modules, scenarios, and
   templates.
 - `apm.yml`: package metadata and immutable direct dependency pins.
-- `apm.lock.yaml`: committed APM 0.29.0 dependency resolution.
+- `apm.lock.yaml`: committed APM 0.30.0 dependency resolution.
 - `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas`: mutable-main
   store gitlink, checked out at the reviewed commit.
 - `atlas-mesh.json` and `.gitmodules`: mutable store identity/configuration.

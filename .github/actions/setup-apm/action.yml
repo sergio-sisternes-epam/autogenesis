@@ -27,8 +27,8 @@ runs:
           echo "::error title=Unsupported runner::Verified APM setup supports Linux X64 only."
           exit 1
         fi
-        if [ "$APM_VERSION" != 0.29.0 ] || [ "$APM_BUILD" != b75a02b1c ]; then
-          echo "::error title=Unexpected APM pin::This action is reviewed only for APM 0.29.0 (b75a02b1c)."
+        if [ "$APM_VERSION" != 0.30.0 ] || [ "$APM_BUILD" != 8c2e0d9 ]; then
+          echo "::error title=Unexpected APM pin::This action is reviewed only for APM 0.30.0 (8c2e0d9)."
           exit 1
         fi
 
