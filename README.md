@@ -69,25 +69,19 @@ released pins:
 
 | Direct package | Marketplace ref | Released pin | Resolved commit |
 |---|---|---|---|
-| Atlas | `atlas@sergio-sisternes-epam` | `v0.9.0` | `2b6659e5440886c7abbd9ad10686fa3a0100813b` |
+| Atlas | `atlas@sergio-sisternes-epam` | `v0.9.1` | `a1074e5dfd8cc8236132e7615063628407e35b6a` |
 | OKF | `okf@sergio-sisternes-epam` | `v0.2.1` | `5246f7b193b58a32ac8a15fc76aedf37c42b042c` |
-| Discuss | `discuss@sergio-sisternes-epam` | `v0.3.8` | `d77c9f9c4c952d327811bfec9cfa764a6c56d1d6` |
+| Discuss | `discuss@sergio-sisternes-epam` | `v0.3.9` | `95b51910378fa8245b67e70a42cbf1be840b620b` |
 | Think | `think@sergio-sisternes-epam` | `v0.1.0` | `874613a67018c74ee95f857416fb315d2f80b92b` |
 
 OKF remains a direct dependency because
 `references/modules/workflow-discipline.md` and
 `references/modules/validate-okf-conformance.md` invoke it directly.
 
-Two anchor warnings are expected and reviewed, not suppressed:
-
-- Atlas v0.9.0 pins OKF commit
-  `9088a99a613d9ccc53ec2a15341714139291633f`, while this root pins released
-  OKF v0.2.1 at `5246f7b193b58a32ac8a15fc76aedf37c42b042c`.
-- Discuss v0.3.8 pins Atlas v0.8.15, while this root pins released Atlas
-  v0.9.0 at `2b6659e5440886c7abbd9ad10686fa3a0100813b`.
-
-The root direct released pins are authoritative. Any other graph warning or
-resolved commit is a release blocker.
+Catalog Atlas v0.9.1 and Discuss v0.3.9 resolve nested OKF/Atlas through
+the same marketplace pins as this root, so there are no reviewed graph
+divergences. Any graph warning or unexpected resolved commit is a release
+blocker.
 
 ## Release process
 

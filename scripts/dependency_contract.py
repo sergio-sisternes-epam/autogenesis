@@ -33,9 +33,9 @@ EXPECTED_DEPENDENCIES = (
     Dependency(
         "atlas",
         "sergio-sisternes-epam/atlas",
-        "2b6659e5440886c7abbd9ad10686fa3a0100813b",
-        "0.9.0",
-        "2b6659e5440886c7abbd9ad10686fa3a0100813b",
+        "a1074e5dfd8cc8236132e7615063628407e35b6a",
+        "0.9.1",
+        "a1074e5dfd8cc8236132e7615063628407e35b6a",
     ),
     Dependency(
         "okf",
@@ -47,9 +47,9 @@ EXPECTED_DEPENDENCIES = (
     Dependency(
         "discuss",
         "sergio-sisternes-epam/discuss",
-        "d77c9f9c4c952d327811bfec9cfa764a6c56d1d6",
-        "0.3.8",
-        "d77c9f9c4c952d327811bfec9cfa764a6c56d1d6",
+        "95b51910378fa8245b67e70a42cbf1be840b620b",
+        "0.3.9",
+        "95b51910378fa8245b67e70a42cbf1be840b620b",
     ),
     Dependency(
         "think",
@@ -60,21 +60,7 @@ EXPECTED_DEPENDENCIES = (
     ),
 )
 
-KNOWN_ANCHOR_DIVERGENCES = (
-    (
-        "atlas-okf-anchor",
-        "Atlas v0.9.0 pins OKF commit "
-        "9088a99a613d9ccc53ec2a15341714139291633f while the root directly "
-        "pins released OKF v0.2.1 at "
-        "5246f7b193b58a32ac8a15fc76aedf37c42b042c",
-    ),
-    (
-        "discuss-atlas-anchor",
-        "Discuss v0.3.8 pins Atlas v0.8.15 while the root directly pins "
-        "released Atlas v0.9.0 at "
-        "2b6659e5440886c7abbd9ad10686fa3a0100813b",
-    ),
-)
+KNOWN_ANCHOR_DIVERGENCES: tuple[tuple[str, str], ...] = ()
 
 
 class DependencyContractError(RuntimeError):

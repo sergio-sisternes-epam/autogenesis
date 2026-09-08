@@ -74,11 +74,10 @@ green APM audit. Transitive dependency skills are expected and permitted.
 
 ## Reviewed dependency divergence
 
-Do not remove direct OKF: two Autogenesis modules invoke it directly. Atlas
-v0.9.0's OKF commit anchor differs from root OKF v0.2.1, and Discuss v0.3.8's
-Atlas v0.8.15 anchor differs from root Atlas v0.9.0. The root direct released
-pins are authoritative. CI reports these two warnings; it does not suppress
-them. Any new divergence requires an explicit dependency review.
+Do not remove direct OKF: two Autogenesis modules invoke it directly.
+Catalog Atlas v0.9.1 and Discuss v0.3.9 now resolve nested OKF/Atlas through
+the same marketplace pins as this root. There are no reviewed graph
+divergences. Any new divergence requires an explicit dependency review.
 
 ## Release handoff
 
