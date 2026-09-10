@@ -36,8 +36,8 @@ class DependencyContractTests(unittest.TestCase):
     def test_known_anchor_warnings_are_exact_and_documented(self) -> None:
         self.assertEqual(dependency_contract.KNOWN_ANCHOR_DIVERGENCES, ())
         readme = (dependency_contract.ROOT / "README.md").read_text(encoding="utf-8")
-        self.assertIn("a1074e5dfd8cc8236132e7615063628407e35b6a", readme)
-        self.assertIn("95b51910378fa8245b67e70a42cbf1be840b620b", readme)
+        self.assertIn("579e8090273ce991ea0717abed0775dc03f28de2", readme)
+        self.assertIn("c1c0936d9a0346dce7d877646046c918de335d69", readme)
         self.assertNotIn("9088a99a613d9ccc53ec2a15341714139291633f", readme)
         self.assertNotIn("expected and reviewed, not suppressed", readme)
 

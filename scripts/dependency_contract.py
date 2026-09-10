@@ -13,7 +13,7 @@ from ci_output import emit_error, emit_warning, print_summary, write_github_outp
 
 ROOT = Path(__file__).resolve().parents[1]
 APM_VERSION = "0.30.0"
-MARKETPLACE = "sergio-sisternes-epam"
+MARKETPLACE = "atlas"
 
 
 @dataclass(frozen=True)
@@ -33,9 +33,9 @@ EXPECTED_DEPENDENCIES = (
     Dependency(
         "atlas",
         "sergio-sisternes-epam/atlas",
-        "a1074e5dfd8cc8236132e7615063628407e35b6a",
-        "0.9.1",
-        "a1074e5dfd8cc8236132e7615063628407e35b6a",
+        "579e8090273ce991ea0717abed0775dc03f28de2",
+        "0.11.2",
+        "579e8090273ce991ea0717abed0775dc03f28de2",
     ),
     Dependency(
         "okf",
@@ -47,9 +47,9 @@ EXPECTED_DEPENDENCIES = (
     Dependency(
         "discuss",
         "sergio-sisternes-epam/discuss",
-        "95b51910378fa8245b67e70a42cbf1be840b620b",
-        "0.3.9",
-        "95b51910378fa8245b67e70a42cbf1be840b620b",
+        "c1c0936d9a0346dce7d877646046c918de335d69",
+        "0.3.10",
+        "c1c0936d9a0346dce7d877646046c918de335d69",
     ),
     Dependency(
         "think",

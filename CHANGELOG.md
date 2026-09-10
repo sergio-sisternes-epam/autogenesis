@@ -7,6 +7,17 @@ in `SKILL.md`.
 
 ## [Unreleased]
 
+## [0.4.3] - 2026-09-10
+
+### Changed
+
+- Resolve Atlas, OKF, Discuss, and Think through marketplace `atlas`
+  (`name` + `marketplace: atlas`; install identifiers `pkg@atlas`).
+  Lock catalog Atlas `v0.11.2` (`579e809`), Discuss `v0.3.10` (`c1c0936`),
+  OKF `v0.2.1` (`5246f7b`), and Think `v0.1.0` (`874613a`). Consumers
+  register with
+  `apm marketplace add sergio-sisternes-epam/atlas-marketplace --name atlas`.
+
 ## [0.4.2] - 2026-09-08
 
 ### Changed
@@ -113,7 +124,8 @@ in `SKILL.md`.
 - **Canonical decision:** `wiki-folder-deletion-policy` — no auto-delete on migrate; human-gated archive removal.
 - **Package metadata:** `apm.yml` deps on atlas + okf (not okf-wiki).
 
-[Unreleased]: https://github.com/sergio-sisternes-epam/autogenesis/compare/v0.4.2...HEAD
+[Unreleased]: https://github.com/sergio-sisternes-epam/autogenesis/compare/v0.4.3...HEAD
+[0.4.3]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.4.3
 [0.4.2]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.4.2
 [0.4.1]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.4.1
 [0.4.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.4.0
