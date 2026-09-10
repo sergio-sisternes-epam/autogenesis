@@ -139,7 +139,7 @@ jobs:
       - name: Register Autogenesis catalog
         env:
           GITHUB_APM_PAT_SERGIO_SISTERNES_EPAM: ${{ secrets.APM_READ_TOKEN }}
-        run: apm marketplace add sergio-sisternes-epam/apm-marketplace --name sergio-sisternes-epam
+        run: apm marketplace add sergio-sisternes-epam/atlas-marketplace --name atlas
       - name: Replay committed dependency lock
         env:
           GITHUB_APM_PAT_SERGIO_SISTERNES_EPAM: ${{ secrets.APM_READ_TOKEN }}
@@ -261,7 +261,7 @@ jobs:
       - name: Register Autogenesis catalog
         env:
           GITHUB_APM_PAT_SERGIO_SISTERNES_EPAM: ${{ secrets.APM_READ_TOKEN }}
-        run: apm marketplace add sergio-sisternes-epam/apm-marketplace --name sergio-sisternes-epam
+        run: apm marketplace add sergio-sisternes-epam/atlas-marketplace --name atlas
       - name: Install and replay in a disposable consumer
         env:
           EXPECTED_REVISION: ${{ inputs.candidate_revision }}

@@ -24,7 +24,7 @@ secret named `APM_READ_TOKEN` and fails closed when it is absent.
 
 The package root contains `SKILL.md` and `apm.yml`. Direct dependency refs in
 `apm.yml` are marketplace objects (`name` + `marketplace:
-sergio-sisternes-epam`). APM 0.30.0 rejects `package@marketplace` string
+atlas`). APM 0.30.0 rejects `package@marketplace` string
 shorthand in the manifest (it is parsed as an unsupported alias). Catalog
 entries resolve to released tags, and their exact resolutions are committed
 in `apm.lock.yaml`. The lock is generated state: commit it, but never edit
@@ -47,17 +47,17 @@ python3 scripts/store_contract.py
 ```
 
 With the private read credential configured, register the catalog (required
-`--name`; do not use alias `me` or default `apm-marketplace`), then replay
+`--name`; do not use alias `me` or default `atlas-marketplace`), then replay
 the exact dependency lock and audit source:
 
 ```text
-apm marketplace add sergio-sisternes-epam/apm-marketplace --name sergio-sisternes-epam
+apm marketplace add sergio-sisternes-epam/atlas-marketplace --name atlas
 apm lock --no-policy --target agent-skills
 python3 scripts/audit_source.py --jobs 8
 ```
 
 APM 0.30.0 `apm install --frozen` compares marketplace placeholder keys
-(`_marketplace/sergio-sisternes-epam/<name>`) to resolved git lock keys and
+(`_marketplace/atlas/<name>`) to resolved git lock keys and
 cannot validate this manifest. Replay with `apm lock` and require the
 committed lock to stay byte-identical.
 
@@ -75,7 +75,7 @@ green APM audit. Transitive dependency skills are expected and permitted.
 ## Reviewed dependency divergence
 
 Do not remove direct OKF: two Autogenesis modules invoke it directly.
-Catalog Atlas v0.9.1 and Discuss v0.3.9 now resolve nested OKF/Atlas through
+Catalog Atlas v0.11.2 and Discuss v0.3.10 now resolve nested OKF/Atlas through
 the same marketplace pins as this root. There are no reviewed graph
 divergences. Any new divergence requires an explicit dependency review.
 

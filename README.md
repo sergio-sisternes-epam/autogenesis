@@ -3,16 +3,16 @@
 Private root-skill APM package (`SKILL.md` + `apm.yml` at the repository
 root): `sergio-sisternes-epam/autogenesis`.
 
-Install the immutable v0.4.2 release for the portable Agent Skills target:
+Install the immutable v0.4.3 release for the portable Agent Skills target:
 
 ```text
-apm install sergio-sisternes-epam/autogenesis#v0.4.2 --target agent-skills
+apm install sergio-sisternes-epam/autogenesis#v0.4.3 --target agent-skills
 ```
 
 Or validate/deploy across the supported stable runtime profile:
 
 ```text
-apm install sergio-sisternes-epam/autogenesis#v0.4.2 --target claude,codex,copilot,cursor,gemini,grok-build,kiro,opencode,windsurf
+apm install sergio-sisternes-epam/autogenesis#v0.4.3 --target claude,codex,copilot,cursor,gemini,grok-build,kiro,opencode,windsurf
 ```
 
 Autogenesis is validated with APM CLI 0.30.0 (`8c2e0d9`). The package is
@@ -37,7 +37,7 @@ python3 <atlas-skill>/scripts/atlas.py resolve github.com/sergio-sisternes-epam/
 
 Default mount and compile/query root:
 `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas`.
-The package source and dependency graph are immutable at `v0.4.2`, while the
+The package source and dependency graph are immutable at `v0.4.3`, while the
 store intentionally retains mutable `main` semantics in `.gitmodules` and
 `atlas-mesh.json`. This repository records the reviewed store snapshot as
 gitlink `56d81a3034b2454520bcc6461a4ff4402a9ba0df`; later store movement is a
@@ -62,23 +62,23 @@ that has not migrated fails closed with an actionable error.
 
 ## Dependency contract
 
-`apm.lock.yaml` is committed and is the reproducible v0.4.2 dependency
+`apm.lock.yaml` is committed and is the reproducible v0.4.3 dependency
 contract. Direct dependencies are declared as marketplace objects on
-`sergio-sisternes-epam` (`name` + `marketplace`) and resolve to the same
+`atlas` (`name` + `marketplace`) and resolve to the same
 released pins:
 
 | Direct package | Marketplace ref | Released pin | Resolved commit |
 |---|---|---|---|
-| Atlas | `atlas@sergio-sisternes-epam` | `v0.9.1` | `a1074e5dfd8cc8236132e7615063628407e35b6a` |
-| OKF | `okf@sergio-sisternes-epam` | `v0.2.1` | `5246f7b193b58a32ac8a15fc76aedf37c42b042c` |
-| Discuss | `discuss@sergio-sisternes-epam` | `v0.3.9` | `95b51910378fa8245b67e70a42cbf1be840b620b` |
-| Think | `think@sergio-sisternes-epam` | `v0.1.0` | `874613a67018c74ee95f857416fb315d2f80b92b` |
+| Atlas | `atlas@atlas` | `v0.11.2` | `579e8090273ce991ea0717abed0775dc03f28de2` |
+| OKF | `okf@atlas` | `v0.2.1` | `5246f7b193b58a32ac8a15fc76aedf37c42b042c` |
+| Discuss | `discuss@atlas` | `v0.3.10` | `c1c0936d9a0346dce7d877646046c918de335d69` |
+| Think | `think@atlas` | `v0.1.0` | `874613a67018c74ee95f857416fb315d2f80b92b` |
 
 OKF remains a direct dependency because
 `references/modules/workflow-discipline.md` and
 `references/modules/validate-okf-conformance.md` invoke it directly.
 
-Catalog Atlas v0.9.1 and Discuss v0.3.9 resolve nested OKF/Atlas through
+Catalog Atlas v0.11.2 and Discuss v0.3.10 resolve nested OKF/Atlas through
 the same marketplace pins as this root, so there are no reviewed graph
 divergences. Any graph warning or unexpected resolved commit is a release
 blocker.
@@ -106,12 +106,12 @@ See `CONTRIBUTING.md` for the local commands and approval boundaries.
 
 ## Update a global APM consumer
 
-Do **not** update any global consumer yet. After v0.4.2 has been merged and
+Do **not** update any global consumer yet. After v0.4.3 has been merged and
 released, and only with explicit approval:
 
 1. Back up `~/.apm/apm.yml` and `~/.apm/apm.lock.yaml`.
 2. Prefer an immutable dependency:
-   `sergio-sisternes-epam/autogenesis#v0.4.2`.
+   `sergio-sisternes-epam/autogenesis#v0.4.3`.
 3. Preview:
    `apm update -g sergio-sisternes-epam/autogenesis --dry-run`.
 4. Apply:
