@@ -722,6 +722,10 @@ def validate_module_entrypoints(
     for path in actual_files:
         module_name = path.parent.name
         relative = path.relative_to(root).as_posix()
+        if module_name not in expected_modules:
+            # The structural check above already reports the unexpected module.
+            # Do not let an unknown entrypoint crash the rest of source validation.
+            continue
         try:
             document = parse_frontmatter(read_text(path), relative)
         except ContractValidationError as error:
@@ -1633,6 +1637,12 @@ def validate_request_parent_and_context(
                 "think-grill and think-ramble are forbidden while discuss is active",
                 location,
             )
+    elif role == "operation" and module == "discuss":
+        report.add_error(
+            "discuss-mode",
+            "the discuss operation must run in discussion mode",
+            location,
+        )
     if role == "root":
         if parent_request_id is not None:
             report.add_error("root-parent", "root request parent_request_id must be null", location)
@@ -1747,9 +1757,29 @@ def validate_operation_transition(
                 "root-to-operation transitions must declare a subject in protected context",
                 location,
             )
+        if module == "implement":
+            report.add_error(
+                "root-implement-transition",
+                "root may not dispatch implement directly; implement requires an approved design parent",
+                location,
+            )
+        for field_name in ("subject", "work_id", "atlas_id", "atlas_root"):
+            if context.get(field_name) != parent_context.get(field_name):
+                report.add_error(
+                    "root-transition-context",
+                    f"root transition changed protected field {field_name}",
+                    location,
+                )
+        if module == "design" and context.get("work_id") in (None, ""):
+            report.add_error(
+                "root-transition-work-id",
+                "root must assign work_id before dispatching a formal design operation",
+                location,
+            )
         return
     allowed = {
         ("discuss", "design"),
+        ("design", "discuss"),
         ("design", "implement"),
     }
     if (parent_module, module) not in allowed:
@@ -1766,10 +1796,20 @@ def validate_operation_transition(
                 f"operation transition changed protected field {field_name}",
                 location,
             )
-    if parent_module == "discuss" and context.get("mode") not in {"discussion", "run"}:
+    if parent_module == "discuss" and (
+        parent_context.get("mode") != "discussion" or context.get("mode") != "run"
+    ):
         report.add_error(
             "discussion-return-mode",
-            "discuss -> design may only transition discussion mode back to run",
+            "discuss -> design must transition from discussion mode back to run",
+            location,
+        )
+    if parent_module == "design" and module == "discuss" and (
+        parent_context.get("mode") != "run" or context.get("mode") != "discussion"
+    ):
+        report.add_error(
+            "design-discussion-mode",
+            "design -> discuss must transition from run mode into discussion mode",
             location,
         )
 

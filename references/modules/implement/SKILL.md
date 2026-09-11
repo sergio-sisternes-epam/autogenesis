@@ -62,7 +62,9 @@ a requested card alone grants no authority.
    scope**; the reason must **name the counter**. New behavior or an approved
    smoke-set change requires a **new file + version bump**; keep the previous
    file as history.
-7. **Exit:** Apply the multi-harness substrate contract to the skills named `atlas` and `okf` (see root Exit activation checklist).
+7. **Exit:** Apply the multi-harness substrate contract to the skills named
+   `atlas` and `okf` through
+   `<skill_root>/references/modules/workflow-discipline/SKILL.md#exit-blocking`.
    Load the Atlas path module `remember` (or `work`) via substrate contract and follow it exactly; require green `atlas compile`.
    The remember experience **must** contain a structured `## Changed files` section listing every product file created or edited in this Run. Missing list → `incomplete: G8`.
 8. **Update the subject work node:** set status `done` | `deferred` | `waived`;

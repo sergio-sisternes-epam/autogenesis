@@ -138,7 +138,9 @@ The root remains a thin router. All discipline detail lives in the module.
 
 Root arguments: required `objective`; no optional argument keys. The root
 establishes protected context and selects an operation from user intent;
-the caller cannot smuggle approval or storage overrides into arguments.
+the caller cannot smuggle approval or storage overrides into arguments. Before
+dispatching formal design, root assigns its stable `work_id`; the design module
+inherits and validates it rather than creating protected context.
 
 Entrypoints are relative to the loaded skill root, never the shell cwd.
 Default operation is `design` in Run mode and `discuss` in discussion mode.

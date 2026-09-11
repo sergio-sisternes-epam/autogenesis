@@ -30,10 +30,14 @@ This operation **stops for approval**. Request **implement** only after explicit
 
 ## Procedure (mandatory sequence)
 
-0. **Assign work_id** (blocking)
+0. **Validate the inherited work_id** (blocking)
    Format: `YYYY-MM-DD-<kebab-slug>`. When an external tracker id is known: `YYYY-MM-DD-<external_id>-<kebab-slug>`.
    Required for **all** change-classes including **hardening**. Date = plan-creation date.
    Do **not** rename existing historical work_ids.
+   The root parent assigns this protected value before dispatch. Design records
+   it on the plan and canonical work node but never creates or overrides it.
+   Missing or malformed inherited work_id blocks entry and returns control to
+   the root parent for correction.
    Persist on the plan; optional `external_ref` (full opaque reference) for outside trackers; create/update the canonical work node at status `designed` in the subject Atlas only.
 
 0b. **Classify change-class** (blocking)
@@ -58,7 +62,7 @@ This operation **stops for approval**. Request **implement** only after explicit
    - **new-surface (mini-genesis):** intent+scope+non-goals; one mermaid; interface sketch; cost note; acceptance; stop-for-approval
    - **new-skill / full:** intent+scope; component diagram; sequence diagram; composition decision; cost stance
    Absence of required depth for the class is a G3 failure.
-   If the design produces a skill that itself chains/invokes another skill, the plan **must** include the multi-harness substrate contract (see `knowledge/skill-nesting-invocation-pattern.md`).
+   If the design produces a skill that itself chains/invokes another skill, the plan **must** include the multi-harness substrate contract (see `autogenesis/decisions/skill-nesting-invocation-pattern.md`).
 
 2. **Invoke support `think-challenge` through the parent registry**
    Pass the candidate plan as `arguments.design_target`; retain the parent context.
@@ -128,7 +132,9 @@ Consistency note: workflow-discipline remains the sole source of Enter/Change/Ex
 
 ## Exit
 
-Apply the multi-harness substrate contract to the skills named `atlas` and `okf` (see root Exit activation checklist).
+Apply the multi-harness substrate contract to the skills named `atlas` and
+`okf` through
+`<skill_root>/references/modules/workflow-discipline/SKILL.md#exit-blocking`.
 Load the Atlas path module `remember` (or `work`) via substrate contract and follow it exactly; require green `atlas compile`.
 Emit the canonical invocation receipt with actual loaded entrypoints, external
 skills, substrate evidence, resolved Atlas, persistence/compile outcomes and

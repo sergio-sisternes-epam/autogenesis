@@ -105,7 +105,9 @@ Consistency note: workflow-discipline remains the sole source of Enter/Change/Ex
 
 ## Exit
 
-Apply the multi-harness substrate contract to the skills named `atlas` and `okf` (see root Exit activation checklist).
+Apply the multi-harness substrate contract to the skills named `atlas` and
+`okf` through
+`<skill_root>/references/modules/workflow-discipline/SKILL.md#exit-blocking`.
 Persist Exit lineage via atlas `remember` under the subject Atlas (`autogenesis/experiences/`); compile must go green.
 Emit the canonical invocation receipt with actual loaded entrypoints and
 substrate evidence, and `result.disposition: awaiting-approval`.

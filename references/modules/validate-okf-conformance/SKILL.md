@@ -37,7 +37,9 @@ from skill_root, not cwd. Auditing another target does not change write-home.
      during an advisory review.
    - For a standalone OKF bundle, use its declared bundle root without
      requiring an Atlas. Do not validate legacy storage as a live Atlas.
-3. Apply the multi-harness substrate contract to the skill named `okf`:
+3. If step 2 found declared OKF or Atlas integration, apply the multi-harness
+   substrate contract to the skill named `okf`; otherwise retain the `n/a`
+   result and skip this load:
    - Locate by name from the harness’s available skills list.
    - Load the full SKILL.md body with the on-demand loader.
    - Follow the loaded body (or its authority module) exactly to validate claim-bearing pages in the chosen store.

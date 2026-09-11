@@ -41,6 +41,8 @@ emit the matching receipt.
 - Subject establishment is an explicit parent transition (for example root
   selection, initialise confirmation, or discussion-to-design re-entry), never
   a child argument override.
+- For formal design, the root assigns `work_id` before dispatch and the design
+  module validates and records that inherited value.
 - Task-specific inputs belong in `arguments`, not in protected context.
 
 ## Authority and packaging

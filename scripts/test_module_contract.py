@@ -222,9 +222,6 @@ class ModuleContractTests(ScratchMixin, unittest.TestCase):
             },
         }
         if role == "root":
-            request["context"]["work_id"] = None
-            request["context"]["atlas_id"] = None
-            request["context"]["atlas_root"] = None
             request["resolved"]["module_root"] = None
         return request
 
@@ -316,9 +313,6 @@ class ModuleContractTests(ScratchMixin, unittest.TestCase):
             parent_request_id=None,
             arguments={"objective": "validate contract"},
             subject="github.com/o/r",
-            work_id=None,
-            atlas_id=None,
-            atlas_root=None,
         )
         design_request = self.make_request(
             "design-1",
@@ -595,6 +589,55 @@ class ModuleContractTests(ScratchMixin, unittest.TestCase):
         self.assertIn("unknown-module-argument", codes)
         self.assertIn("implement-without-approval", codes)
 
+    def test_root_cannot_dispatch_implement_or_change_protected_context(self) -> None:
+        root_request = self.make_request(
+            "root-direct-implement",
+            module=None,
+            role="root",
+            parent_request_id=None,
+            arguments={"objective": "apply a change"},
+        )
+        implement_request = self.make_request(
+            "implement-direct",
+            module="implement",
+            role="operation",
+            parent_request_id="root-direct-implement",
+            arguments={"plan_ref": "autogenesis/plans/example.md"},
+            work_id="2026-09-11-other-work",
+            approval_ref="approved",
+        )
+        trace = {
+            "schema": CONTRACT.data["trace_schema"],
+            "requests": [root_request, implement_request],
+            "receipts": [
+                self.make_receipt(
+                    root_request,
+                    status="blocked",
+                    attempts=[],
+                    result={"reason": "direct implement rejected"},
+                    evidence={},
+                    gates={},
+                ),
+                self.make_receipt(
+                    implement_request,
+                    status="blocked",
+                    attempts=[],
+                    result={"reason": "approved design parent required"},
+                    evidence={},
+                    gates={},
+                ),
+            ],
+            "cards": [],
+            "meta": {"activation_card": "off"},
+        }
+
+        report = module_contract.validate_trace_payload(trace)
+
+        self.assertFalse(report.ok)
+        codes = {error.code for error in report.errors}
+        self.assertIn("root-implement-transition", codes)
+        self.assertIn("root-transition-context", codes)
+
     def test_live_cutover_external_and_history_boundaries(self) -> None:
         workspace = self.make_workspace("cutover")
         self.build_source_fixture(workspace)
@@ -666,6 +709,20 @@ class ModuleContractTests(ScratchMixin, unittest.TestCase):
 
         self.assertFalse(report.ok)
         self.assertIn("module-arguments-mismatch", {error.code for error in report.errors})
+
+    def test_unexpected_module_reports_without_crashing(self) -> None:
+        workspace = self.make_workspace("unexpected-module")
+        self.build_source_fixture(workspace)
+        self.write(
+            workspace,
+            "references/modules/unexpected/SKILL.md",
+            "---\nname: unexpected\ndescription: unexpected fixture.\n---\n",
+        )
+
+        report = module_contract.validate_source_tree(workspace)
+
+        self.assertFalse(report.ok)
+        self.assertIn("extra-modules", {error.code for error in report.errors})
 
     def test_current_scenario_references_are_checked_without_rewriting_history(self) -> None:
         workspace = self.make_workspace("scenario-references")
@@ -1012,9 +1069,6 @@ class ModuleContractTests(ScratchMixin, unittest.TestCase):
             role="root",
             parent_request_id=None,
             arguments={"objective": "validate contract"},
-            work_id=None,
-            atlas_id=None,
-            atlas_root=None,
         )
         design_request = self.make_request(
             "design-blocked",
@@ -1120,9 +1174,6 @@ class ModuleContractTests(ScratchMixin, unittest.TestCase):
             role="root",
             parent_request_id=None,
             arguments={"objective": "validate contract"},
-            work_id=None,
-            atlas_id=None,
-            atlas_root=None,
         )
         design_request = self.make_request(
             "design-preflight",
@@ -1201,6 +1252,9 @@ class ModuleContractTests(ScratchMixin, unittest.TestCase):
             },
             mode="discussion",
             operation="discuss",
+            work_id=None,
+            atlas_id=None,
+            atlas_root=None,
         )
         forbidden_support = self.make_request(
             "grill-1",
@@ -1250,6 +1304,47 @@ class ModuleContractTests(ScratchMixin, unittest.TestCase):
         self.assertIn("discussion-operation", codes)
         self.assertIn("discussion-target", codes)
         self.assertIn("discussion-implement-effect", codes)
+
+    def test_design_may_transition_to_discussion_and_discuss_requires_discussion_mode(self) -> None:
+        trace = self.make_valid_trace(activation_mode="off")
+        discuss_request = self.make_request(
+            "discuss-from-design",
+            module="discuss",
+            role="operation",
+            parent_request_id="design-1",
+            arguments={
+                "objective": "resolve a design concern",
+                "discussion_root": "notes/discussion",
+                "current_branch": "problem",
+            },
+            mode="discussion",
+            operation="discuss",
+        )
+        trace["requests"].append(discuss_request)
+        trace["receipts"].append(
+            self.make_receipt(
+                discuss_request,
+                result={
+                    "artifact": "autogenesis/work/2026-09-11-work.md",
+                    "deferred": "discussion recorded without additional changes",
+                },
+                evidence={
+                    "loaded_entrypoints": [discuss_request["resolved"]["entrypoint"]],
+                    "tool_results": ["discuss:recorded"],
+                    "atlas_root": "/atlas/root",
+                },
+            )
+        )
+
+        report = module_contract.validate_trace_payload(trace)
+        self.assertTrue(report.ok, report.as_dict())
+
+        discuss_request["context"]["mode"] = "run"
+        invalid_report = module_contract.validate_trace_payload(trace)
+        self.assertFalse(invalid_report.ok)
+        codes = {error.code for error in invalid_report.errors}
+        self.assertIn("discuss-mode", codes)
+        self.assertIn("design-discussion-mode", codes)
 
 
 if __name__ == "__main__":
