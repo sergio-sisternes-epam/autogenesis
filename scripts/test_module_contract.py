@@ -696,6 +696,58 @@ class ModuleContractTests(ScratchMixin, unittest.TestCase):
         self.assertIn("discussion-operation", mode_codes)
         self.assertIn("root-operation-mode", mode_codes)
 
+    def test_root_assigns_work_id_before_reevaluate(self) -> None:
+        root_request = self.make_request(
+            "root-reevaluate",
+            module=None,
+            role="root",
+            parent_request_id=None,
+            arguments={"objective": "assess new knowledge"},
+            operation="reevaluate",
+            work_id=None,
+        )
+        reevaluate_request = self.make_request(
+            "reevaluate-1",
+            module="reevaluate",
+            role="operation",
+            parent_request_id="root-reevaluate",
+            arguments={"changed_knowledge": ["knowledge/new.md"]},
+            operation="reevaluate",
+            work_id=None,
+        )
+        trace = {
+            "schema": CONTRACT.data["trace_schema"],
+            "requests": [root_request, reevaluate_request],
+            "receipts": [
+                self.make_receipt(
+                    root_request,
+                    status="blocked",
+                    attempts=[],
+                    result={"reason": "work identity required"},
+                    evidence={},
+                    gates={},
+                ),
+                self.make_receipt(
+                    reevaluate_request,
+                    status="blocked",
+                    attempts=[],
+                    result={"reason": "missing inherited work identity"},
+                    evidence={},
+                    gates={},
+                ),
+            ],
+            "cards": [],
+            "meta": {"activation_card": "off"},
+        }
+
+        report = module_contract.validate_trace_payload(trace)
+
+        self.assertFalse(report.ok)
+        self.assertIn(
+            "root-transition-work-id",
+            {error.code for error in report.errors},
+        )
+
     def test_implement_approval_must_come_from_parent_design_receipt(self) -> None:
         trace = self.make_valid_trace(activation_mode="off")
         trace["receipts"][1]["result"] = {

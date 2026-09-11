@@ -1808,10 +1808,10 @@ def validate_operation_transition(
                     f"root transition changed protected field {field_name}",
                     location,
                 )
-        if module == "design" and context.get("work_id") in (None, ""):
+        if module in {"design", "reevaluate"} and context.get("work_id") in (None, ""):
             report.add_error(
                 "root-transition-work-id",
-                "root must assign work_id before dispatching a formal design operation",
+                f"root must assign work_id before dispatching {module}",
                 location,
             )
         return

@@ -25,6 +25,9 @@ Return a receipt with actual results, never card-only completion.
 Use the canonical operation request and configured full card targeting
 `reevaluate` in Run mode. This entrypoint must have been read. A visible request
 does not attest that scope inspection or advisory work has occurred.
+Require a non-empty parent-assigned `work_id` before entry because an
+evolution-worthy result can create a proposed plan. This operation records that
+inherited identity and never mints or replaces protected context.
 
 ## Purpose
 

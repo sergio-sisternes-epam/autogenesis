@@ -39,7 +39,8 @@ Shared assets resolve from skill_root, not cwd.
 
 3. Identify the target(s).
    Accept a path such as `/home/workdir/.grok/skills/<name>/` or a list of skill names.
-   Default if unspecified: the skill named in the current subject (if any).
+   `arguments.target` is required by the invocation contract. Missing or empty
+   input is an invalid request; do not infer the current subject as a fallback.
 
 4. For each target SKILL.md (and any referenced module entrypoints inside it):
 
