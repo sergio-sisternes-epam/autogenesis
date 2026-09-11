@@ -17,6 +17,9 @@ in `SKILL.md`.
 
 ### Changed
 
+- Advance the reviewed Autogenesis Atlas snapshot to
+  `1ba15358a3157e3c946436ee60e73b87f3c77a0f` for the module-evolution design
+  and implementation record.
 - Remove the unavailable external evaluator dependency from Autogenesis's live
   workflow, lineage fields and current acceptance contract. Portable
   scenarios, repository-native checks, actual evidence and GitHub CI remain.
