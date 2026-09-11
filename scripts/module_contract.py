@@ -1631,10 +1631,14 @@ def validate_request_parent_and_context(
                 "discussion mode operation requests must target the discuss module",
                 location,
             )
-        if role == "support" and module in {"think-grill", "think-ramble"}:
+        if role == "support" and module in {
+            "think-challenge",
+            "think-grill",
+            "think-ramble",
+        }:
             report.add_error(
                 "discussion-support-forbidden",
-                "think-grill and think-ramble are forbidden while discuss is active",
+                "Run-only think support modules are forbidden while discuss is active",
                 location,
             )
     elif role == "operation" and module == "discuss":
@@ -2404,15 +2408,15 @@ def validate_receipt_reasoning(
             "implement cannot record actual attempts without an explicit non-null approval_ref",
             location,
         )
-    if status == "blocked":
+    if status in {"blocked", "failed", "rejected"}:
         reason = result.get("reason") if isinstance(result, dict) else None
         if not isinstance(reason, str) or not reason:
             report.add_error(
-                "blocked-reason",
-                "blocked receipts must carry a concrete blocking reason in result.reason",
+                f"{status}-reason",
+                f"{status} receipts must carry a concrete reason in result.reason",
                 location,
             )
-        if not attempts:
+        if status == "blocked" and not attempts:
             return
     if status == "running":
         return

@@ -1137,6 +1137,27 @@ class ModuleContractTests(ScratchMixin, unittest.TestCase):
         self.assertFalse(report.ok)
         self.assertIn("blocked-reason", {error.code for error in report.errors})
 
+    def test_failed_and_rejected_receipts_require_reason(self) -> None:
+        for status, attempts, expected_code in (
+            ("failed", [{"number": 1, "outcome": "failed"}], "failed-reason"),
+            ("rejected", [], "rejected-reason"),
+        ):
+            with self.subTest(status=status):
+                trace = self.make_valid_trace(activation_mode="off")
+                trace["receipts"][0] = self.make_receipt(
+                    trace["requests"][2],
+                    status=status,
+                    attempts=attempts,
+                    result={},
+                    evidence={},
+                    gates={},
+                )
+
+                report = module_contract.validate_trace_payload(trace)
+
+                self.assertFalse(report.ok)
+                self.assertIn(expected_code, {error.code for error in report.errors})
+
     def test_implement_attempts_require_approval_but_preflight_block_remains_valid(self) -> None:
         trace = self.make_valid_trace(activation_mode="off")
         implement_request = self.make_request(
@@ -1265,6 +1286,15 @@ class ModuleContractTests(ScratchMixin, unittest.TestCase):
             mode="discussion",
             operation="discuss",
         )
+        forbidden_challenge = self.make_request(
+            "challenge-1",
+            module="think-challenge",
+            role="support",
+            parent_request_id="discuss-1",
+            arguments={"artifact": "autogenesis/plans/example.md"},
+            mode="discussion",
+            operation="discuss",
+        )
         invalid_operation = self.make_request(
             "implement-in-discussion",
             module="implement",
@@ -1277,7 +1307,13 @@ class ModuleContractTests(ScratchMixin, unittest.TestCase):
         )
         trace = {
             "schema": CONTRACT.data["trace_schema"],
-            "requests": [root_request, discuss_request, forbidden_support, invalid_operation],
+            "requests": [
+                root_request,
+                discuss_request,
+                forbidden_support,
+                forbidden_challenge,
+                invalid_operation,
+            ],
             "receipts": [
                 self.make_receipt(root_request, status="blocked", attempts=[], result={"reason": "routing paused"}, evidence={}, gates={}),
                 self.make_receipt(
@@ -1290,6 +1326,7 @@ class ModuleContractTests(ScratchMixin, unittest.TestCase):
                     },
                 ),
                 self.make_receipt(forbidden_support, status="blocked", attempts=[], result={"reason": "forbidden while discuss active"}, evidence={}, gates={}),
+                self.make_receipt(forbidden_challenge, status="blocked", attempts=[], result={"reason": "run-only support"}, evidence={}, gates={}),
                 self.make_receipt(invalid_operation, status="blocked", attempts=[], result={"reason": "discussion must stay in discuss"}, evidence={}, gates={}),
             ],
             "cards": [],

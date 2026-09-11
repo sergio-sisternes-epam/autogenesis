@@ -101,7 +101,11 @@ class SourceContractTests(unittest.TestCase):
         self.assertIn("APM_READ_TOKEN", ci)
         self.assertGreaterEqual(ci.count("Missing private read token"), 3)
         self.assertIn("GITHUB_APM_PAT_SERGIO_SISTERNES_EPAM", ci)
-        self.assertRegex(ci, r'Authorization:\s+(?:\*{6}|Bearer \$APM_READ_TOKEN)')
+        self.assertGreaterEqual(
+            ci.count('Authorization: Bearer $APM_READ_TOKEN'),
+            3,
+        )
+        self.assertNotIn("Authorization: " + "*" * 6, ci)
         self.assertIn("Mutable package source", ci)
 
     def test_pull_request_jobs_validate_exact_head(self) -> None:
