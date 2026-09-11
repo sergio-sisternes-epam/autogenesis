@@ -1650,6 +1650,21 @@ def validate_request_parent_and_context(
     if role == "root":
         if parent_request_id is not None:
             report.add_error("root-parent", "root request parent_request_id must be null", location)
+        operation_modules = {
+            name for name, module_role in contract.modules.items() if module_role == "operation"
+        }
+        if operation not in operation_modules:
+            report.add_error(
+                "root-operation",
+                "root context.operation must select a registered operation module",
+                location,
+            )
+        elif (mode == "discussion") != (operation == "discuss"):
+            report.add_error(
+                "root-operation-mode",
+                "root must select discuss only in discussion mode and must select discuss in that mode",
+                location,
+            )
         return
     if not isinstance(parent_request_id, str) or not parent_request_id:
         report.add_error(
@@ -1696,6 +1711,12 @@ def validate_request_parent_and_context(
         report.add_error(
             "support-transition",
             "support requests may not directly spawn a new operation request",
+            location,
+        )
+    if parent_target.get("role") == "root" and role == "support":
+        report.add_error(
+            "root-support-transition",
+            "root may not dispatch support directly without an active operation",
             location,
         )
     protected_fields = contract.required_list("context_fields")
@@ -1767,7 +1788,13 @@ def validate_operation_transition(
                 "root may not dispatch implement directly; implement requires an approved design parent",
                 location,
             )
-        for field_name in ("subject", "work_id", "atlas_id", "atlas_root"):
+        if module != parent_context.get("operation"):
+            report.add_error(
+                "root-transition-operation",
+                "root must dispatch the operation selected in its protected context",
+                location,
+            )
+        for field_name in ("subject", "mode", "work_id", "atlas_id", "atlas_root"):
             if context.get(field_name) != parent_context.get(field_name):
                 report.add_error(
                     "root-transition-context",
@@ -2274,6 +2301,14 @@ def validate_receipt_invariants(
         if not isinstance(attempts, list):
             continue
         validate_receipt_reasoning(request, receipt, attempts, report)
+        validate_implement_approval_provenance(
+            request,
+            receipt,
+            attempts,
+            requests_by_id,
+            receipts_by_id,
+            report,
+        )
         if status == "completed":
             validate_completed_receipt(request, receipt, report)
         if status in {"failed", "blocked", "rejected"}:
@@ -2420,6 +2455,46 @@ def validate_receipt_reasoning(
             return
     if status == "running":
         return
+
+
+def validate_implement_approval_provenance(
+    request: ParsedRequest,
+    receipt: ParsedReceipt,
+    attempts: list[Any],
+    requests_by_id: dict[str, ParsedRequest],
+    receipts_by_id: dict[str, ParsedReceipt],
+    report: ValidationReport,
+) -> None:
+    request_data = request.data
+    target = request_data.get("target", {})
+    if target.get("module") != "implement" or not attempts:
+        return
+    location = f"receipts[{receipt.index}]"
+    approval_ref = request_data.get("context", {}).get("approval_ref")
+    parent_request_id = request_data.get("parent_request_id")
+    parent_request = requests_by_id.get(parent_request_id)
+    parent_receipt = receipts_by_id.get(parent_request_id)
+    if (
+        not isinstance(approval_ref, str)
+        or not approval_ref
+        or parent_request is None
+        or parent_request.data.get("target", {}).get("module") != "design"
+        or parent_receipt is None
+    ):
+        return
+    parent_result = parent_receipt.data.get("result", {})
+    approved = (
+        parent_receipt.data.get("status") == "completed"
+        and isinstance(parent_result, dict)
+        and parent_result.get("disposition") == "approved"
+        and parent_result.get("approval_ref") == approval_ref
+    )
+    if not approved:
+        report.add_error(
+            "implement-approval-provenance",
+            "implement approval_ref must match an explicitly approved parent design receipt",
+            location,
+        )
 
 
 def load_trace_input(path: Path) -> Any:

@@ -51,6 +51,10 @@ Rules:
 - The parent owns protected context and resolved locations. Child arguments
   cannot override subject, mode, operation, work id, Atlas identity/root, or
   approval.
+- An implement request may establish `approval_ref` only from its parent design
+  receipt. That receipt must be completed with `result.disposition: approved`
+  and the same non-empty `result.approval_ref`; a child-supplied token is not
+  approval evidence.
 - Establishing or changing the protected `subject` is an explicit parent
   transition, not a child override. That includes initialise confirmation and a
   discussion-to-design return.

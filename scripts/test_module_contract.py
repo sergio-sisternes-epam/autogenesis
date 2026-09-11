@@ -638,6 +638,104 @@ class ModuleContractTests(ScratchMixin, unittest.TestCase):
         self.assertIn("root-implement-transition", codes)
         self.assertIn("root-transition-context", codes)
 
+    def test_root_selects_a_mode_appropriate_operation_before_dispatch(self) -> None:
+        root_request = self.make_request(
+            "root-invalid-operation",
+            module=None,
+            role="root",
+            parent_request_id=None,
+            arguments={"objective": "invalid routing"},
+            operation="think-challenge",
+        )
+        support_request = self.make_request(
+            "support-from-root",
+            module="think-challenge",
+            role="support",
+            parent_request_id="root-invalid-operation",
+            arguments={"design_target": "autogenesis/plans/example.md"},
+            operation="think-challenge",
+        )
+        trace = {
+            "schema": CONTRACT.data["trace_schema"],
+            "requests": [root_request, support_request],
+            "receipts": [
+                self.make_receipt(
+                    root_request,
+                    status="blocked",
+                    attempts=[],
+                    result={"reason": "invalid operation selection"},
+                    evidence={},
+                    gates={},
+                ),
+                self.make_receipt(
+                    support_request,
+                    status="blocked",
+                    attempts=[],
+                    result={"reason": "support requires an active operation"},
+                    evidence={},
+                    gates={},
+                ),
+            ],
+            "cards": [],
+            "meta": {"activation_card": "off"},
+        }
+
+        report = module_contract.validate_trace_payload(trace)
+
+        self.assertFalse(report.ok)
+        codes = {error.code for error in report.errors}
+        self.assertIn("root-operation", codes)
+        self.assertIn("root-support-transition", codes)
+
+        root_request["context"]["mode"] = "discussion"
+        root_request["context"]["operation"] = "design"
+        support_request["context"]["mode"] = "run"
+        support_request["context"]["operation"] = "design"
+        mode_report = module_contract.validate_trace_payload(trace)
+        mode_codes = {error.code for error in mode_report.errors}
+        self.assertIn("discussion-operation", mode_codes)
+        self.assertIn("root-operation-mode", mode_codes)
+
+    def test_implement_approval_must_come_from_parent_design_receipt(self) -> None:
+        trace = self.make_valid_trace(activation_mode="off")
+        trace["receipts"][1]["result"] = {
+            "artifact": "autogenesis/plans/example.md",
+            "disposition": "approved",
+            "approval_ref": "approval-1",
+        }
+        implement_request = self.make_request(
+            "implement-approved",
+            module="implement",
+            role="operation",
+            parent_request_id="design-1",
+            arguments={"plan_ref": "autogenesis/plans/example.md"},
+            approval_ref="approval-1",
+        )
+        trace["requests"].append(implement_request)
+        trace["receipts"].append(
+            self.make_receipt(
+                implement_request,
+                evidence={
+                    "loaded_entrypoints": [implement_request["resolved"]["entrypoint"]],
+                    "tool_results": ["edited:file"],
+                    "atlas_root": "/atlas/root",
+                    "remember": True,
+                    "compile": True,
+                },
+            )
+        )
+
+        report = module_contract.validate_trace_payload(trace)
+        self.assertTrue(report.ok, report.as_dict())
+
+        implement_request["context"]["approval_ref"] = "manufactured"
+        invalid_report = module_contract.validate_trace_payload(trace)
+        self.assertFalse(invalid_report.ok)
+        self.assertIn(
+            "implement-approval-provenance",
+            {error.code for error in invalid_report.errors},
+        )
+
     def test_live_cutover_external_and_history_boundaries(self) -> None:
         workspace = self.make_workspace("cutover")
         self.build_source_fixture(workspace)
