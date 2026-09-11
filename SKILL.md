@@ -1,36 +1,51 @@
 ---
 name: autogenesis
-description: Use this skill when the user wants to grow an existing skillset from its Atlas experience store, run Autogenesis discipline, or initialise a brand-new skill/package from scratch. Core design process is genesis (fused, never superseded); activation uses path modules with default path design (stops for approval). Triggers on autogenesis, grow skills from references, expand a skillset from Atlas memory, path design, implement, or initialise / create new skill. Do not use for automatic wiring of new skills into parents.
-version: 0.4.3
+description: Use this skill to evolve, design, review, or initialise agent skills from durable experience, including module structure, invocation discipline and skill composition even when Autogenesis is not named. Route through parent-controlled operation modules. Discussion does not implement; design stops for explicit approval. Do not use for ordinary application refactoring, automatic wiring, or direct module discovery.
+version: 0.5.0
 activation_card: on
 ---
 
 # autogenesis
 
-**v0.4.3** (semver). Version history lives in `CHANGELOG.md`.
+**v0.5.0** (semver). Version history lives in `CHANGELOG.md`.
 
-Grows a skillset from its own experience store, or initialises a brand-new package from scratch by fusing full genesis discipline with Autogenesis components.
+Grows a skillset from durable experience, or designs a new package using full
+Genesis discipline. Derived skills receive the runtime capabilities their
+purpose needs, not an Autogenesis framework by default.
 
 **Core design process is genesis (fused, never superseded).**  
-**Traversal is path modules** (load before execute).  
+**Traversal is parent-routed, skill-shaped modules** (load before invoke).
 **Discipline is three clusters: Enter → Change → Exit** (G0–G8 map into these).
 
 ```text
 genesis     = design quality (packet, challenge, pin, criteria, persist)
-activation  = subject + path module must-load
+invocation  = parent-owned context + module arguments + resolved entrypoint
+activation card = visible request interface, not execution evidence
 Enter|Change|Exit = only public blocking checkpoints
 fusion      = genesis capabilities are the foundation; Autogenesis extends them
 change-class = hardening | new-surface | new-skill (see workflow-discipline)
 ```
 
-**Design depth:** load `references/modules/workflow-discipline.md` — classify before packet; `new-surface` requires mini-genesis; construct Exit when scenarios/contracts involved.
+**Design depth:** load `references/modules/workflow-discipline/SKILL.md` —
+classify before packet; `new-surface` requires mini-genesis; behavior changes
+require portable scenarios and actual evaluation evidence.
 
-## Boundary with construct (no cycles)
+## Authoring versus derived skills
 
-- **construct** never depends on or invokes **autogenesis** (R1).
-- **autogenesis** may call **construct CLI** after implement when scenarios cover the change (R2).
-- Activation evidence: construct `activation.jsonl` when a fixture is active; discipline remains path/receipt rules.
-- Ownership: Autogenesis designs and changes; construct evaluates in isolation.
+Genesis, approval gates and Atlas lineage govern Autogenesis's design work.
+They do not automatically become runtime dependencies of a skill it creates.
+Use the S8 pattern only when distinct procedures justify private modules.
+Derived modules describe inputs, procedure, boundaries and outcomes in
+instructions; no custom validator, JSON protocol or trace infrastructure is
+required. Task-serving scripts and explicitly approved full fusion remain
+available. This repository's release tooling is a separate concern.
+
+## Evaluation boundary
+
+Autogenesis owns portable scenario specifications, runs applicable checks
+through tools available in the subject repository, and records actual evidence
+or an explicit deferral. It does not require a separate evaluator package or
+service. GitHub CI remains this repository's final release gate.
 
 
 ## Experience source
@@ -72,33 +87,40 @@ Always pass the path returned by `atlas resolve` as card `atlas_root` /
    `<subject_atlas>/SCHEMA.json`.
 5. A legacy `<subject>/references/atlas` gitlink requires Atlas path `migrate`
    before the Run continues. A legacy okf-wiki may then be ingested through
-   Autogenesis path `atlas-migrate`.
+   Autogenesis operation `atlas-migrate`.
 6. Missing, ambiguous, or invalid storage fails closed with an actionable
    initiate/migrate/abort choice. Never use a path guess, compatibility
    symlink, dual-write, or plan directory outside the resolved subject Atlas.
 
-## Progressive disclosure (path modules are not skills)
+## Progressive disclosure (modules are parent-routed)
 
-Host catalog lists **root skills only**. Path modules under `references/paths/` are **not** separate catalog entries.
+Host catalog lists **root skills only**. Nested module `SKILL.md` files are
+instruction assets in this package, not independent catalogue entries.
 
 **Working pattern (sufficient when followed):**
 
 1. Activate root skill **autogenesis** (catalog description match).
-2. Read this root `SKILL.md` (router + Enter card).
-3. Hint/select the path from the registry or user intent.
-4. **`read_file` the `path_module`** before executing that path’s procedure.
+2. Read this root and the workflow-discipline definitions for bootstrap.
+3. Form a root invocation request; select an operation from the registry.
+4. Resolve the module from this loaded skill root and **read its entrypoint**
+   before following its procedure. Emit the configured request card first.
 5. If Exit needs memory ops: activate root skill **atlas**, then load the named path module (`references/paths/remember.md` / `query.md` / `work.md`) — do not invent remember/ingest from memory.
 
-**Failure modes to avoid:** treating `design` / `implement` as peer root skills; running off the thin registry stub without reading the path file; loading every path module at once; skipping Atlas and hand-writing “lineage” as a substitute for remember/query/work.
+**Failure modes to avoid:** treating `design` / `implement` as peer root skills;
+running from a registry stub without reading its module; eager loading; treating
+a file read or card as execution; skipping Atlas's actual memory procedures.
 
-## Workflow engine (load before any path work)
+## Invocation discipline (load before operation work)
 
-**Source of truth:** `references/modules/workflow-discipline.md`  
+**Source of truth:** `references/modules/workflow-discipline/SKILL.md`.
+Its module-local `references/invocation-contract.md` and
+`references/invocation-contract.json` define the request, card and receipt
+interfaces. This is an agent-followed protocol, not a new execution engine.
 
-Before emitting the Enter card or executing any path, load the internal module:
+Before emitting the root request card or executing an operation, load the internal module:
 
 ```text
-read_file references/modules/workflow-discipline.md
+read_file <skill_root>/references/modules/workflow-discipline/SKILL.md
 ```
 
 Follow it exactly for:
@@ -106,41 +128,61 @@ Follow it exactly for:
 - Enter | Change | Exit clusters
 - Gate map G0–G8
 - Discussion vs Run mode (including the hard block on discussion → implement)
-- Path receipt format
+- Invocation receipt format and bounded safe retries
 - Substrate-contract reminders
 - Future extraction notes
 
 The root remains a thin router. All discipline detail lives in the module.
 
-## Capabilities (thin registry — load path module before executing)
+## Module registry
 
-| path_id | Activation stub | file | default |
-|---------|-----------------|------|---------|
-| **design** | substrate contract → genesis, then internal module `references/modules/think-challenge.md` → pin → C1–C5 → adversarial scenario draft on behaviour change → mandatory `## Genesis Artifacts` section → approval stop | `references/paths/design.md` | **yes** |
-| initialise | Inform + confirm → lock subject → mint v0.1.0 → substrate genesis → fuse layers → full Genesis Artifacts → stop for approval | `references/paths/initialise.md` | no |
-| implement | Approved plan only; version; adversarial suite + happy-path construct Exit; lineage | `references/paths/implement.md` | no |
-| research | Expand corpus into the resolved subject Atlas | `references/paths/research.md` | no |
-| reflect-challenge | Behaviour challenge (optional) | `references/paths/reflect-challenge.md` | no |
-| learn-skill | Peer-link / usage memory; no peer mutation | `references/paths/learn-skill.md` | no |
-| **reevaluate** | Material knowledge change or explicit request: impact related skills; advisory only; recurrence → design candidate | `references/paths/reevaluate.md` | no |
-| aware-runtime | AwareHook + governance | `references/paths/aware-runtime.md` | no |
-| wire | Human-approved wiring + version provenance | `references/paths/wire.md` | no |
-| review-package | Deep multi-facet package conformance (genesis + 4 facet modules); stops for approval if changes recommended | `references/paths/review-package.md` | no |
-| **atlas-migrate** | Relocate legacy `references/atlas` via Atlas migrate → resolve default `.atlas/<id>` root → optional okf-wiki intake + claim conversion → relationship review → compile green → rewrite subject discipline | `references/paths/atlas-migrate.md` | no |
-| **discuss** | Discussion mode only. Substrate-load catalog skill discuss; subject Atlas write-home; fail-closed Enter; from-design review reuses existing graph; no implement | `references/paths/discuss.md` | discussion-mode default |
+Root arguments: required `objective`; no optional argument keys. The root
+establishes protected context and selects an operation from user intent;
+the caller cannot smuggle approval or storage overrides into arguments.
 
-When you change a path module file, update the matching stub row in the **same Run**.
+Entrypoints are relative to the loaded skill root, never the shell cwd.
+Default operation is `design` in Run mode and `discuss` in discussion mode.
+Supporting invocations retain the active operation and return to their caller.
+The parent owns subject, mode, operation, work identity, storage, approval and
+resolved locations. Module arguments cannot override them. Missing, duplicate
+or escaping entrypoints reject explicitly; there is no catalogue fallback.
+
+| Module | Role | Description | Entrypoint |
+|--------|------|-------------|------------|
+| design | operation | Genesis, instruction-first runtime selection, challenge and persisted plan; stop for approval | `references/modules/design/SKILL.md` |
+| initialise | operation | Confirm purpose and fusion scope; design only needed runtime capabilities; stop for approval | `references/modules/initialise/SKILL.md` |
+| implement | operation | Apply only an explicitly approved persisted plan; evaluate and record lineage | `references/modules/implement/SKILL.md` |
+| research | operation | Expand the resolved subject Atlas with sourced knowledge | `references/modules/research/SKILL.md` |
+| reflect-challenge | operation | Challenge observed behaviour without implementation authority | `references/modules/reflect-challenge/SKILL.md` |
+| learn-skill | operation | Record subject-owned peer usage without peer mutation | `references/modules/learn-skill/SKILL.md` |
+| reevaluate | operation | Assess material knowledge impact; advisory only | `references/modules/reevaluate/SKILL.md` |
+| aware-runtime | operation | Maintain governed runtime awareness | `references/modules/aware-runtime/SKILL.md` |
+| wire | operation | Explicitly approved wiring with version provenance | `references/modules/wire/SKILL.md` |
+| review-package | operation | Review the target's chosen composition and applicable conformance facets; advisory report | `references/modules/review-package/SKILL.md` |
+| atlas-migrate | operation | Migrate legacy storage through Atlas and preserve knowledge | `references/modules/atlas-migrate/SKILL.md` |
+| discuss | operation | Invoke external Discuss; durable discussion without implementation | `references/modules/discuss/SKILL.md` |
+| workflow-discipline | support | Apply Autogenesis-local Enter, Change, Exit and invocation contracts | `references/modules/workflow-discipline/SKILL.md` |
+| think-challenge | support | Challenge a Run design with grounded counters | `references/modules/think-challenge/SKILL.md` |
+| think-grill | support | Clarify assumptions in a Run, not discussion | `references/modules/think-grill/SKILL.md` |
+| think-ramble | support | Capture Run thoughts in the subject Atlas | `references/modules/think-ramble/SKILL.md` |
+| patterns | support | Select B17 or instruction-first draft S8; load its optional module template when authoring | `references/modules/patterns/SKILL.md` |
+| validate-skill-import-links | support | Audit actual external skill calls without requiring an adopter's Atlas | `references/modules/validate-skill-import-links/SKILL.md` |
+| validate-progressive-disclosure | support | Audit the chosen layout; allow simple root-only and instruction-only module skills | `references/modules/validate-progressive-disclosure/SKILL.md` |
+| validate-okf-conformance | support | Audit declared OKF/Atlas integration; report n/a when not adopted | `references/modules/validate-okf-conformance/SKILL.md` |
+| validate-gate-map-and-non-goals | support | Audit declared gates and cards without imposing Autogenesis's protocol | `references/modules/validate-gate-map-and-non-goals/SKILL.md` |
+
+Update the matching registry row in the same change as its module.
 
 ## Skill chaining rule (mandatory)
 
-When any skill body or path module must invoke another skill, the **multi-harness substrate contract** is mandatory:
+When any skill body or module must invoke another external skill, the **multi-harness substrate contract** is mandatory:
 
 1. Load the full body of the target skill using the harness’s on-demand skill-loader tool.
 2. Follow the loaded body instructions exactly.
 3. Re-execute any live tool calls the body requires.
 
 See Atlas decision `autogenesis/decisions/skill-nesting-invocation-pattern.md` (skill Atlas) for the full contract and the per-harness mapping table. Legacy wiki copy is archive only.  
-The deep `review-package` path (and its facet module `validate-skill-import-links`) audits any target package for consistent application of this rule.  
+The `review-package` operation (and its facet module `validate-skill-import-links`) audits any target package for consistent application of this rule.
 Never rely on short descriptions or prior memory for nested skill execution.
 
 The living verification of this contract is the pair **skill-test-a → skill-test-b**. Any harness can re-run that test to confirm its activation protocol is correct.
@@ -148,7 +190,11 @@ The living verification of this contract is the pair **skill-test-a → skill-te
 ## Challenge types
 
 - **Design challenge (Change/design):** attacks the *plan*; pins; C1–C5.
-- **Adversarial construct (behaviour-changing work):** every grounded / named-theory counter becomes a subject-skill scenario (`*-adversarial-vN.yaml`) that is red if shipped behaviour does the warned thing. Design emits a full draft; implement fills and runs it at Exit. See Atlas decision `autogenesis/decisions/challenge-adversarial-construct.md`.
+- **Adversarial scenario (behaviour-changing work):** every grounded /
+  named-theory counter becomes a subject-skill scenario
+  (`*-adversarial-vN.yaml`) that is red if shipped behaviour does the warned
+  thing. Design emits a full draft; implement fills and runs applicable checks
+  at Exit. Historical decision names remain provenance, not live dependencies.
 - **Behaviour challenge (reflect-challenge):** attacks behaviours; optional; not plan approval.
 
 ## Internal think modules (progressive disclosure)
@@ -157,13 +203,23 @@ While an Autogenesis **Run** is active, the three think verbs resolve to interna
 
 | Trigger | Module |
 |---------|--------|
-| challenge / think-challenge / steel-man / counter-arguments | `references/modules/think-challenge.md` |
-| grill / think-grill / probe / clarify | `references/modules/think-grill.md` |
-| ramble / think-ramble / brain dump / capture thoughts | `references/modules/think-ramble.md` |
+| challenge / think-challenge / steel-man / counter-arguments | `references/modules/think-challenge/SKILL.md` |
+| grill / think-grill / probe / clarify | `references/modules/think-grill/SKILL.md` |
+| ramble / think-ramble / brain dump / capture thoughts | `references/modules/think-ramble/SKILL.md` |
 
 Load with `read_file` on the module path. Root-level `think-*` skills remain available for non-Autogenesis use and are never deleted or overwritten by this skill.
 
-While `mode: discussion` / path **discuss** is active: do **not** load think-grill or think-ramble. Catalog skill discuss is the discussion mechanism. think-challenge is not user-activable; Autogenesis may use it only as a validation gate on Run paths such as design.
+While discussion mode / operation **discuss** is active: do **not** invoke
+think-grill or think-ramble. External Discuss is the discussion mechanism.
+think-challenge is not user-activable; it is a validation support for Run
+operations such as design.
+
+## Current evaluations
+
+Select current suites through `references/scenarios/suite-index.json`.
+Historical suites retain their original bodies and are not current acceptance.
+Invocation requests never prove execution; completed receipts need actual
+outcome/tool evidence. External skills retain their own schemas and paths.
 
 ## Templates
 

@@ -1,0 +1,55 @@
+id: module-invocation-adversarial-v1
+kind: skill-discipline
+version: "1"
+work_id: 2026-09-11-skill-module-invocation
+adversarial: true
+description: Parent-routed modules and invocation discipline reject unsafe or misleading behaviour.
+packages:
+  - id: subject
+    root: "<candidate-root>"
+    mode: mount
+project:
+  seed_knowledge: []
+smokes:
+  - id: c1-root-only-and-assets
+    source: "C1: Agent Skills specification and APM native-copy/consumer evidence"
+    cmd: |
+      cd "$PKG_subject" &&
+      PYTHONPATH=scripts python3 -m unittest test_module_contract.ModuleContractTests.test_inventory_and_owned_exports &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}
+  - id: c2-card-is-not-execution
+    source: "C2: Genesis A9, B17 and existing G1 evidence rules"
+    cmd: |
+      cd "$PKG_subject" &&
+      PYTHONPATH=scripts python3 -m unittest test_module_contract.ModuleContractTests.test_card_only_completion_rejected &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}
+  - id: c3-retry-safety-and-budget
+    source: "C3: AWS REL05-BP03 and explicit two-attempt user pin"
+    cmd: |
+      cd "$PKG_subject" &&
+      PYTHONPATH=scripts python3 -m unittest test_module_contract.ModuleContractTests.test_retry_safety_budget_and_parent_amplification &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}
+  - id: c4-parent-context-and-approval
+    source: "C4: G0/G2/G4 and protected-context user pin"
+    cmd: |
+      cd "$PKG_subject" &&
+      PYTHONPATH=scripts python3 -m unittest test_module_contract.ModuleContractTests.test_context_override_and_unapproved_implement_rejected &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}
+  - id: c5-cutover-scope
+    source: "C5: repository path-sensitive consumers and coordinated-cutover pin"
+    cmd: |
+      cd "$PKG_subject" &&
+      PYTHONPATH=scripts python3 -m unittest test_module_contract.ModuleContractTests.test_live_cutover_external_and_history_boundaries &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}
+  - id: c6-card-policy
+    source: "C6: activation_card facet and full/compact user pin"
+    cmd: |
+      cd "$PKG_subject" &&
+      PYTHONPATH=scripts python3 -m unittest test_module_contract.ModuleContractTests.test_card_modes_compact_context_and_redaction &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}

@@ -1,0 +1,33 @@
+id: skill-module-pattern-adversarial-v1
+kind: skill-discipline
+version: "1"
+work_id: 2026-09-11-parent-routed-skill-module-pattern
+adversarial: true
+packages:
+  - id: subject
+    root: "<candidate-root>"
+    mode: mount
+project:
+  seed_knowledge: []
+smokes:
+  - id: draft-admission-and-ontology
+    source: "Genesis S1/S3 and composition-substrate MODULE; existing pattern admission"
+    cmd: |
+      cd "$PKG_subject" &&
+      PYTHONPATH=scripts python3 -m unittest test_module_contract.ModuleContractTests.test_skill_module_pattern_admission &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}
+  - id: ownership-and-no-false-authority
+    source: "Agent Skills specification; B17 and Autogenesis protected invocation context"
+    cmd: |
+      cd "$PKG_subject" &&
+      PYTHONPATH=scripts python3 -m unittest test_module_contract.ModuleContractTests.test_skill_module_pattern_boundaries &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}
+  - id: no-premature-split
+    source: "Genesis R1 PREMATURE SPLIT and C1 EAGER BLOAT"
+    cmd: |
+      cd "$PKG_subject" &&
+      PYTHONPATH=scripts python3 -m unittest test_module_contract.ModuleContractTests.test_skill_module_pattern_selection &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}

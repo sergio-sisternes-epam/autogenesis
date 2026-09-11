@@ -1,0 +1,31 @@
+id: module-invocation-happy-v1
+kind: skill-discipline
+version: "1"
+work_id: 2026-09-11-skill-module-invocation
+adversarial: false
+description: Candidate source and valid parent/support invocation traces satisfy the new contract.
+packages:
+  - id: subject
+    root: "<candidate-root>"
+    mode: mount
+project:
+  seed_knowledge: []
+smokes:
+  - id: candidate-source-contract
+    source: "P1/P2/P8/P9: complete current source cutover"
+    cmd: python3 "$PKG_subject/scripts/module_contract.py" source --root "$PKG_subject"
+    expect: {ok: true}
+  - id: valid-parent-support-return
+    source: "P4/P5/P7: instruction protocol and visible inherited context"
+    cmd: |
+      cd "$PKG_subject" &&
+      PYTHONPATH=scripts python3 -m unittest test_module_contract.ModuleContractTests.test_valid_operation_support_trace &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}
+  - id: one-safe-retry-succeeds
+    source: "P6: one transient repeat-safe retry succeeds without changing context"
+    cmd: |
+      cd "$PKG_subject" &&
+      PYTHONPATH=scripts python3 -m unittest test_module_contract.ModuleContractTests.test_one_safe_retry_success &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}

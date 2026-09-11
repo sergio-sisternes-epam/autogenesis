@@ -8,17 +8,21 @@
 | Python | 3.12 | Repository-owned checks |
 | APM CLI | 0.30.0 (`8c2e0d9`) | Frozen install and audit |
 
-The private repositories used by this package require a read-only token with
-Metadata and Contents read access. Export it locally without writing it to a
-file:
+Use any available Python 3.12 interpreter (`python3.12` if installed, or the
+default `python3` when it reports 3.12). Local checks can use an existing
+`gh` login or another read-only GitHub credential with repository Contents
+access. The CI convention uses `APM_READ_TOKEN` and fails closed when that
+secret is absent.
 
 ```text
-export APM_READ_TOKEN=<read-only-token>
-export GITHUB_APM_PAT_SERGIO_SISTERNES_EPAM="$APM_READ_TOKEN"
+python3 - <<'PY'
+import sys
+print(sys.version)
+PY
 ```
 
-Never print, persist, or commit the value. GitHub Actions reads the repository
-secret named `APM_READ_TOKEN` and fails closed when it is absent.
+Never print, persist, or commit credentials. Do not expose normal `gh`
+credentials in logs or files.
 
 ## Repository contract
 
@@ -31,16 +35,22 @@ in `apm.lock.yaml`. The lock is generated state: commit it, but never edit
 it by hand. `apm_modules/` and harness deployment directories are disposable
 and must remain untracked.
 
+Autogenesis v0.5.0 is a breaking cutover to 21 parent-routed modules. The
+root `SKILL.md` owns the version surface and module registry. Module
+arguments cannot override parent-owned subject, mode, operation, work
+identity, Atlas, or approval, and the removed path surface has no aliases.
+
 The Autogenesis Atlas uses mutable `main` semantics in `.gitmodules` and
 `atlas-mesh.json`; the gitlink itself must match the reviewed commit. Updating
 the store pointer requires separate store evidence and review.
 
 ## Local checks
 
-Run the focused offline suite first:
+Run the focused offline suite first with a Python 3.12 interpreter:
 
 ```text
 python3 -m unittest discover -s scripts -p 'test_*.py'
+python3 scripts/module_contract.py source --root .
 python3 scripts/release_readiness.py
 python3 scripts/dependency_contract.py
 python3 scripts/store_contract.py
@@ -71,6 +81,36 @@ python3 scripts/validate_consumer.py --target claude,codex,copilot,cursor,gemini
 These validators require Autogenesis itself, matching name/version metadata,
 source provenance, exact direct dependency locks, stable frozen replay, and a
 green APM audit. Transitive dependency skills are expected and permitted.
+They also reject extra Autogenesis-owned exports and missing or altered nested
+assets, repeating ownership/content validation after frozen replay. Legitimate
+APM link transformations are constrained, not treated as arbitrary text drift.
+
+Invocation traces can be checked with
+`python3 scripts/module_contract.py trace --input <trace.json>`. A successful
+structural check does not attest to tool execution. Use actual tool/file
+evidence for behavioural claims. Current suites come from
+`references/scenarios/suite-index.json`; never rewrite historical suite bodies.
+Local checks support implementation; final acceptance is GitHub CI, including
+the pinned Linux APM artifact and both consumer profiles.
+
+S8 (`autogenesis:S8`) is a draft pattern resource, not a new module export.
+Keep applicability reasons and draft/active admission explicit in design and
+review guidance. Known-use entries need actual evidence; do not count the
+21 leaves of one package as independent adoptions. Pattern changes must preserve
+B17 and the single invocation authority. New scenario suites extend the current
+index without rewriting existing YAML bodies.
+Scenario files are evaluator-neutral specifications. Execute applicable
+commands through tools already available in the repository and retain actual
+output; no separate evaluator is required. GitHub CI remains the final
+release gate.
+
+The invocation authority and repository checks above govern Autogenesis, not
+all S8 adopters. Preserve the instruction-first boundary in design, initialise,
+templates and review facets: no mandatory generated framework or validator.
+Evaluate representative derived outputs as well as this repository's source.
+Keep fixtures and their evidence out of generated runtime bundles; report
+unavailable live evaluation explicitly rather than treating source checks as
+proof of agent behavior.
 
 ## Reviewed dependency divergence
 

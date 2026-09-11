@@ -1,0 +1,49 @@
+id: patterns-as-genesis-extension-adversarial-v2
+kind: skill-discipline
+version: "2"
+work_id: 2026-09-11-skill-module-invocation
+adversarial: true
+description: >
+  Successor to patterns-as-genesis-extension-adversarial-v1. The patterns
+  module is now an extension injector, not a parallel catalogue; B17 remains
+  the sole active extension, Genesis stays untouched, and deprecated panel
+  variants move under module-local references/deprecated/.
+packages:
+  - id: subject
+    root: "<candidate-root>"
+    mode: mount
+project:
+  seed_knowledge: []
+smokes:
+  - id: sole-b17-extension-remains-visible
+    source: user concern + reviewed cutover
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/patterns/SKILL.md').read_text(); need=['**This module is no longer a parallel pattern language.**','## Sole remaining pattern','| B17 | ACTIVATION CARD |']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true
+  - id: genesis-untouched
+    source: extension risk literature
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/patterns/SKILL.md').read_text(); print(json.dumps({'ok':'Genesis itself remains **read-only**.' in t and 'never writes into the genesis skill' in t}))"
+    expect:
+      ok: true
+  - id: injection-present-on-genesis-load
+    source: hidden dependency counter
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/patterns/SKILL.md').read_text(); need=['When Autogenesis applies the multi-harness substrate contract to the skill named `genesis`','request this support through the parent registry with `intent: load`','Present **B17. ACTIVATION CARD**']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true
+  - id: numbering-clarity
+    source: ownership counter
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/patterns/references/activation-card.md').read_text(); print(json.dumps({'ok':'Behavioral extension owned by Autogenesis' in t and 'Autogenesis extension of the genesis catalogues' in t}))"
+    expect:
+      ok: true
+  - id: deprecated-panel-definitions-are-not-active-top-level-patterns
+    source: parallel-catalogue gone
+    cmd: |
+      test -f "$PKG_subject/references/modules/patterns/references/deprecated/panel-review.md" &&
+      test -f "$PKG_subject/references/modules/patterns/references/deprecated/triage-panel.md" &&
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/patterns/SKILL.md').read_text(); print(json.dumps({'ok':'no longer maintained as top-level Autogenesis patterns' in t}))"
+    expect:
+      ok: true

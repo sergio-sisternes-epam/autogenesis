@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import tempfile
 import unittest
+from pathlib import Path
 
 import dependency_contract
 
@@ -9,7 +11,6 @@ class DependencyContractTests(unittest.TestCase):
     def test_repository_manifest_and_lock_are_exact(self) -> None:
         self.assertEqual(dependency_contract.validate_manifest(), [])
         self.assertEqual(dependency_contract.validate_lock(), [])
-        self.assertEqual(dependency_contract.validate_direct_okf_usage(), [])
 
     def test_all_direct_refs_are_released_tags(self) -> None:
         for dependency in dependency_contract.EXPECTED_DEPENDENCIES:
@@ -40,6 +41,37 @@ class DependencyContractTests(unittest.TestCase):
         self.assertIn("c1c0936d9a0346dce7d877646046c918de335d69", readme)
         self.assertNotIn("9088a99a613d9ccc53ec2a15341714139291633f", readme)
         self.assertNotIn("expected and reviewed, not suppressed", readme)
+
+    def test_direct_okf_usage_requires_new_module_skill_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for relative_path in dependency_contract.DIRECT_OKF_CALLERS:
+                path = root / relative_path
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(
+                    "Load skill named `okf` before continuing.\n",
+                    encoding="utf-8",
+                )
+            self.assertEqual(dependency_contract.validate_direct_okf_usage(root), [])
+
+    def test_old_direct_okf_paths_no_longer_satisfy_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            legacy = root / "references/modules/workflow-discipline.md"
+            legacy.parent.mkdir(parents=True, exist_ok=True)
+            legacy.write_text("skill named `okf`\n", encoding="utf-8")
+
+            errors = dependency_contract.validate_direct_okf_usage(root)
+
+            self.assertTrue(
+                any("references/modules/workflow-discipline/SKILL.md" in error for error in errors)
+            )
+            self.assertTrue(
+                any(
+                    "references/modules/validate-okf-conformance/SKILL.md" in error
+                    for error in errors
+                )
+            )
 
 
 if __name__ == "__main__":

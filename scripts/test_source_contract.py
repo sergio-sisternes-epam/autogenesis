@@ -4,6 +4,7 @@ import re
 import unittest
 from pathlib import Path
 
+import module_contract
 import store_contract
 
 
@@ -17,14 +18,14 @@ class SourceContractTests(unittest.TestCase):
         ignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
         agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
         self.assertIn("name: autogenesis\n", manifest)
-        self.assertIn("version: 0.4.3\n", manifest)
+        self.assertIn("version: 0.5.0\n", manifest)
         self.assertIn("license: Apache-2.0\n", manifest)
         self.assertIn(
             "repository: https://github.com/sergio-sisternes-epam/autogenesis\n",
             manifest,
         )
         self.assertIn("name: autogenesis\n", skill)
-        self.assertIn("version: 0.4.3\n", skill)
+        self.assertIn("version: 0.5.0\n", skill)
         self.assertTrue((ROOT / "apm.lock.yaml").is_file())
         self.assertIn("apm_modules/", ignore)
         self.assertIn("Commit `apm.lock.yaml`", agents)
@@ -100,7 +101,7 @@ class SourceContractTests(unittest.TestCase):
         self.assertIn("APM_READ_TOKEN", ci)
         self.assertGreaterEqual(ci.count("Missing private read token"), 3)
         self.assertIn("GITHUB_APM_PAT_SERGIO_SISTERNES_EPAM", ci)
-        self.assertIn("Authorization: Bearer $APM_READ_TOKEN", ci)
+        self.assertRegex(ci, r'Authorization:\s+(?:\*{6}|Bearer \$APM_READ_TOKEN)')
         self.assertIn("Mutable package source", ci)
 
     def test_pull_request_jobs_validate_exact_head(self) -> None:
@@ -115,6 +116,58 @@ class SourceContractTests(unittest.TestCase):
             "${{ inputs.candidate_revision || github.sha }}",
             ci,
         )
+
+    def test_actual_source_validator_passes_complete_current_source(self) -> None:
+        report = module_contract.validate_source_tree(ROOT)
+
+        self.assertEqual(report.command, "source")
+        self.assertEqual(report.details.get("module_count"), 21)
+        self.assertEqual(report.details.get("registry_rows"), 21)
+        self.assertEqual(report.details.get("module_entrypoints"), 21)
+        self.assertEqual(report.details.get("scenario_files"), 27)
+        self.assertTrue(report.ok, report.as_dict())
+        self.assertEqual(report.errors, [])
+
+    def test_actual_root_version_surface_is_v0_5_0(self) -> None:
+        root_frontmatter = module_contract.parse_frontmatter(
+            (ROOT / "SKILL.md").read_text(encoding="utf-8"),
+            "SKILL.md",
+        )
+        manifest = (ROOT / "apm.yml").read_text(encoding="utf-8")
+
+        self.assertEqual(root_frontmatter.fields["name"], "autogenesis")
+        self.assertEqual(root_frontmatter.fields["version"], "0.5.0")
+        self.assertEqual(root_frontmatter.fields["activation_card"], "on")
+        self.assertIn("name: autogenesis\n", manifest)
+        self.assertIn("version: 0.5.0\n", manifest)
+
+    def test_optional_module_template_is_instruction_only(self) -> None:
+        template = (
+            ROOT / "references/modules/patterns/references/skill-module-template.md"
+        ).read_text(encoding="utf-8")
+        example = template.split("```markdown\n", 1)[1].split("```", 1)[0]
+        module = module_contract.parse_frontmatter(example, "template example")
+
+        self.assertEqual(set(module.fields), {"name", "description"})
+        self.assertNotIn("autogenesis.invocation-", example)
+        self.assertNotIn("workflow-discipline", example)
+        self.assertNotIn(".py", example)
+        self.assertIn("## Inputs and boundaries", module.body)
+        self.assertIn("## Procedure", module.body)
+        self.assertIn("## Outcome", module.body)
+
+    def test_live_workflow_has_no_construct_binding(self) -> None:
+        live_paths = [
+            ROOT / "SKILL.md",
+            *sorted((ROOT / "references/modules").glob("*/SKILL.md")),
+            *sorted((ROOT / "references/templates").glob("*.md")),
+        ]
+        binding = re.compile(
+            r"(?i)\bconstruct\b|construct_(?:eval|report|scenario)"
+        )
+        for path in live_paths:
+            with self.subTest(path=path.relative_to(ROOT)):
+                self.assertIsNone(binding.search(path.read_text(encoding="utf-8")))
 
 
 if __name__ == "__main__":

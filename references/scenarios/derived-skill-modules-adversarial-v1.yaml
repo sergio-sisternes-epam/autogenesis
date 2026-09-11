@@ -1,0 +1,48 @@
+id: derived-skill-modules-adversarial-v1
+kind: skill-discipline
+version: "1"
+work_id: 2026-09-11-instruction-first-skill-modules
+adversarial: true
+packages:
+  - {id: plain, root: "<root-only-fixture>", mode: mount}
+  - {id: modular, root: "<text-review-fixture>", mode: mount}
+  - {id: tool, root: "<csv-normalisation-fixture>", mode: mount}
+project: {seed_knowledge: []}
+smokes:
+  - id: no-forced-split
+    source: "Genesis R1 PREMATURE SPLIT"
+    cmd: |
+      test -f "$PKG_plain/SKILL.md" &&
+      test ! -d "$PKG_plain/references/modules" &&
+      test ! -d "$PKG_plain/scripts" &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}
+  - id: modules-without-framework
+    source: "Agent Skills specification; clarified user scope"
+    cmd: |
+      test -f "$PKG_modular/SKILL.md" &&
+      test -f "$PKG_modular/references/modules/analyse/SKILL.md" &&
+      test -f "$PKG_modular/references/modules/rewrite/SKILL.md" &&
+      test ! -d "$PKG_modular/scripts" &&
+      test ! -e "$PKG_modular/references/modules/workflow-discipline" &&
+      test ! -e "$PKG_modular/invocation-contract.json" &&
+      test -z "$(find "$PKG_modular" -type f -name '*.py' -print)" &&
+      test -z "$(find "$PKG_modular" -type f -name '*.json' -print)" &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}
+  - id: useful-domain-script-remains
+    source: "Agent Skills using-scripts; Genesis S7"
+    cmd: |
+      test -f "$PKG_tool/SKILL.md" &&
+      test -f "$PKG_tool/scripts/normalise.sh" &&
+      sh "$PKG_tool/scripts/normalise.sh" --help >/dev/null &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}
+  - id: reported-result-is-real
+    source: "Anthropic transcript-versus-outcome distinction"
+    cmd: |
+      test -s "$PKG_modular/artifacts/review.md" &&
+      test -s "$PKG_modular/artifacts/rewritten.txt" &&
+      cmp "$PKG_tool/fixtures/expected.csv" "$PKG_tool/artifacts/normalised.csv" &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}

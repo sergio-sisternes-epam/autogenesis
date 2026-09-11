@@ -1,0 +1,51 @@
+id: autogenesis-adversarial-v4
+kind: skill-discipline
+version: "4"
+work_id: 2026-09-11-remove-construct-binding
+adversarial: true
+description: >
+  Successor to autogenesis-adversarial-v3. Remove the unavailable external
+  evaluator from live Autogenesis contracts while preserving portable
+  scenarios, direct deterministic evidence, additive history and GitHub CI.
+packages:
+  - id: subject
+    root: "<candidate-root>"
+    mode: mount
+project:
+  seed_knowledge: []
+smokes:
+  - id: current-suites-select-v4-and-preserve-v3
+    source: additive successor-file policy
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; i=json.loads((Path(os.environ['PKG_subject'])/'references/scenarios/suite-index.json').read_text()); ok=('autogenesis-adversarial-v4.yaml' in i['current'] and 'autogenesis-adversarial-v3.yaml' in i['historical'] and i['successors'].get('autogenesis-adversarial-v3.yaml')=='autogenesis-adversarial-v4.yaml'); print(json.dumps({'ok':ok}))"
+    expect:
+      ok: true
+  - id: live-workflow-has-no-private-evaluator-binding
+    source: user decision that unavailable evaluation is not a public dependency
+    cmd: |
+      python3 -c "import os,re,json; from pathlib import Path; r=Path(os.environ['PKG_subject']); paths=[r/'SKILL.md',*sorted((r/'references/modules').glob('*/SKILL.md')),*sorted((r/'references/templates').glob('*.md'))]; p=re.compile(r'(?i)\\bconstruct\\b|construct_(?:eval|report|scenario)'); bad=[x.relative_to(r).as_posix() for x in paths if p.search(x.read_text())]; print(json.dumps({'ok':not bad,'bad':bad}))"
+    expect:
+      ok: true
+  - id: design-keeps-portable-adversarial-draft
+    source: deterministic-first evaluation without external evaluator coupling
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/design/SKILL.md').read_text(); need=['Adversarial scenario draft','full portable scenario draft','Empty draft is forbidden','Do not require a separate evaluator']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true
+  - id: implement-requires-real-evidence
+    source: A9 supervised execution and S7 deterministic tool bridge
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/implement/SKILL.md').read_text(); need=['run every applicable command','Record actual command/output evidence','never infer','Do not require, install or invoke a separate evaluator']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true
+  - id: generic-work-lineage-fields
+    source: evaluator-neutral durable evidence
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/templates/work-node.md').read_text(); ok=('scenario_ref: null' in t and 'evaluation_evidence: null' in t); print(json.dumps({'ok':ok}))"
+    expect:
+      ok: true
+  - id: current-source-contract-still-checks-green
+    source: repository-native source checker
+    cmd: python3 "$PKG_subject/scripts/module_contract.py" source --root "$PKG_subject"
+    expect:
+      ok: true
