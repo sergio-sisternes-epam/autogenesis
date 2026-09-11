@@ -43,6 +43,12 @@ class DependencyContractTests(unittest.TestCase):
         self.assertNotIn("expected and reviewed, not suppressed", readme)
 
     def test_direct_okf_usage_requires_new_module_skill_paths(self) -> None:
+        self.assertEqual(
+            dependency_contract.validate_direct_okf_usage(
+                dependency_contract.ROOT
+            ),
+            [],
+        )
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             for relative_path in dependency_contract.DIRECT_OKF_CALLERS:

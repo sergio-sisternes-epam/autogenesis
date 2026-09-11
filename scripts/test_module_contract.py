@@ -736,6 +736,20 @@ class ModuleContractTests(ScratchMixin, unittest.TestCase):
             {error.code for error in invalid_report.errors},
         )
 
+        trace["receipts"][-1] = self.make_receipt(
+            implement_request,
+            status="blocked",
+            attempts=[],
+            result={"reason": "preflight only"},
+            evidence={},
+            gates={},
+        )
+        blocked_report = module_contract.validate_trace_payload(trace)
+        self.assertIn(
+            "implement-approval-provenance",
+            {error.code for error in blocked_report.errors},
+        )
+
     def test_live_cutover_external_and_history_boundaries(self) -> None:
         workspace = self.make_workspace("cutover")
         self.build_source_fixture(workspace)

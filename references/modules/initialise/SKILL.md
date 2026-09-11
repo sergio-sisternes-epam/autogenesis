@@ -11,7 +11,8 @@ metadata:
 ## Arguments
 
 - Required: `objective` (the new skill's purpose).
-- Optional: `proposed_name`, `activation_card` (off, on or debug).
+- Optional: `proposed_name`, `activation_card` (off, on or debug),
+  `behavioural_contract` (specify or explicit deferral).
 - The parent owns confirmed subject, mode, operation, work identity, storage
   and approval. A proposed name is not authority to switch subject.
 - Follow `<skill_root>/references/modules/workflow-discipline/SKILL.md` and
@@ -48,6 +49,7 @@ This operation **stops for approval**. Request **implement** only after explicit
    Locate the skill by name from the harness’s available skills list, load its full SKILL.md body with the harness’s on-demand skill-loader, then follow that body exactly.
    Design artifacts as needed; **persist plan in the subject Atlas** as a `type: plan` at `autogenesis/plans/<work_id>.md`. Record Atlas-relative `plan_path`. New packages: use Atlas path `init` with an existing remote, then mount with no `--target` and resolve the root (or stop if blocked). Memory writes use Atlas paths (G2).
    **Integrated plan rule (G3):** the Autogenesis plan **must** contain a named section `## Genesis Artifacts` that includes:
+   - `change-class: new-skill`
    - intent + scope
    - component diagram
    - sequence diagram
@@ -75,7 +77,7 @@ This operation **stops for approval**. Request **implement** only after explicit
      remains required for this design, but does not force runtime Atlas into
      the generated skill.
    - The subject's own approval boundaries, actual outcomes and resource layout.
-   - **activation_card declaration** (work_id autogenesis-activation-card-extend): always emit `activation_card: off` in the new skill’s front-matter by default. Operator may request `--activation-card=required` (or equivalent) to force `on`. Only legal values: off | on | debug. No further nested flags.
+   - **activation_card declaration** (work_id autogenesis-activation-card-extend): always emit `activation_card: off` in the new skill’s front-matter by default. Operator may request `--activation-card=on` (or equivalent) to enable it. Only legal values: off | on | debug. No further nested flags.
    Genesis remains the design foundation; Autogenesis extends rather than
    supersedes it. This is not automatic inheritance of either designer's
    runtime. For an explicitly requested self-evolving/full-fusion skill,
@@ -90,17 +92,36 @@ This operation **stops for approval**. Request **implement** only after explicit
    confirmed runtime scope; do not blindly scaffold extra modules or apply a
    draft before design approval. Admission remains separate from approval.
 
+6b. **Behavioural contract (agent-spec)**
+   A new skill is behavioural work. The plan must contain
+   `## Behavioural contract (agent-spec)` with produced `b-` IDs or an explicit
+   deferral. Agent-spec remains the sole writer of behavioural Gherkin;
+   Autogenesis supplies the design packet and consumes the returned contract.
+   Name applicable `@forbidden` or `@critical` scenarios. The operation request
+   must carry `arguments.behavioural_contract: specify | deferred:<reason>`.
+
+6c. **Deterministic-first evaluation plan**
+   The plan must contain `## Evaluation plan`. Map every machine-checkable
+   behavioural claim or `b-` family to an executable command or existing
+   repository check. Agent evaluations are optional secondary evidence and
+   cannot replace deterministic checks.
+
 7. **Challenge-success criteria (C1–C5 + Genesis check)**
-   C1 non-trivial counter · C2 high-severity pinned or rejected with rationale · C3 visible pins · C4 scope intact · C5 no implementation in this operation · **Genesis Artifacts section present and complete**.
+   C1 non-trivial counter · C2 high-severity pinned or rejected with rationale · C3 visible pins · C4 scope intact · C5 no implementation in this operation · **change-class: new-skill** · **Genesis Artifacts section present and complete** · **behavioural contract present or explicitly deferred** · **evaluation plan complete**.
 
 8. **Present pinned plan for approval**
-   Plan location, pins, C1–C5 + Genesis check, exact scope, non-goals, explicit wait-for-approval statement and invocation receipt.
+   Plan location, pins, C1–C5 + Genesis check, change-class, behavioural
+   contract, evaluation plan, exact scope, non-goals, explicit
+   wait-for-approval statement and invocation receipt.
    The presented plan **must** visibly contain the `## Genesis Artifacts` section.
    Without approval = plan only / blocked.
 
 ## Change gates
 
-G3 (this sequence + mandatory Genesis Artifacts section), G7 (stop-for-approval). No G4/G5 implement work.
+G3 (change-class: new-skill + mandatory Genesis Artifacts section), G7
+(stop-for-approval), **G-BDD** (agent-spec behavioural contract or explicit
+deferral), **G-EVAL** (deterministic-first evaluation plan). No G4/G5 implement
+work.
 Consistency note: workflow-discipline remains the sole source of Enter/Change/Exit rules; this operation only specialises the initialise procedure.
 
 ## Exit

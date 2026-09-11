@@ -42,7 +42,8 @@
       ],
       "optional": [
         "proposed_name",
-        "activation_card"
+        "activation_card",
+        "behavioural_contract"
       ]
     },
     "implement": {

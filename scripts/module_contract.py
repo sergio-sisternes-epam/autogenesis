@@ -1794,7 +1794,14 @@ def validate_operation_transition(
                 "root must dispatch the operation selected in its protected context",
                 location,
             )
-        for field_name in ("subject", "mode", "work_id", "atlas_id", "atlas_root"):
+        for field_name in (
+            "subject",
+            "mode",
+            "work_id",
+            "atlas_id",
+            "atlas_root",
+            "approval_ref",
+        ):
             if context.get(field_name) != parent_context.get(field_name):
                 report.add_error(
                     "root-transition-context",
@@ -1820,7 +1827,10 @@ def validate_operation_transition(
             location,
         )
         return
-    for field_name in ("subject", "work_id", "atlas_id", "atlas_root"):
+    protected_fields = ["subject", "work_id", "atlas_id", "atlas_root"]
+    if module != "implement":
+        protected_fields.append("approval_ref")
+    for field_name in protected_fields:
         if context.get(field_name) != parent_context.get(field_name):
             report.add_error(
                 "operation-context-ownership",
@@ -2467,7 +2477,7 @@ def validate_implement_approval_provenance(
 ) -> None:
     request_data = request.data
     target = request_data.get("target", {})
-    if target.get("module") != "implement" or not attempts:
+    if target.get("module") != "implement":
         return
     location = f"receipts[{receipt.index}]"
     approval_ref = request_data.get("context", {}).get("approval_ref")

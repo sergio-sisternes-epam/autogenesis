@@ -85,7 +85,7 @@ are summarised here:
 | Module | Required arguments | Optional arguments |
 |---|---|---|
 | `design` | `objective` | `change_evidence`, `behavioural_contract` |
-| `initialise` | `objective` | `proposed_name`, `activation_card` |
+| `initialise` | `objective` | `proposed_name`, `activation_card`, `behavioural_contract` |
 | `implement` | `plan_ref` | none |
 | `discuss` | `objective`, `discussion_root`, `current_branch` | `stage`, `artifact` |
 | `atlas-migrate` | `storage_evidence` | `wiki_source` |
