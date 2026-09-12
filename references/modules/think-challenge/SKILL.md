@@ -30,10 +30,14 @@ is a Run validation gate, never a discussion user verb.
 1. Identify the exact idea or claim to challenge (from the current conversation, the active Autogenesis plan, or a named Atlas page).
 2. Apply the multi-harness substrate contract to the **external catalog skill**
    named `think-challenge` from package `think` / `think@atlas`. Use the
-   harness skill loader. Follow that catalog body for search-grounded counters.
-   This nested load is not an Autogenesis module request: do not resolve it
-   through the parent registry, do not `read_file` this wrapper again, and
-   do not treat the catalog skill name as a re-entry into this module.
+   harness skill loader. Map this wrapper's arguments onto that catalog
+   procedure before following it: `design_target` is the claim to challenge;
+   if set, `relevant_atlas_page` is the named page and `evidence_scope`
+   bounds evidence. Do not rely on ambient conversation alone when those
+   arguments are present. Follow that catalog body for search-grounded
+   counters. This nested load is not an Autogenesis module request: do not
+   resolve it through the parent registry, do not `read_file` this wrapper
+   again, and do not treat the catalog skill name as a re-entry into this module.
 3. **Autogenesis overlays (Run only), after the catalog body:**
    - Persist lasting conclusions only through the subject Atlas via the
      substrate contract to `atlas` (`remember`). Conversation-only catalog fallback is not legal during a Run.

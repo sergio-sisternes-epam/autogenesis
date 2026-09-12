@@ -248,6 +248,13 @@ class SourceContractTests(unittest.TestCase):
             challenge,
         )
         self.assertIn("nest-loads catalog `think@atlas`", skill)
+        self.assertIn(
+            "Map this wrapper's arguments onto that catalog",
+            challenge,
+        )
+        self.assertIn("`design_target` is the claim to challenge", challenge)
+        self.assertIn("`topic` is the idea to grill", grill)
+        self.assertIn("`thoughts` is the free-form text to capture", ramble)
 
     def test_store_constants_are_exact(self) -> None:
         self.assertEqual(

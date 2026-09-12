@@ -29,10 +29,13 @@ Shared assets resolve from skill_root, not cwd. Do not invoke while catalog Disc
 1. Accept the user’s free-form text (even if messy or incomplete).
 2. Apply the multi-harness substrate contract to the **external catalog skill**
    named `think-ramble` from package `think` / `think@atlas`. Use the harness
-   skill loader. Follow that catalog body for capture.
-   This nested load is not an Autogenesis module request: do not resolve it
-   through the parent registry, do not `read_file` this wrapper again, and
-   do not treat the catalog skill name as a re-entry into this module.
+   skill loader. Map this wrapper's arguments onto that catalog procedure
+   before following it: `thoughts` is the free-form text to capture; if set,
+   `theme` and `capture_title` label the page. Do not rely on ambient
+   conversation alone when `thoughts` is present. Follow that catalog body
+   for capture. This nested load is not an Autogenesis module request: do
+   not resolve it through the parent registry, do not `read_file` this
+   wrapper again, and do not treat the catalog skill name as a re-entry into this module.
 3. **Autogenesis overlays (Run only), after the catalog body:**
    - Persistence target is the subject repository Atlas root returned by
      `atlas resolve <atlas_id>`, under `autogenesis/experiences/` (or the
