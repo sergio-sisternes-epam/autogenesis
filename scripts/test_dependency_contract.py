@@ -36,11 +36,13 @@ class DependencyContractTests(unittest.TestCase):
 
     def test_known_anchor_warnings_are_exact_and_documented(self) -> None:
         self.assertEqual(dependency_contract.KNOWN_ANCHOR_DIVERGENCES, ())
-        readme = (dependency_contract.ROOT / "README.md").read_text(encoding="utf-8")
-        self.assertIn("579e8090273ce991ea0717abed0775dc03f28de2", readme)
-        self.assertIn("c1c0936d9a0346dce7d877646046c918de335d69", readme)
-        self.assertNotIn("9088a99a613d9ccc53ec2a15341714139291633f", readme)
-        self.assertNotIn("expected and reviewed, not suppressed", readme)
+        contributing = (dependency_contract.ROOT / "CONTRIBUTING.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("579e8090273ce991ea0717abed0775dc03f28de2", contributing)
+        self.assertIn("c1c0936d9a0346dce7d877646046c918de335d69", contributing)
+        self.assertNotIn("9088a99a613d9ccc53ec2a15341714139291633f", contributing)
+        self.assertNotIn("expected and reviewed, not suppressed", contributing)
 
     def test_direct_okf_usage_requires_new_module_skill_paths(self) -> None:
         self.assertEqual(

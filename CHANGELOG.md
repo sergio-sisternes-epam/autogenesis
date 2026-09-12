@@ -26,12 +26,18 @@ in `SKILL.md`.
 
 ### Changed
 
+- Restructure the root README to the family outline (purpose, why / what
+  this is not, install, use, modules, related, contributing, license).
+  README Install documents only the public marketplace path
+  (`apm marketplace add ... --name atlas` then `apm install autogenesis@atlas`).
+  Maintainer install pins, git-tag commands, dependency commits, and
+  required-check names stay in `CONTRIBUTING.md`.
 - Document Atlas catalog consumer install
   (`apm marketplace add sergio-sisternes-epam/atlas-marketplace --name atlas`
-  then `apm install autogenesis@atlas`). Direct git-tag install remains.
-  Public github.com consumers do not need a PAT for public catalog and
-  package sources. This repository's consumer CI jobs still require
-  `APM_READ_TOKEN` and fail closed when it is absent.
+  then `apm install autogenesis@atlas`). Public github.com consumers do
+  not need a PAT for public catalog and package sources. This
+  repository's consumer CI jobs still require `APM_READ_TOKEN` and fail
+  closed when it is absent.
 - Keep the module discipline instruction-first by removing the proposed generic
   Python source/trace validator and its dedicated test harness; current scenario
   checks now use existing repository tests and lightweight shell assertions.

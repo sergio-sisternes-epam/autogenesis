@@ -153,10 +153,39 @@ Catalog Atlas v0.11.2 and Discuss v0.3.10 now resolve nested OKF/Atlas through
 the same marketplace pins as this root. There are no reviewed graph
 divergences. Any new divergence requires an explicit dependency review.
 
+Released pins from `apm.lock.yaml`:
+
+| Direct package | Released pin | Resolved commit |
+|---|---|---|
+| Atlas | `v0.11.2` | `579e8090273ce991ea0717abed0775dc03f28de2` |
+| OKF | `v0.2.1` | `5246f7b193b58a32ac8a15fc76aedf37c42b042c` |
+| Discuss | `v0.3.10` | `c1c0936d9a0346dce7d877646046c918de335d69` |
+| Think | `v0.1.0` | `874613a67018c74ee95f857416fb315d2f80b92b` |
+
+## Consumer version pins
+
+The public README documents only the Atlas marketplace install. Git-tag
+and target-specific consumer commands stay here.
+
+Keep these commands on the same version as `apm.yml`:
+
+```text
+apm install sergio-sisternes-epam/autogenesis#v0.7.0 --target agent-skills
+```
+
+```text
+apm install sergio-sisternes-epam/autogenesis#v0.7.0 --target claude,codex,copilot,cursor,gemini,grok-build,kiro,opencode,windsurf
+```
+
+Do not update any global consumer yet. After a release, and only with
+explicit approval, prefer an immutable dependency:
+  `sergio-sisternes-epam/autogenesis#v0.7.0`.
+
 ## Release handoff
 
-1. Keep `apm.yml`, `SKILL.md`, both README install commands, the bug-report
-   example, the current changelog section, and changelog links on one version.
+1. Keep `apm.yml`, `SKILL.md`, both consumer version-pin install commands
+   above, the bug-report example, the current changelog section, and
+   changelog links on one version.
 2. Regenerate `apm.lock.yaml` with APM 0.30.0 only when dependency declarations
    change, then verify every expected commit.
 3. Run the local checks and obtain normal review before merge.
@@ -173,6 +202,9 @@ Never move, delete, overwrite, or reuse a pushed release tag. Never create a
 tag, push, publish a release, change repository settings, or update a global
 APM consumer during local preparation.
 
-Protect `main` with the stable CI job names documented in `README.md`, require
+The stable required-check names are **Release metadata**, **APM source
+integrity**, **Frozen dependency graph**, **Atlas store validation**,
+**Consumer install (agent-skills)**, **Consumer install (stable-runtimes)**,
+and **Release readiness decision**. Protect `main` with those names, require
 current branches and review, and protect `v*` tags against update/deletion.
 Repository settings remain an administrator-owned action outside this change.
