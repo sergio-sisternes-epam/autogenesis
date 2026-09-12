@@ -1,6 +1,6 @@
 ---
 name: atlas-migrate
-description: Migrate a subject from a legacy references/atlas mount to the repository-local .atlas/<id> write-home using Atlas migrate, then optionally ingest a legacy okf-wiki into the resolved subject Atlas. Preserves claims, relationships, compile gates, and discipline.
+description: Migrate a subject from its legacy <subject>/references/atlas mount to the repository-local .atlas/<id> write-home using Atlas migrate, then optionally ingest a legacy okf-wiki into the resolved subject Atlas. Preserves claims, relationships, compile gates, and discipline.
 metadata:
   autogenesis-parent: autogenesis
   autogenesis-role: operation

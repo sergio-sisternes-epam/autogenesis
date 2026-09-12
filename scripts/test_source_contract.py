@@ -10,7 +10,14 @@ import store_contract
 
 
 ROOT = Path(__file__).resolve().parents[1]
-INLINE_CODE_REFERENCE = re.compile(r"`(?P<token>[^`\n]+)`")
+RESOURCE_REFERENCE_TOKEN = re.compile(
+    r"(?<![A-Za-z0-9_./<>-])(?P<token>"
+    r"(?:\./)*<skill_root>/[A-Za-z0-9_./<>-]+"
+    r"|(?:\./|\.\./)*references/[A-Za-z0-9_./<>-]+"
+    r"|(?:\./)*(?:\.\./)+[A-Za-z0-9_./<>-]+"
+    r"|/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+"
+    r")(?![A-Za-z0-9_./<>-])"
+)
 WORKFLOW_ENTRYPOINT = Path(
     "references/modules/workflow-discipline/SKILL.md"
 )
@@ -23,9 +30,8 @@ def module_resource_reference_errors(
     errors: list[str] = []
     module_root = entrypoint.parent
 
-    for match in INLINE_CODE_REFERENCE.finditer(content):
-        token = match.group("token")
-        path_token = token.split("#", 1)[0]
+    for match in RESOURCE_REFERENCE_TOKEN.finditer(content):
+        path_token = match.group("token").rstrip(".,;:")
         if "/" not in path_token:
             continue
 
@@ -450,6 +456,8 @@ class SourceContractTests(unittest.TestCase):
                 "`references/missing-reference`",
             "extensionless direct sibling module":
                 "`<skill_root>/references/modules/patterns`",
+            "plain bare package-shared resource":
+                "Load references/aware-hook-template.md before continuing.",
         }
         entrypoint = module_root / "aware-runtime/SKILL.md"
         for case, content in mutation_cases.items():
