@@ -1,31 +1,30 @@
 ---
 name: Bug report
-about: Report a problem with the Autogenesis package
-title: ''
-labels: bug
-assignees: ''
+about: Report a problem with this package
+title: "[bug] "
+labels: ["bug"]
 ---
 
 ## Describe the bug
 
-A clear description of the problem.
+What went wrong?
 
 ## Steps to reproduce
 
-1. Run `...`
-2. Observe `...`
+1.
+2.
 
 ## Expected behaviour
 
-What you expected to happen.
+What should have happened?
 
 ## Environment
 
-- **OS:** e.g. Ubuntu 24.04 / macOS 15
-- **APM CLI version:** e.g. 0.30.0 (8c2e0d9)
+- OS:
+- APM CLI version:
 - **Package version:** e.g. autogenesis v0.5.0
-- **Target / harness:** e.g. agent-skills, copilot, cursor
+- Target harness (agent-skills, Copilot, Cursor, other):
 
 ## Additional context
 
-Add sanitized logs or other context. Never include credentials.
+Logs, screenshots, or related issues. Do not include secrets, tokens, or private paths.
