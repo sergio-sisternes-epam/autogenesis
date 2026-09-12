@@ -16,6 +16,11 @@ MODULE_RESOURCE_REFERENCE = re.compile(
     r"(?:/[A-Za-z0-9_.-]+)*\.[A-Za-z0-9]+)"
     r"(?:#[A-Za-z0-9_.-]+)?"
 )
+PARENT_RELATIVE_RESOURCE_REFERENCE = re.compile(
+    r"(?<![/\w])(?P<path>(?:\.\./)+[A-Za-z0-9_.-]+"
+    r"(?:/[A-Za-z0-9_.-]+)*\.[A-Za-z0-9]+)"
+    r"(?:#[A-Za-z0-9_.-]+)?"
+)
 WORKFLOW_ENTRYPOINT = Path(
     "references/modules/workflow-discipline/SKILL.md"
 )
@@ -28,17 +33,41 @@ def module_resource_reference_errors(
     errors: list[str] = []
     module_root = entrypoint.parent
 
+    for match in PARENT_RELATIVE_RESOURCE_REFERENCE.finditer(content):
+        errors.append(
+            f"{entrypoint.relative_to(ROOT)}: parent-relative resource "
+            f"{match.group('path')} escapes the module root"
+        )
+
     for match in MODULE_RESOURCE_REFERENCE.finditer(content):
         relative = Path(match.group("path"))
+        if any(part in {".", ".."} for part in relative.parts):
+            errors.append(
+                f"{entrypoint.relative_to(ROOT)}: non-canonical resource "
+                f"path {relative} contains a traversal segment"
+            )
+            continue
+
         if match.group("skill_root"):
-            if not (ROOT / relative).is_file():
+            resource = (ROOT / relative).resolve()
+            try:
+                resource.relative_to(ROOT.resolve())
+            except ValueError:
+                errors.append(
+                    f"{entrypoint.relative_to(ROOT)}: package-shared resource "
+                    f"<skill_root>/{relative} escapes the skill root"
+                )
+                continue
+            if not resource.is_file():
                 errors.append(
                     f"{entrypoint.relative_to(ROOT)}: missing package-shared "
                     f"resource <skill_root>/{relative}"
                 )
+            module_entrypoints = (ROOT / "references/modules").resolve()
+            workflow_entrypoint = (ROOT / WORKFLOW_ENTRYPOINT).resolve()
             if (
-                relative.parts[:2] == ("references", "modules")
-                and relative != WORKFLOW_ENTRYPOINT
+                resource.is_relative_to(module_entrypoints)
+                and resource != workflow_entrypoint
             ):
                 errors.append(
                     f"{entrypoint.relative_to(ROOT)}: sibling module "
@@ -46,9 +75,19 @@ def module_resource_reference_errors(
                 )
             continue
 
-        if (module_root / relative).is_file():
+        module_resource = (module_root / relative).resolve()
+        try:
+            module_resource.relative_to(module_root.resolve())
+        except ValueError:
+            errors.append(
+                f"{entrypoint.relative_to(ROOT)}: module-local resource "
+                f"{relative} escapes the module root"
+            )
             continue
-        if (ROOT / relative).is_file():
+        if module_resource.is_file():
+            continue
+        shared_resource = (ROOT / relative).resolve()
+        if shared_resource.is_file():
             errors.append(
                 f"{entrypoint.relative_to(ROOT)}: package-shared resource "
                 f"{relative} must use <skill_root>/{relative}"
@@ -313,6 +352,19 @@ class SourceContractTests(unittest.TestCase):
             )
         self.assertEqual([], errors)
 
+        expected_shared_resources = {
+            "aware-runtime": "references/aware-hook-template.md",
+            "reflect-challenge":
+                "references/behaviour-challenge-template.md",
+        }
+        for module, relative in expected_shared_resources.items():
+            with self.subTest(module=module):
+                content = (
+                    module_root / module / "SKILL.md"
+                ).read_text(encoding="utf-8")
+                self.assertIn(f"<skill_root>/{relative}", content)
+                self.assertTrue((ROOT / relative).is_file())
+
         mutation_cases = {
             "bare package-shared resource":
                 "`references/aware-hook-template.md`",
@@ -322,6 +374,12 @@ class SourceContractTests(unittest.TestCase):
                 "`references/missing-reference.md`",
             "direct sibling module":
                 "`<skill_root>/references/modules/patterns/SKILL.md`",
+            "normalized direct sibling module":
+                "`<skill_root>/references/./modules/patterns/SKILL.md`",
+            "skill-root traversal":
+                "`<skill_root>/references/../../outside.md`",
+            "parent-relative sibling module":
+                "`../patterns/SKILL.md`",
         }
         entrypoint = module_root / "aware-runtime/SKILL.md"
         for case, content in mutation_cases.items():
