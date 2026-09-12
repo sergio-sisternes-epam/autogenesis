@@ -1,7 +1,6 @@
 # autogenesis
 
-Grows a skillset from durable experience. Core design process is Genesis;
-memory via Atlas.
+Autogenesis is an expanded discipline of [`danielmeppiel/genesis`](https://github.com/danielmeppiel/genesis) that uses Atlas as long-term memory for the skill, wherever it is used, pairs with skills such as `discuss` and `think` and incorporates minor new patterns and disciplines, such as Activation Cards, Modules or SOLID principles for package management.
 
 ## Why / what this is not
 
@@ -28,7 +27,7 @@ apm install autogenesis@atlas
 ## Use
 
 ```text
-Use autogenesis to design: <objective>
+/autogenesis Let's discuss how can we <objective>
 ```
 
 Procedures and invocation rules live in `SKILL.md`.
@@ -36,7 +35,7 @@ Procedures and invocation rules live in `SKILL.md`.
 ## Modules
 
 | Module | Summary |
-|---|---|
+| --- | --- |
 | design | Design a skill change through Genesis; stop for approval |
 | initialise | Confirm purpose and initialise a skill; stop for approval |
 | implement | Apply only an explicitly approved persisted plan |
