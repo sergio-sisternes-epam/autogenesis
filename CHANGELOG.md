@@ -15,6 +15,9 @@ in `SKILL.md`.
 - Add the complete Apache License 2.0 text, Autogenesis copyright notice, and
   preserved Genesis attribution; document that the separately published
   Genesis book uses CC BY-NC 4.0 while the repository code uses Apache-2.0.
+- Add a shared skill-native SOLID design authority, prospective application
+  guidance across design, initialise, package review and S8, plus an additive
+  adversarial scenario and structural linkage coverage.
 - Add an optional instruction-only skill-module template without runtime
   validators, protocol schemas or mandatory resource directories.
 - Add Autogenesis-scoped S8 Parent-routed Skill Module as a draft structural
@@ -27,9 +30,8 @@ in `SKILL.md`.
   Python source/trace validator and its dedicated test harness; current scenario
   checks now use existing repository tests and lightweight shell assertions.
 - Advance the reviewed Autogenesis Atlas snapshot to
-  `73b97db21b8155a7a95ed10259524110d070facc` for the module-evolution records
-  and the approved SOLID design plan. The SOLID product behavior remains
-  deferred to a separate post-merge implementation.
+  `161fb87c0420f149cd1efba9e998eab575bce13a` for the approved SOLID design,
+  explicit approval, verified implementation evidence, and closed work hub.
 - Remove the unavailable external evaluator dependency from Autogenesis's live
   workflow, lineage fields and current acceptance contract. Portable
   scenarios, repository-native checks, actual evidence and GitHub CI remain.
