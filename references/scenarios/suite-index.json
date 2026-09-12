@@ -1,0 +1,45 @@
+{
+  "schema": "autogenesis.scenario-index/v1",
+  "current": [
+    "activation-card-extend-adversarial-v2.yaml",
+    "atlas-migrate-activation-adherence-v3.yaml",
+    "atlas-storage-semantics-adversarial-v2.yaml",
+    "autogenesis-adversarial-v4.yaml",
+    "catalogue-review-gate-adversarial-v2.yaml",
+    "derived-skill-modules-adversarial-v1.yaml",
+    "discuss-activation-adversarial-v3.yaml",
+    "module-invocation-adversarial-v1.yaml",
+    "module-invocation-happy-v1.yaml",
+    "patterns-as-genesis-extension-adversarial-v2.yaml",
+    "patterns-module-adversarial-v2.yaml",
+    "skill-module-pattern-adversarial-v1.yaml",
+    "skill-module-pattern-happy-v1.yaml",
+    "specify-only-adversarial-v2.yaml"
+  ],
+  "historical": [
+    "activation-card-extend-adversarial-v1.yaml",
+    "atlas-migrate-activation-adherence-v1.yaml",
+    "atlas-migrate-activation-adherence-v2.yaml",
+    "atlas-storage-semantics-adversarial-v1.yaml",
+    "autogenesis-adversarial-v1.yaml",
+    "autogenesis-adversarial-v2.yaml",
+    "autogenesis-adversarial-v3.yaml",
+    "catalogue-review-gate-adversarial-v1.yaml",
+    "discuss-activation-adversarial-v1.yaml",
+    "discuss-activation-adversarial-v2.yaml",
+    "patterns-as-genesis-extension-adversarial-v1.yaml",
+    "patterns-module-adversarial-v1.yaml",
+    "specify-only-adversarial-v1.yaml"
+  ],
+  "successors": {
+    "autogenesis-adversarial-v3.yaml": "autogenesis-adversarial-v4.yaml",
+    "atlas-migrate-activation-adherence-v2.yaml": "atlas-migrate-activation-adherence-v3.yaml",
+    "discuss-activation-adversarial-v2.yaml": "discuss-activation-adversarial-v3.yaml",
+    "activation-card-extend-adversarial-v1.yaml": "activation-card-extend-adversarial-v2.yaml",
+    "atlas-storage-semantics-adversarial-v1.yaml": "atlas-storage-semantics-adversarial-v2.yaml",
+    "catalogue-review-gate-adversarial-v1.yaml": "catalogue-review-gate-adversarial-v2.yaml",
+    "patterns-as-genesis-extension-adversarial-v1.yaml": "patterns-as-genesis-extension-adversarial-v2.yaml",
+    "patterns-module-adversarial-v1.yaml": "patterns-module-adversarial-v2.yaml",
+    "specify-only-adversarial-v1.yaml": "specify-only-adversarial-v2.yaml"
+  }
+}

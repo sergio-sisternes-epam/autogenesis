@@ -1,0 +1,82 @@
+id: atlas-storage-semantics-adversarial-v2
+kind: skill-discipline
+version: "2"
+work_id: 2026-09-11-skill-module-invocation
+adversarial: true
+description: >
+  Successor to atlas-storage-semantics-adversarial-v1. Reject legacy skill-
+  local Atlas storage and preserve repository-local .atlas write-home,
+  fail-closed resolution, unchanged external Atlas path names, compile gates
+  and no dual-write compatibility surface.
+packages:
+  - id: subject
+    root: "<candidate-root>"
+    mode: mount
+project:
+  seed_knowledge: []
+smokes:
+  - id: canonical-gitlink-path
+    source: Atlas migrate and mount contracts
+    cmd: >
+      grep -q "path = .atlas/github.com/sergio-sisternes-epam/autogenesis-atlas"
+      "$PKG_subject/.gitmodules" &&
+      git -C "$PKG_subject" ls-files -s
+      .atlas/github.com/sergio-sisternes-epam/autogenesis-atlas |
+      grep -q "^160000" && echo '{"ok":true}'
+    expect:
+      ok: true
+  - id: mesh-matches-gitlink
+    source: Atlas mesh and resolve contract
+    cmd: |
+      python3 -c "import configparser,json,os; from pathlib import Path; p=Path(os.environ['PKG_subject']); d=json.loads((p/'atlas-mesh.json').read_text()); s=d['stores'][0]; c=configparser.ConfigParser(); c.read(p/'.gitmodules'); g=c['submodule \".atlas/github.com/sergio-sisternes-epam/autogenesis-atlas\"']; print(json.dumps({'ok':s['id']=='github.com/sergio-sisternes-epam/autogenesis-atlas' and s['path']==g['path']=='.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas' and s['ref']==g['branch']=='main'}))"
+    expect:
+      ok: true
+  - id: atlas-directory-is-trackable
+    source: Atlas migrate contract requires the new gitlink not be ignored
+    cmd: >
+      ! grep -Eq '^[[:space:]]*\.atlas/?[[:space:]]*$'
+      "$PKG_subject/.gitignore" && echo '{"ok":true}'
+    expect:
+      ok: true
+  - id: legacy-live-instructions-absent
+    source: no split authority and Atlas write-home rule
+    cmd: |
+      python3 -c "import json,os,re; from pathlib import Path; p=Path(os.environ['PKG_subject']); files=[p/'SKILL.md',p/'references/modules/workflow-discipline/SKILL.md',p/'references/modules/patterns/references/activation-card.md',p/'references/modules/think-ramble/SKILL.md',p/'references/modules/validate-okf-conformance/SKILL.md',p/'references/modules/discuss/SKILL.md',p/'references/modules/research/SKILL.md',p/'references/modules/learn-skill/SKILL.md',p/'references/run-record-template.md']; bad=re.compile(r'--target references/atlas|atlas_root: <subject>/references/atlas|subject_atlas = <subject>/references/atlas'); print(json.dumps({'ok':not any(bad.search(f.read_text()) for f in files)}))"
+    expect:
+      ok: true
+  - id: mount-resolve-contract-is-explicit
+    source: Atlas mount path and deterministic root resolution
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; root=(Path(os.environ['PKG_subject'])/'SKILL.md').read_text(); wd=(Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/SKILL.md').read_text(); need=['active git root','no `--target`','atlas resolve <atlas_id>','SCHEMA.json']; print(json.dumps({'ok':all(x in root+wd for x in need)}))"
+    expect:
+      ok: true
+  - id: no-silent-fallback
+    source: fail-closed rule
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/SKILL.md').read_text().lower(); print(json.dumps({'ok':'fail' in t and 'closed' in t and 'never use a path guess' in t and 'silent fallback' in t}))"
+    expect:
+      ok: true
+  - id: no-dual-write-compatibility
+    source: single-writer principle
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=((Path(os.environ['PKG_subject'])/'SKILL.md').read_text()+(Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/SKILL.md').read_text()).lower(); print(json.dumps({'ok':'dual-write' in t and 'symlink' in t}))"
+    expect:
+      ok: true
+  - id: external-atlas-path-names-remain-unchanged
+    source: external invocation boundary
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'SKILL.md').read_text(); need=['references/paths/remember.md','references/paths/query.md','references/paths/work.md']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true
+  - id: workflow-gates-preserved
+    source: Enter Change Exit and work_id contracts
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/SKILL.md').read_text(); need=['## Change (blocking)','## Exit (blocking)','work_id lineage','remember + green compile']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true
+  - id: release-surfaces-match-current-version
+    source: release identity gate
+    cmd: |
+      python3 -c "import json,os,re; from pathlib import Path; p=Path(os.environ['PKG_subject']); skill=re.search(r'^version: ([0-9.]+)$',(p/'SKILL.md').read_text(),re.M).group(1); apm=re.search(r'^version: ([0-9.]+)$',(p/'apm.yml').read_text(),re.M).group(1); print(json.dumps({'ok':skill==apm=='0.5.0' and '## 0.5.0' in (p/'CHANGELOG.md').read_text()}))"
+    expect:
+      ok: true
