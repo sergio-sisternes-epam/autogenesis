@@ -35,6 +35,11 @@ The Autogenesis Atlas uses mutable `main` semantics in `.gitmodules` and
 `atlas-mesh.json`; the gitlink itself must match the reviewed commit. Updating
 the store pointer requires separate store evidence and review.
 
+`discuss@atlas` is a direct external dependency. Do not add a local
+`references/paths/discuss.md` adapter or discussion-mode routing to
+Autogenesis. Changes identified through a Discuss session must return through
+the normal Autogenesis design and approval flow.
+
 ## Local checks
 
 Run the focused offline suite first:

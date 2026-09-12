@@ -7,6 +7,16 @@ in `SKILL.md`.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-12
+
+### Changed
+
+- Replace the embedded Autogenesis `path: discuss` adapter with the explicit,
+  immutable `discuss@atlas` package integration. Discuss now exclusively owns
+  durable discussion entry and runtime protocol; conclusions requiring package
+  changes must re-enter formal Autogenesis design and approval before
+  implementation.
+
 ## [0.4.3] - 2026-09-10
 
 ### Changed
@@ -124,7 +134,8 @@ in `SKILL.md`.
 - **Canonical decision:** `wiki-folder-deletion-policy` — no auto-delete on migrate; human-gated archive removal.
 - **Package metadata:** `apm.yml` deps on atlas + okf (not okf-wiki).
 
-[Unreleased]: https://github.com/sergio-sisternes-epam/autogenesis/compare/v0.4.3...HEAD
+[Unreleased]: https://github.com/sergio-sisternes-epam/autogenesis/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.5.0
 [0.4.3]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.4.3
 [0.4.2]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.4.2
 [0.4.1]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.4.1

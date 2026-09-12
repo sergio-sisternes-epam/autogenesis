@@ -3,16 +3,16 @@
 Private root-skill APM package (`SKILL.md` + `apm.yml` at the repository
 root): `sergio-sisternes-epam/autogenesis`.
 
-Install the immutable v0.4.3 release for the portable Agent Skills target:
+Install the immutable v0.5.0 release for the portable Agent Skills target:
 
 ```text
-apm install sergio-sisternes-epam/autogenesis#v0.4.3 --target agent-skills
+apm install sergio-sisternes-epam/autogenesis#v0.5.0 --target agent-skills
 ```
 
 Or validate/deploy across the supported stable runtime profile:
 
 ```text
-apm install sergio-sisternes-epam/autogenesis#v0.4.3 --target claude,codex,copilot,cursor,gemini,grok-build,kiro,opencode,windsurf
+apm install sergio-sisternes-epam/autogenesis#v0.5.0 --target claude,codex,copilot,cursor,gemini,grok-build,kiro,opencode,windsurf
 ```
 
 Autogenesis is validated with APM CLI 0.30.0 (`8c2e0d9`). The package is
@@ -37,7 +37,7 @@ python3 <atlas-skill>/scripts/atlas.py resolve github.com/sergio-sisternes-epam/
 
 Default mount and compile/query root:
 `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas`.
-The package source and dependency graph are immutable at `v0.4.3`, while the
+The package source and dependency graph are immutable at `v0.5.0`, while the
 store intentionally retains mutable `main` semantics in `.gitmodules` and
 `atlas-mesh.json`. This repository records the reviewed store snapshot as
 gitlink `56d81a3034b2454520bcc6461a4ff4402a9ba0df`; later store movement is a
@@ -62,7 +62,7 @@ that has not migrated fails closed with an actionable error.
 
 ## Dependency contract
 
-`apm.lock.yaml` is committed and is the reproducible v0.4.3 dependency
+`apm.lock.yaml` is committed and is the reproducible v0.5.0 dependency
 contract. Direct dependencies are declared as marketplace objects on
 `atlas` (`name` + `marketplace`) and resolve to the same
 released pins:
@@ -82,6 +82,15 @@ Catalog Atlas v0.11.2 and Discuss v0.3.10 resolve nested OKF/Atlas through
 the same marketplace pins as this root, so there are no reviewed graph
 divergences. Any graph warning or unexpected resolved commit is a release
 blocker.
+
+## Discuss integration
+
+`discuss@atlas` is a direct immutable package dependency. For durable
+discussion, activate the catalog Discuss package directly; Autogenesis no
+longer provides a `path: discuss` adapter or configures Discuss's Atlas
+context. Discuss never authorizes implementation. A discussion conclusion that
+requires a package change must begin a formal Autogenesis design Run and
+receive the normal persisted-plan approval before implementation.
 
 ## Release process
 
@@ -106,12 +115,12 @@ See `CONTRIBUTING.md` for the local commands and approval boundaries.
 
 ## Update a global APM consumer
 
-Do **not** update any global consumer yet. After v0.4.3 has been merged and
+Do **not** update any global consumer yet. After v0.5.0 has been merged and
 released, and only with explicit approval:
 
 1. Back up `~/.apm/apm.yml` and `~/.apm/apm.lock.yaml`.
 2. Prefer an immutable dependency:
-   `sergio-sisternes-epam/autogenesis#v0.4.3`.
+   `sergio-sisternes-epam/autogenesis#v0.5.0`.
 3. Preview:
    `apm update -g sergio-sisternes-epam/autogenesis --dry-run`.
 4. Apply:

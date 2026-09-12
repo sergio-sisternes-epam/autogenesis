@@ -12,9 +12,9 @@ smokes:
     source: activation-card discipline
     expect: red if a behaviour-in-scope design activation card lacks behavioural_contract: specify | deferred:<reason>
     description: Hint must be present on Enter for behavioural designs.
-  - id: discussion-claims-contract-complete
-    source: discussion-mode zero-write / ownership boundary
-    expect: red if discussion mode asserts a finished behavioural contract or writes the section into a plan
+  - id: change-without-formal-contract
+    source: formal design ownership boundary
+    expect: red if a behavior-changing implementation lacks the formal design contract or an explicit deferral
     description: Only formal design may materialise the contract.
   - id: deferred-without-reason
     source: G-BDD

@@ -1,0 +1,42 @@
+id: explicit-discuss-integration-adversarial-v1
+work_id: 2026-09-12-explicit-discuss-integration
+packages: [autogenesis, discuss]
+adversarial: true
+version: 1
+description: "Reject restoration of an embedded Autogenesis Discuss adapter."
+smokes:
+  - id: embedded-discuss-path-remains
+    source: "R4 thin-proxy removal and P3"
+    cmd: >
+      test ! -e "$PKG_autogenesis/references/paths/discuss.md" &&
+      ! grep -q 'path: discuss' "$PKG_autogenesis/SKILL.md" &&
+      ! grep -q 'path: discuss' "$PKG_autogenesis/references/modules/workflow-discipline.md" &&
+      echo '{"ok":true}'
+    expect:
+      ok: true
+  - id: direct-discuss-dependency-removed
+    source: "explicit dependency pinning and P1"
+    cmd: >
+      grep -A8 '^dependencies:' "$PKG_autogenesis/apm.yml" |
+      grep -q 'name: discuss' &&
+      grep -A12 'name: discuss' "$PKG_autogenesis/apm.lock.yaml" |
+      grep -q 'resolved_commit: c1c0936d9a0346dce7d877646046c918de335d69' &&
+      echo '{"ok":true}'
+    expect:
+      ok: true
+  - id: docs-route-discussion-to-autogenesis
+    source: "dispatch collision and P2"
+    cmd: >
+      grep -q 'activate the catalog Discuss package directly' "$PKG_autogenesis/README.md" &&
+      ! grep -q 'path: discuss' "$PKG_autogenesis/SKILL.md" &&
+      echo '{"ok":true}'
+    expect:
+      ok: true
+  - id: discussion-shortcuts-to-implementation
+    source: "stage-collapse counter and P4"
+    cmd: >
+      grep -q 'must start a formal Autogenesis' "$PKG_autogenesis/SKILL.md" &&
+      grep -q 'persisted, challenged plan and explicit approval' "$PKG_autogenesis/SKILL.md" &&
+      echo '{"ok":true}'
+    expect:
+      ok: true

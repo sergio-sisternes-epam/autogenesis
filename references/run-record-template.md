@@ -5,7 +5,7 @@
 ```text
 skill: <activating skill name>
 skill_path: <resolved path to that skill’s root directory>
-mode: run | discussion
+mode: run
 subject: <skill>
 path: <path_id>
 path_module: references/paths/<path_id>.md

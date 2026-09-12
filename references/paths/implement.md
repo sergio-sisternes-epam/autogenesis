@@ -15,8 +15,8 @@ Activation card: `path: implement`, this module **read**.
 ## When (Change)
 
 1. **G4:** A **persisted plan produced by a formal design path** (genesis → internal think-challenge → pin → C1–C5) exists **and** has received explicit user approval (“approve”, “implement the plan”, or equivalent).
-2. **No product edits** if either is missing, or if the plan was produced by a discussion-mode short-circuit → `incomplete: missing Change (G4)`.
-3. Discussion mode never has implement authority. Any attempt to enter implement directly from discussion is refused; the agent must re-issue Enter for `mode: run, path: design`.
+2. **No product edits** if either is missing, or if a discussion conclusion skipped formal design → `incomplete: missing Change (G4)`.
+3. Discuss has no implementation authority. Any requested package change following a discussion must start a new Autogenesis Enter for `mode: run, path: design`.
 
 ## Procedure
 

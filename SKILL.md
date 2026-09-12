@@ -1,13 +1,13 @@
 ---
 name: autogenesis
 description: Use this skill when the user wants to grow an existing skillset from its Atlas experience store, run Autogenesis discipline, or initialise a brand-new skill/package from scratch. Core design process is genesis (fused, never superseded); activation uses path modules with default path design (stops for approval). Triggers on autogenesis, grow skills from references, expand a skillset from Atlas memory, path design, implement, or initialise / create new skill. Do not use for automatic wiring of new skills into parents.
-version: 0.4.3
+version: 0.5.0
 activation_card: on
 ---
 
 # autogenesis
 
-**v0.4.3** (semver). Version history lives in `CHANGELOG.md`.
+**v0.5.0** (semver). Version history lives in `CHANGELOG.md`.
 
 Grows a skillset from its own experience store, or initialises a brand-new package from scratch by fusing full genesis discipline with Autogenesis components.
 
@@ -105,7 +105,7 @@ Follow it exactly for:
 - Activation card schema and rules
 - Enter | Change | Exit clusters
 - Gate map G0–G8
-- Discussion vs Run mode (including the hard block on discussion → implement)
+- External Discuss handoff and the formal-design requirement before implementation
 - Path receipt format
 - Substrate-contract reminders
 - Future extraction notes
@@ -127,7 +127,6 @@ The root remains a thin router. All discipline detail lives in the module.
 | wire | Human-approved wiring + version provenance | `references/paths/wire.md` | no |
 | review-package | Deep multi-facet package conformance (genesis + 4 facet modules); stops for approval if changes recommended | `references/paths/review-package.md` | no |
 | **atlas-migrate** | Relocate legacy `references/atlas` via Atlas migrate → resolve default `.atlas/<id>` root → optional okf-wiki intake + claim conversion → relationship review → compile green → rewrite subject discipline | `references/paths/atlas-migrate.md` | no |
-| **discuss** | Discussion mode only. Substrate-load catalog skill discuss; subject Atlas write-home; fail-closed Enter; from-design review reuses existing graph; no implement | `references/paths/discuss.md` | discussion-mode default |
 
 When you change a path module file, update the matching stub row in the **same Run**.
 
@@ -163,7 +162,15 @@ While an Autogenesis **Run** is active, the three think verbs resolve to interna
 
 Load with `read_file` on the module path. Root-level `think-*` skills remain available for non-Autogenesis use and are never deleted or overwritten by this skill.
 
-While `mode: discussion` / path **discuss** is active: do **not** load think-grill or think-ramble. Catalog skill discuss is the discussion mechanism. think-challenge is not user-activable; Autogenesis may use it only as a validation gate on Run paths such as design.
+## Discuss package boundary
+
+Autogenesis declares `discuss@atlas` as an immutable direct APM dependency,
+but does not expose a `discuss` path or proxy its runtime protocol. Activate the
+catalog **discuss** package directly for durable discussion. Discuss has no
+implementation authority: a discussion conclusion that changes a package must start a formal Autogenesis `mode: run`, `path: design` Run, followed by a persisted, challenged plan and explicit approval before implementation.
+
+While an Autogenesis Run is active, think-challenge is an internal validation
+gate only; it is not user-activable as a discussion verb.
 
 ## Templates
 

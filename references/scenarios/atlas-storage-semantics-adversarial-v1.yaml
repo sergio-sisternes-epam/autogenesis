@@ -42,7 +42,7 @@ smokes:
   - id: legacy-live-instructions-absent
     source: no split authority and Atlas write-home rule
     cmd: |
-      python3 -c "import json,os,re; from pathlib import Path; p=Path(os.environ['PKG_subject']); files=[p/'SKILL.md',p/'references/modules/workflow-discipline.md',p/'references/modules/patterns/activation-card.md',p/'references/modules/think-ramble.md',p/'references/modules/validate-okf-conformance.md',p/'references/paths/discuss.md',p/'references/paths/research.md',p/'references/paths/learn-skill.md',p/'references/run-record-template.md']; bad=re.compile(r'--target references/atlas|atlas_root: <subject>/references/atlas|subject_atlas = <subject>/references/atlas'); print(json.dumps({'ok':not any(bad.search(f.read_text()) for f in files)}))"
+      python3 -c "import json,os,re; from pathlib import Path; p=Path(os.environ['PKG_subject']); files=[p/'SKILL.md',p/'references/modules/workflow-discipline.md',p/'references/modules/patterns/activation-card.md',p/'references/modules/think-ramble.md',p/'references/modules/validate-okf-conformance.md',p/'references/paths/research.md',p/'references/paths/learn-skill.md',p/'references/run-record-template.md']; bad=re.compile(r'--target references/atlas|atlas_root: <subject>/references/atlas|subject_atlas = <subject>/references/atlas'); print(json.dumps({'ok':not any(bad.search(f.read_text()) for f in files)}))"
     expect:
       ok: true
 

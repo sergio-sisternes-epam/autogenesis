@@ -25,7 +25,8 @@ Without a visible, structured entry point and a matching exit receipt, agents:
 - emit only late receipts
 - lose lineage across sessions
 
-Soft textual rules are easily overridden (latent policy failure). Discussion and implement authority become blurred.
+Soft textual rules are easily overridden (latent policy failure). Design and
+implement authority become blurred.
 
 ## Solution
 Require an explicit **Enter card** before path work, follow the loaded path module, and emit a matching **path receipt** at Exit.
@@ -35,9 +36,9 @@ Require an explicit **Enter card** before path work, follow the loaded path modu
 ```text
 skill: <activating skill name>
 skill_path: <resolved path to that skill’s root directory>
-mode: run | discussion
+mode: run
 subject: <skill under change>
-path: design | implement | research | reflect-challenge | learn-skill | reevaluate | aware-runtime | wire | review-package | atlas-migrate | discuss
+path: design | implement | research | reflect-challenge | learn-skill | reevaluate | aware-runtime | wire | review-package | atlas-migrate
 path_module: references/paths/<path>.md
 intent: <one line>
 atlas_id: <host/org/repo>   # required for Atlas-backed paths unless exactly one mesh store exists
@@ -46,8 +47,10 @@ atlas_id: <host/org/repo>   # required for Atlas-backed paths unless exactly one
 Rules:
 - The matching `path_module` must be read before the path is executed.
 - One path at a time.
-- **discussion** mode has zero implement authority and uses path `discuss` (catalog skill discuss, subject `atlas_root`).
-- No discussion → implement short-circuit; only discussion → formal design → approved plan → implement.
+- Durable discussion belongs to the external Discuss package, not an
+  Autogenesis path.
+- A discussion conclusion that requests a package change must enter formal
+  Autogenesis design, then receive persisted-plan approval before implementation.
 
 **Path receipt / Exit (blocking):**
 
@@ -75,7 +78,7 @@ Source of process detail: `references/modules/workflow-discipline.md`.
 **Benefits**
 - Auditability of mode, subject, and path
 - Forced path-module load
-- Clear discussion vs run boundary
+- Clear external discussion and Autogenesis-run boundary
 - Durable lineage via the resolved subject Atlas
 
 **Costs / residual risks**
@@ -100,5 +103,5 @@ Source of process detail: `references/modules/workflow-discipline.md`.
 ```text
 Enter card → load path_module → Change (path work) → path receipt / Exit
                 ↑
-         discussion has zero implement authority
+         external discussion re-enters formal design
 ```

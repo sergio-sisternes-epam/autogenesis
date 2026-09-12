@@ -1,6 +1,6 @@
 ---
 name: autogenesis/modules/workflow-discipline
-description: Internal Autogenesis module. Source of truth for the workflow engine (activation card, Enter | Change | Exit clusters, G0–G8 gates, path loading contract, discussion/run rules, path receipt, substrate-contract reminder). Progressive disclosure only — never a catalog skill. Designed for clean future extraction.
+description: Internal Autogenesis module. Source of truth for the workflow engine (activation card, Enter | Change | Exit clusters, G0–G8 gates, path loading contract, path receipt, substrate-contract reminder). Progressive disclosure only — never a catalog skill. Designed for clean future extraction.
 internal: true
 version: 2026-09-05
 ---
@@ -17,9 +17,9 @@ Root `SKILL.md` and all path modules must load and follow it rather than re-impl
 ```text
 skill: <activating skill name>
 skill_path: <resolved path to that skill’s root directory>
-mode: run | discussion
+mode: run
 subject: <skill under change>
-path: design | implement | research | reflect-challenge | learn-skill | reevaluate | aware-runtime | wire | review-package | atlas-migrate | discuss
+path: design | implement | research | reflect-challenge | learn-skill | reevaluate | aware-runtime | wire | review-package | atlas-migrate
 path_module: references/paths/<path>.md
 intent: <one line>
 atlas_id: <host/org/repo>   # required for Atlas-backed paths unless exactly one mesh store exists
@@ -29,13 +29,9 @@ behavioural_contract: specify | deferred:<one-line reason>   # required on desig
 ### Rules
 
 1. **Read** `path_module` via `read_file` (or harness equivalent) before executing that path — do not run from the registry stub or prior memory alone.
-2. **One path at a time** — no silent path→path invokes. An in-flight design review that needs a discussion **re-issues** Enter for `mode: discussion`, `path: discuss` (same `work_id`, `stage: design`, `artifact` = the plan, existing `discussion_root`). It does not nest discuss under design.
-3. **Discussion mode:** zero implement authority; no product file writes; no “Run complete” claim. Path **must** be `discuss`. Load `references/paths/discuss.md`, then substrate-load catalog skill **discuss** and follow its full body. Pass `atlas_id` and resolved `atlas_root` for the subject Atlas. Required extra card fields: `objective`, `atlas_id`, `atlas_root`, `discussion_root`, `current_branch`. Missing discuss load or missing those fields ⇒ `incomplete: missing Enter`. Do not load internal think-grill or think-ramble. Do not load internal think-challenge as a user verb. To change code/plan, re-issue card with `mode: run`.
-   - Discussion **may** invoke agent-spec path `specify` (mode=discussion) purely for exploration or review of candidate behaviours.  
-   - Discussion may **never** materialise a finished `## Behavioural contract (agent-spec)` section into a plan, nor claim that a behavioural contract is complete. Only a formal design Run (via `specify` or explicit deferred) may write the section.
-4. **No discussion → implement short-circuit:** Discussion mode must never transition directly to implement. The only legal path is discussion → formal design (`mode: run`, path: design) → persisted + challenged plan → explicit approval → implement. Any attempt to jump the gate is refused; the agent re-issues Enter for formal design.
-5. Default path if unspecified in **Run**: **design** (stops for approval). Default path if unspecified in **discussion**: **discuss**.
-6. **Behavioural-contract hint (design only):** When the design changes or defines skill/agent behaviour, the activation card **must** carry `behavioural_contract: specify | deferred:<reason>`. Missing hint on in-scope work → incomplete Enter.
+2. **One path at a time** — no silent path→path invokes. Durable discussion belongs to the catalog **discuss** package, not an Autogenesis path. A discussion conclusion that requests a package change starts a new Autogenesis Enter with `mode: run`, `path: design`; it never transitions directly to implement.
+3. Default path if unspecified: **design** (stops for approval).
+4. **Behavioural-contract hint (design only):** When the design changes or defines skill/agent behaviour, the activation card **must** carry `behavioural_contract: specify | deferred:<reason>`. Missing hint on in-scope work → incomplete Enter.
 
 ### Optional activation-card feature (any skill)
 
@@ -94,7 +90,7 @@ Named `## Genesis Artifacts`: intent+scope, component diagram, sequence diagram,
 | Plan home | Design plans persist **only** under subject Atlas **`autogenesis/plans/<work_id>.md`** (`type: plan`). Not experiences; not `artifacts/autogenesis-plans/` as primary. |
 | Atlas missing | No git root, no declared/explicit store, ambiguous mesh, failed mount/resolve, or missing SCHEMA is blocking. Offer Atlas initiate/migrate/abort as applicable; never guess or silently fall back. |
 | Approval | Implement forbidden until a **persisted plan produced by formal design** is explicitly approved. |
-| Discussion→Implement | Forbidden. Discussion has zero implement authority; short-circuit is incomplete. |
+| Discussion conclusion→Implement | Forbidden. A conclusion from external Discuss must enter formal Autogenesis design, then persisted-plan approval, before implementation. |
 | Wiring | Human approval + version provenance only. |
 | Sharing | Links + skill-feedback; no peer content copy/remote mutation. |
 | Integrated plans | Every design plan **must** contain `## Genesis Artifacts` and state **change-class**. Depth follows class: hardening abbreviated; new-surface mini-genesis; new-skill/full design full genesis. Wrong depth for class is a G3 failure. |
@@ -265,7 +261,7 @@ Missing receipt or `substrate_contract: missing` ⇒ path **not** complete.
 
 | Gate | Cluster | Requirement |
 |------|---------|-------------|
-| **G0** | Enter | mode; Run ⇒ subject + intent; discussion ⇒ no implement |
+| **G0** | Enter | `mode: run`; subject + intent |
 | **G1** | Enter | path + **path module read**; one path; no silent invokes |
 | **G2** | Change/Exit | Atlas → subject Atlas root; primary writes to subject Atlas |
 | **G3** | Change | design: **change-class** + genesis depth by class + challenge + pin + C1–C5 + `## Genesis Artifacts` |

@@ -11,7 +11,9 @@ and `references/` are authoritative package source. Do not introduce a
 - `SKILL.md`: root Autogenesis skill and version surface.
 - `references/`: skill-relative path modules, internal modules, scenarios, and
   templates.
-- `apm.yml`: package metadata and immutable direct dependency pins.
+- `apm.yml`: package metadata and immutable direct dependency pins. The
+  separately versioned `discuss@atlas` dependency is the durable discussion
+  mechanism; do not add an Autogenesis discussion-path proxy.
 - `apm.lock.yaml`: committed APM 0.30.0 dependency resolution.
 - `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas`: mutable-main
   store gitlink, checked out at the reviewed commit.
