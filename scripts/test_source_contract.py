@@ -206,7 +206,9 @@ class SourceContractTests(unittest.TestCase):
         }
         for path, link in expected_links.items():
             with self.subTest(path=path.relative_to(ROOT)):
-                self.assertIn(link, path.read_text(encoding="utf-8"))
+                content = path.read_text(encoding="utf-8")
+                self.assertIn(f"]({link})", content)
+                self.assertTrue((path.parent / link).resolve().is_file())
 
     def test_actual_root_version_surface_is_v0_6_0(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")

@@ -69,9 +69,10 @@ This operation **stops for approval**. Request **implement** only after explicit
    [`../../skill-design-principles.md`](../../skill-design-principles.md).
    A `new-surface` or `new-skill` plan must contain the full five-row
    applicable / not-applicable / trade-off record. A `hardening` plan may use
-   an abbreviated assessment of material principles. Missing required evidence
-   makes the design incomplete: do not present it for approval. Apply the lens
-   without forcing modules, extension points, adapters or runtime machinery.
+   an abbreviated assessment of material principles, but it must explain why
+   every omitted principle is not material. Missing required evidence makes
+   the design incomplete: do not present it for approval. Apply the lens without
+   forcing modules, extension points, adapters or runtime machinery.
 
 2. **Invoke support `think-challenge` through the parent registry**
    Pass the candidate plan as `arguments.design_target`; retain the parent context.
