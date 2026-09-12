@@ -9,6 +9,9 @@ in `SKILL.md`.
 
 ### Added
 
+- Add the complete Apache License 2.0 text, Autogenesis copyright notice, and
+  preserved Genesis attribution; document that the separately published
+  Genesis book uses CC BY-NC 4.0 while the repository code uses Apache-2.0.
 - Add an optional instruction-only skill-module template without runtime
   validators, protocol schemas or mandatory resource directories.
 - Add Autogenesis-scoped S8 Parent-routed Skill Module as a draft structural
