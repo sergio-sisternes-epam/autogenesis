@@ -389,7 +389,7 @@ class SourceContractTests(unittest.TestCase):
         indexed_scenarios = (
             scenario_index["current"] + scenario_index["historical"]
         )
-        self.assertEqual(len(indexed_scenarios), 30)
+        self.assertEqual(len(indexed_scenarios), 31)
         self.assertEqual(len(indexed_scenarios), len(set(indexed_scenarios)))
         for scenario in indexed_scenarios:
             self.assertTrue((ROOT / "references/scenarios" / scenario).is_file())
@@ -582,6 +582,93 @@ class SourceContractTests(unittest.TestCase):
                 self.assertTrue(
                     module_resource_reference_errors(entrypoint, content)
                 )
+
+    def test_workspace_source_autogenesis_is_skill_under_test(self) -> None:
+        skill_root = ROOT
+        skill = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+        self.assertTrue((skill_root / "references/skill-design-principles.md").is_file())
+        self.assertRegex(skill, r'(?m)^version: "?0\.7\.0"?$')
+        self.assertIn("references/skill-design-principles.md", skill)
+        self.assertNotRegex(skill, r'(?m)^version: "?0\.4\.3"?$')
+        self.assertEqual(Path(__file__).resolve().parents[1], skill_root)
+
+        catalog_roots = (
+            Path.home() / ".agents/skills/autogenesis",
+            Path.home() / ".claude/skills/autogenesis",
+        )
+        for catalog in catalog_roots:
+            catalog_skill = catalog / "SKILL.md"
+            if not catalog_skill.is_file():
+                continue
+            catalog_root = catalog.resolve()
+            self.assertNotEqual(
+                catalog_root,
+                skill_root.resolve(),
+                "catalog Autogenesis must not be the workspace skill_root",
+            )
+            catalog_text = catalog_skill.read_text(encoding="utf-8")
+            if re.search(r'(?m)^version: "?0\.4\.3"?$', catalog_text):
+                self.assertNotRegex(skill, r'(?m)^version: "?0\.4\.3"?$')
+
+    def test_solid_dogfood_exercises_record_consequences(self) -> None:
+        exercises = (
+            ROOT / "references/scenarios/solid-dogfood-comparative-exercises.md"
+        ).read_text(encoding="utf-8")
+        scenario = (
+            ROOT / "references/scenarios/solid-dogfood-autogenesis-adversarial-v1.yaml"
+        ).read_text(encoding="utf-8")
+        self.assertEqual(
+            len(re.findall(r"(?m)^named-design-consequence: ", exercises)),
+            3,
+        )
+        self.assertIn("named-design-consequence: keep-root", exercises)
+        self.assertIn("named-design-consequence: split", exercises)
+        self.assertIn("named-design-consequence: no-adapter", exercises)
+        for heading in (
+            "## Root-only skill",
+            "## Multi-procedure skill",
+            "## Provider-coupled skill",
+        ):
+            self.assertIn(heading, exercises)
+        for section in re.split(r"(?m)^## ", exercises)[1:]:
+            if not section.startswith(
+                ("Root-only skill", "Multi-procedure skill", "Provider-coupled skill")
+            ):
+                continue
+            self.assertTrue(
+                "not-applicable" in section or "trade-off" in section,
+                section.splitlines()[0],
+            )
+        frontmatter = scenario.split("smokes:", 1)[0]
+        self.assertIn(
+            "work_id: 2026-09-12-14-solid-dogfood-autogenesis",
+            frontmatter,
+        )
+        self.assertNotIn(
+            "work_id: 2026-09-12-solid-skill-design-lens",
+            frontmatter,
+        )
+        for smoke in (
+            "workspace-source-not-catalog",
+            "comparative-consequence-required",
+            "not-all-applicable",
+            "no-new-runtime-module",
+            "no-lens-pr-absorption",
+        ):
+            self.assertIn(f"id: {smoke}", scenario)
+        self.assertFalse((ROOT / "scripts/solid_contract.py").exists())
+        self.assertFalse((ROOT / "references/modules/solid/SKILL.md").exists())
+
+    def test_docs_require_workspace_autogenesis_for_self_dogfood(self) -> None:
+        contributing = (ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
+        agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn("workspace checkout as the skill root", contributing)
+        self.assertIn("Catalog Autogenesis", contributing)
+        self.assertIn("v0.4.3", contributing)
+        self.assertIn("load the workspace `SKILL.md`", agents)
+        self.assertIn("Catalog v0.4.3 is not evidence", agents)
+        self.assertIn("load workspace Autogenesis from the checkout", readme)
 
     def test_live_workflow_has_no_construct_binding(self) -> None:
         live_paths = [

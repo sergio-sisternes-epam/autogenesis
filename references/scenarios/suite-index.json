@@ -15,6 +15,7 @@
     "patterns-module-adversarial-v2.yaml",
     "skill-module-pattern-adversarial-v1.yaml",
     "skill-module-pattern-happy-v1.yaml",
+    "solid-dogfood-autogenesis-adversarial-v1.yaml",
     "solid-skill-design-adversarial-v1.yaml",
     "specify-only-adversarial-v2.yaml"
   ],

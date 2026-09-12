@@ -116,6 +116,10 @@ claims. Current suites come from
 Local checks support implementation; final acceptance is GitHub CI, including
 the pinned Linux APM artifact and both consumer profiles.
 
+For Autogenesis self-dogfood (design, review, or evaluation of this package),
+load the workspace checkout as the skill root. Record the loaded `skill_root`.
+Catalog Autogenesis (including v0.4.3) is not evidence for this checkout.
+
 S8 (`autogenesis:S8`) is a draft pattern resource, not a new module export.
 Keep applicability reasons and draft/active admission explicit in design and
 review guidance. Known-use entries need actual evidence; do not count the

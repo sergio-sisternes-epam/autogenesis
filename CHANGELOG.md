@@ -9,6 +9,10 @@ in `SKILL.md`.
 
 ### Added
 
+- Add maintainer-scope workspace-source Autogenesis activation so self-dogfood
+  tests fail closed when they would evaluate an installed catalog copy, plus
+  three comparative SOLID design exercises and a current-suite adversarial
+  scenario.
 - Align GitHub issue and pull request templates with the family hybrid set,
   including a security-advisory contact link and Autogenesis-specific PR
   extras.

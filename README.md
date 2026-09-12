@@ -86,7 +86,9 @@ as applicable, not-applicable or a trade-off; hardening records the material
 principles. The lens protects cohesive responsibilities, governed semantics,
 complete progressive interfaces and justified dependencies without requiring
 modules or speculative abstractions. Substitutability is assessed only when an
-interchangeable contract is claimed.
+interchangeable contract is claimed. Maintainers evaluating this repository
+must load workspace Autogenesis from the checkout, not an installed catalog
+copy.
 
 ## Immutable package, mutable store
 

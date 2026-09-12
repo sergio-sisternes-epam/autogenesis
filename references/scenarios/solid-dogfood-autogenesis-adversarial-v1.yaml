@@ -1,0 +1,91 @@
+id: solid-dogfood-autogenesis-adversarial-v1
+kind: skill-discipline
+version: "1"
+work_id: 2026-09-12-14-solid-dogfood-autogenesis
+adversarial: true
+packages:
+  - id: subject
+    root: "<candidate-root>"
+    mode: mount
+project:
+  seed_knowledge: []
+smokes:
+  - id: workspace-source-not-catalog
+    source: "plan pin 1; catalog Autogenesis v0.4.3 is not workspace evidence"
+    cmd: |
+      skill_root="$PKG_subject"
+      test -n "$skill_root" &&
+      test -f "$skill_root/SKILL.md" &&
+      grep -Eq '^version: "?0\.6\.0"?' "$skill_root/SKILL.md" &&
+      grep -Fq "references/skill-design-principles.md" "$skill_root/SKILL.md" &&
+      test -f "$skill_root/references/skill-design-principles.md" &&
+      ! grep -Eq '^version: "?0\.4\.3"?' "$skill_root/SKILL.md" &&
+      workspace="$(cd "$skill_root" && pwd -P)" &&
+      for catalog in "$HOME/.agents/skills/autogenesis" "$HOME/.claude/skills/autogenesis"; do
+        if [ -f "$catalog/SKILL.md" ]; then
+          installed="$(cd "$catalog" && pwd -P)"
+          if [ "$installed" = "$workspace" ]; then
+            printf '{"ok":false,"skill_root":"%s","reason":"catalog-path-is-workspace"}\n' "$workspace"
+            exit 1
+          fi
+          if grep -Eq '^version: "?0\.4\.3"?' "$catalog/SKILL.md"; then
+            test "$installed" != "$workspace"
+          fi
+        fi
+      done &&
+      printf '{"ok":true,"skill_root":"%s"}\n' "$workspace"
+    expect: {ok: true}
+  - id: comparative-consequence-required
+    source: "OpenAI eval-skills guidance; grep-only critique"
+    cmd: |
+      exercises="$PKG_subject/references/scenarios/solid-dogfood-comparative-exercises.md"
+      test -f "$exercises" &&
+      test "$(grep -c '^named-design-consequence: ' "$exercises")" -eq 3 &&
+      grep -Fq "named-design-consequence: keep-root" "$exercises" &&
+      grep -Fq "named-design-consequence: split" "$exercises" &&
+      grep -Fq "named-design-consequence: no-adapter" "$exercises" &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}
+  - id: not-all-applicable
+    source: "approved lens: not-applicable is a reasoned conclusion"
+    cmd: |
+      exercises="$PKG_subject/references/scenarios/solid-dogfood-comparative-exercises.md"
+      python3 - "$exercises" <<'PY'
+      from pathlib import Path
+      import re, sys
+      text = Path(sys.argv[1]).read_text(encoding="utf-8")
+      parts = re.split(r"(?m)^## ", text)
+      sections = [part for part in parts[1:] if part.startswith(("Root-only skill", "Multi-procedure skill", "Provider-coupled skill"))]
+      if len(sections) != 3:
+          raise SystemExit("expected three exercise sections")
+      for section in sections:
+          if "not-applicable" not in section and "trade-off" not in section:
+              raise SystemExit("exercise missing not-applicable or trade-off")
+      print('{"ok":true}')
+      PY
+    expect: {ok: true}
+  - id: no-new-runtime-module
+    source: "approved lens non-goals; SkillsBench less-is-more"
+    cmd: |
+      test -d "$PKG_subject/references/modules" &&
+      test "$(find "$PKG_subject/references/modules" -mindepth 2 -maxdepth 2 -name SKILL.md | wc -l | tr -d ' ')" -eq 20 &&
+      test ! -e "$PKG_subject/scripts/solid_contract.py" &&
+      test ! -d "$PKG_subject/references/modules/solid" &&
+      test ! -d "$PKG_subject/packages" &&
+      test ! -f "$PKG_subject/references/modules/solid/SKILL.md" &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}
+  - id: no-lens-pr-absorption
+    source: "plan pin 4; dogfood is a new parent change set"
+    cmd: |
+      scenario="$PKG_subject/references/scenarios/solid-dogfood-autogenesis-adversarial-v1.yaml"
+      lens="$PKG_subject/references/scenarios/solid-skill-design-adversarial-v1.yaml"
+      test -f "$scenario" &&
+      test -f "$lens" &&
+      head -n 8 "$scenario" | grep -Fq "work_id: 2026-09-12-14-solid-dogfood-autogenesis" &&
+      ! head -n 8 "$scenario" | grep -Fq "work_id: 2026-09-12-solid-skill-design-lens" &&
+      head -n 8 "$lens" | grep -Fq "work_id: 2026-09-12-solid-skill-design-lens" &&
+      branch="$(git -C "$PKG_subject" rev-parse --abbrev-ref HEAD 2>/dev/null || true)" &&
+      test "$branch" != "sergio-sisternes-epam-solid-skill-design" &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}
