@@ -26,7 +26,7 @@ def module_resource_reference_errors(
     for match in INLINE_CODE_REFERENCE.finditer(content):
         token = match.group("token")
         path_token = token.split("#", 1)[0]
-        if "/" not in path_token or not Path(path_token).suffix:
+        if "/" not in path_token:
             continue
 
         if "<skill_root>" in path_token:
@@ -65,7 +65,7 @@ def module_resource_reference_errors(
                     f"{path_token} escapes the skill root"
                 )
                 continue
-            if not resource.is_file():
+            if not resource.exists():
                 errors.append(
                     f"{entrypoint.relative_to(ROOT)}: missing package-shared "
                     f"resource {path_token}"
@@ -83,6 +83,12 @@ def module_resource_reference_errors(
             continue
 
         if "<" in path_token or ">" in path_token:
+            continue
+        if path_token.startswith("/references/"):
+            errors.append(
+                f"{entrypoint.relative_to(ROOT)}: absolute resource "
+                f"{path_token} must use a declared resolution root"
+            )
             continue
         if path_token.startswith("./"):
             errors.append(
@@ -122,10 +128,10 @@ def module_resource_reference_errors(
                 f"{relative} escapes the module root"
             )
             continue
-        if module_resource.is_file():
+        if module_resource.exists():
             continue
         shared_resource = (ROOT / relative).resolve()
-        if shared_resource.is_file():
+        if shared_resource.exists():
             errors.append(
                 f"{entrypoint.relative_to(ROOT)}: package-shared resource "
                 f"{relative} must use <skill_root>/{relative}"
@@ -436,6 +442,12 @@ class SourceContractTests(unittest.TestCase):
                 "`./<skill_root>/references/aware-hook-template.md`",
             "skill-root repeated separator before traversal":
                 "`<skill_root>//../outside.md`",
+            "absolute package resource":
+                "`/references/aware-hook-template.md`",
+            "extensionless missing module resource":
+                "`references/missing-reference`",
+            "extensionless direct sibling module":
+                "`<skill_root>/references/modules/patterns`",
         }
         entrypoint = module_root / "aware-runtime/SKILL.md"
         for case, content in mutation_cases.items():

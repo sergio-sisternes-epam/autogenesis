@@ -147,7 +147,7 @@ When behaviour is in scope:
 | Approval | Implement is forbidden until a persisted formal design plan is explicitly approved. |
 | Discussion to implement | Forbidden; re-enter design first. |
 | Wiring | Human approval + version provenance only. No auto-wiring. |
-| Source of truth | This module plus `references/invocation-contract.md/json` own the live request/card/receipt discipline. |
+| Source of truth | This module plus `references/invocation-contract.md` and `references/invocation-contract.json` own the live request/card/receipt discipline. |
 | Legacy owned fields | Reject structured Autogenesis requests that use removed owned fields such as `path_id`, `path`, or `path_module`; explain the new contract instead of silently mapping them. |
 | Session vs Atlas | The Atlas persists across sessions; “empty session” never authorises store wipes or fresh-store assumptions. |
 
@@ -265,8 +265,8 @@ request card alone.
 
 ## Internal think modules
 
-During an Autogenesis Run, the think verbs resolve to internal support modules
-under `<skill_root>/references/modules/`:
+During an Autogenesis Run, the think verbs resolve through the parent registry
+to internal support modules:
 
 | Trigger family | Entrypoint |
 |---|---|

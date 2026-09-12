@@ -53,7 +53,7 @@ This operation does not reimplement those mechanics.
 3. Mount with no `--target`, then obtain `subject_atlas` only from
    `atlas resolve <atlas_id>`.
 4. A migration is single-writer: no symlink, copy, dual-write, or fallback at
-   `references/atlas`.
+   `<subject>/references/atlas`.
 5. Legacy okf-wiki intake is optional and starts only after the new root
    resolves and contains `SCHEMA.json`.
 6. Every staged content file becomes a claim-bearing page under
@@ -70,7 +70,7 @@ This operation does not reimplement those mechanics.
 - Require `subject` and the active subject git root. Select the canonical
   `atlas_id` using the explicit-or-exactly-one rule above.
 - Inspect `atlas-mesh.json`, `.gitmodules`, and the git index.
-- If a legacy `references/atlas` gitlink exists, its remote identity must
+- If a legacy `<subject>/references/atlas` gitlink exists, its remote identity must
   normalize to `atlas_id`; identity mismatch stops migration.
 - If neither a legacy mount nor an optional wiki source exists, report
   `n/a: nothing to migrate`. Do not mutate storage.
@@ -87,7 +87,7 @@ The resulting repository state must satisfy all of these:
 - `.gitmodules` path equals that gitlink;
 - `atlas-mesh.json` row for `atlas_id` has the same path and ref;
 - `.gitignore` does not hide `.atlas/`;
-- no tracked gitlink remains at `references/atlas`.
+- no tracked gitlink remains at `<subject>/references/atlas`.
 
 Then load Atlas path `mount` and run mount with no `--target`. Set
 `subject_atlas` only from:
@@ -199,7 +199,7 @@ Atlas root and compile outcome. Gates reflect actual state, not intended success
 - Silent peer mutation
 - Compatibility symlink, copy, dual-write, or fallback
 - Claiming success with non-empty staging or compile warnings
-- Auto-deleting `references/wiki/` without explicit human approval
+- Auto-deleting `<subject>/references/wiki/` without explicit human approval
 
 ## Consistency
 
