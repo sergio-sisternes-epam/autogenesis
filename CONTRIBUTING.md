@@ -136,8 +136,11 @@ Formal designs apply
 new-skill plans require the full five-row applicable / not-applicable /
 trade-off record; hardening may abbreviate the assessment to material
 principles. Review meaning through plans, scenarios and actual design evidence.
-Repository tests enforce only the shared authority's presence and linkage; do
-not add semantic validators or force modularization.
+The Python source-contract tests enforce only the shared authority's presence
+and resolvable Markdown linkage. Portable scenario smokes additionally assert
+the stable OCP/LSP, approval, prospective-adoption and no-machinery guidance;
+neither proves semantic design quality. Do not add semantic validators or force
+modularization.
 
 ## Reviewed dependency divergence
 
