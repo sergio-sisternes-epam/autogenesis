@@ -77,6 +77,6 @@ smokes:
   - id: release-surfaces-match-current-version
     source: release identity gate
     cmd: |
-      python3 -c "import json,os,re; from pathlib import Path; p=Path(os.environ['PKG_subject']); skill=re.search(r'^version: ([0-9.]+)$',(p/'SKILL.md').read_text(),re.M).group(1); apm=re.search(r'^version: ([0-9.]+)$',(p/'apm.yml').read_text(),re.M).group(1); print(json.dumps({'ok':skill==apm=='0.6.0' and '## [0.6.0]' in (p/'CHANGELOG.md').read_text()}))"
+      python3 -c "import json,os,re; from pathlib import Path; p=Path(os.environ['PKG_subject']); skill=re.search(r'^version: ([0-9.]+)$',(p/'SKILL.md').read_text(),re.M).group(1); apm=re.search(r'^version: ([0-9.]+)$',(p/'apm.yml').read_text(),re.M).group(1); print(json.dumps({'ok':skill==apm=='0.7.0' and '## [0.7.0]' in (p/'CHANGELOG.md').read_text()}))"
     expect:
       ok: true
