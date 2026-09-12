@@ -27,24 +27,28 @@ Shared assets resolve from skill_root, not cwd. Do not invoke while catalog Disc
 ## Process
 
 1. Accept the user’s free-form text (even if messy or incomplete).
-2. Apply the multi-harness substrate contract to the **external catalog skill**
+2. Resolve the parent subject Atlas write root **before** any nested load:
+   `atlas resolve <atlas_id>`, then `autogenesis/experiences/` (or the
+   appropriate type). Fail closed if that root is missing. Pass that
+   subject context/write root into the nested catalog request.
+   Fail closed before loading if the catalog procedure cannot honor that write root.
+   Conversation-only catalog fallback is not legal during a Run.
+3. Apply the multi-harness substrate contract to the **external catalog skill**
    named `think-ramble` from package `think` / `think@atlas`. Use the harness
    skill loader. Map this wrapper's arguments onto that catalog procedure
    before following it: `thoughts` is the free-form text to capture; if set,
    `theme` and `capture_title` label the page. Do not rely on ambient
    conversation alone when `thoughts` is present. Follow that catalog body
-   for capture. This nested load is not an Autogenesis module request: do
-   not resolve it through the parent registry, do not `read_file` this
-   wrapper again, and do not treat the catalog skill name as a re-entry into this module.
-3. **Autogenesis overlays (Run only), after the catalog body:**
-   - Persistence target is the subject repository Atlas root returned by
-     `atlas resolve <atlas_id>`, under `autogenesis/experiences/` (or the
-     appropriate type). Conversation-only catalog fallback is not legal during a Run.
+   for capture into the write root from step 2. This nested load is not an
+   Autogenesis module request: do not resolve it through the parent
+   registry, do not `read_file` this wrapper again, and do not treat the
+   catalog skill name as a re-entry into this module.
+4. **Autogenesis overlays (Run only), after the catalog body:**
    - Type-correct frontmatter; `relates_to` with `autogenesis/…` paths only
      for Autogenesis-authored edges.
    - `atlas compile` must go green.
-4. Confirm briefly what was captured; offer grill, challenge, or Medium/Gamma next steps.
-5. Return results and a receipt to the caller.
+5. Confirm briefly what was captured; offer grill, challenge, or Medium/Gamma next steps.
+6. Return results and a receipt to the caller.
 
 ## Rules
 

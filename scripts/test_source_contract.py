@@ -255,6 +255,10 @@ class SourceContractTests(unittest.TestCase):
         self.assertIn("`design_target` is the claim to challenge", challenge)
         self.assertIn("`topic` is the idea to grill", grill)
         self.assertIn("`thoughts` is the free-form text to capture", ramble)
+        self.assertIn(
+            "Fail closed before loading if the catalog procedure cannot honor",
+            ramble,
+        )
 
     def test_store_constants_are_exact(self) -> None:
         self.assertEqual(

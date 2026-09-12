@@ -56,6 +56,14 @@ smokes:
       echo '{"ok":true}'
     expect:
       ok: true
+  - id: ramble-fail-closed-on-write-root
+    source: "subject Atlas write-home before nested persist"
+    cmd: |
+      grep -q 'Fail closed before loading if the catalog procedure cannot honor' "$PKG_subject/references/modules/think-ramble/SKILL.md" &&
+      grep -q 'Conversation-only catalog fallback is not legal during a Run' "$PKG_subject/references/modules/think-ramble/SKILL.md" &&
+      echo '{"ok":true}'
+    expect:
+      ok: true
   - id: wrappers-forward-arguments
     source: "wrapper argument-forwarding review"
     cmd: |
