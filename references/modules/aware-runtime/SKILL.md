@@ -21,7 +21,8 @@ Scope is requested work, not approval evidence. Resolve shared assets from
 skill_root and siblings from the registry, not cwd. Return an honest receipt.
 
 ## Procedure
-1. Use canonical template `references/aware-hook-template.md`.
+1. Use canonical template
+   `<skill_root>/references/aware-hook-template.md`.
 2. Inject/update AwareHook + governance + closing step into subject skill as approved.
 3. Resolve the subject Atlas through workflow-discipline. If no store is
    declared, use Atlas init with an existing remote or stop; never create a

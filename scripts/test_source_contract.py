@@ -223,6 +223,22 @@ class SourceContractTests(unittest.TestCase):
         self.assertIn("approved parent design receipt", implement)
         self.assertIn("Reject before effects", implement)
 
+    def test_shared_template_references_are_skill_root_qualified(self) -> None:
+        expected = {
+            "aware-runtime": "references/aware-hook-template.md",
+            "reflect-challenge": "references/behaviour-challenge-template.md",
+        }
+        for module, relative_template in expected.items():
+            with self.subTest(module=module):
+                content = (
+                    ROOT / "references/modules" / module / "SKILL.md"
+                ).read_text(encoding="utf-8")
+                self.assertIn(
+                    f"<skill_root>/{relative_template}",
+                    content,
+                )
+                self.assertTrue((ROOT / relative_template).is_file())
+
     def test_live_workflow_has_no_construct_binding(self) -> None:
         live_paths = [
             ROOT / "SKILL.md",

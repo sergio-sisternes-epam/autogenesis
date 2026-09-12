@@ -24,8 +24,9 @@ Return a receipt with actual results, never card-only completion.
 1. Load subject SKILL + relevant experiences from the resolved subject Atlas.
 2. State current behaviours in this Run or implementation under review.
 3. Write the challenge experience through Atlas `remember` in the resolved
-   subject Atlas, using template `references/behaviour-challenge-template.md`
-   with objective, motivations, tension, claims, and use disposition.
+   subject Atlas, using template
+   `<skill_root>/references/behaviour-challenge-template.md` with objective,
+   motivations, tension, claims, and use disposition.
 4. Default `status: unverified`. **Do not implement** from this experience.
 5. Require `atlas compile --root <resolved-subject-atlas>` exit 0.
 
