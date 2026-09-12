@@ -49,6 +49,23 @@ is sufficient; headings and optional metadata serve clarity, not a validator.
 When authoring a leaf, adapt [the optional template](skill-module-template.md).
 Create local resources only when needed.
 
+Apply the shared
+[SOLID principles for skills](../../../skill-design-principles.md) when a
+private module boundary is proposed or materially changed. In particular:
+
+- split on a cohesive responsibility and real change pressure, not file size;
+- keep the parent/module contract stable against accidental semantic drift
+  while allowing reviewed and versioned changes;
+- assess substitutability only when modules claim an interchangeable
+  capability;
+- keep each callable boundary narrow but complete enough to carry context,
+  authority, outcomes, blockers and failure semantics; and
+- add dependency indirection only for concrete portability, volatility, reuse
+  or ownership pressure.
+
+The lens does not promote this draft, force S8 adoption, or turn a root-only
+skill into modules.
+
 ## Invariants
 
 - One public catalogue identity; no independent module exports or releases.

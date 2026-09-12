@@ -131,6 +131,14 @@ Keep fixtures and their evidence out of generated runtime bundles; report
 unavailable live evaluation explicitly rather than treating source checks as
 proof of agent behavior.
 
+Formal designs apply
+`references/skill-design-principles.md` after Genesis. New-surface and
+new-skill plans require the full five-row applicable / not-applicable /
+trade-off record; hardening may abbreviate the assessment to material
+principles. Review meaning through plans, scenarios and actual design evidence.
+Repository tests enforce only the shared authority's presence and linkage; do
+not add semantic validators or force modularization.
+
 ## Reviewed dependency divergence
 
 Do not remove direct OKF: two Autogenesis modules invoke it directly.

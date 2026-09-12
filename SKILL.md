@@ -40,6 +40,15 @@ instructions; no custom validator, JSON protocol or trace infrastructure is
 required. Task-serving scripts and explicitly approved full fusion remain
 available. This repository's release tooling is a separate concern.
 
+## SOLID principles for skills
+
+After Genesis, every formal Autogenesis design considers the skill-native
+SOLID lens in [`references/skill-design-principles.md`](references/skill-design-principles.md).
+The lens is grounded in information hiding, cohesion and change locality.
+New-surface and new-skill plans record all five principles; hardening records
+the material principles. Consideration is mandatory, but modules, abstractions
+and structural compliance are not.
+
 ## Evaluation boundary
 
 Autogenesis owns portable scenario specifications, runs applicable checks

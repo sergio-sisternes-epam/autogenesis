@@ -57,6 +57,15 @@ Produces a single structured REPORT. Does **not** replace the narrow `validate-s
    this review. S8 does not require a workflow engine, JSON protocol, Python
    validator, role taxonomy or Atlas. Missing optional machinery is not a gap.
 
+1b. **Apply SOLID principles for skills prospectively**
+   Load
+   [`../../skill-design-principles.md`](../../skill-design-principles.md)
+   and assess the principles that apply to the target's current or materially changed
+   design. Do not report untouched legacy artifacts as nonconforming
+   solely because they lack historical lens evidence. Treat `not-applicable`
+   and explicit trade-offs as valid reasoned outcomes; do not force modules,
+   speculative extension points or dependency abstractions.
+
 2. **Invoke the facet modules through the parent registry**:
    - `validate-skill-import-links`
    - `validate-progressive-disclosure`

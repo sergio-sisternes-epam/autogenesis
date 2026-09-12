@@ -9,8 +9,8 @@ and `references/` are authoritative package source. Do not introduce a
 ## Layout
 
 - `SKILL.md`: root Autogenesis skill and version surface.
-- `references/`: module entrypoints, shared resources, scenarios, and
-  templates.
+- `references/`: module entrypoints, the shared skill-design principles,
+  scenarios, and templates.
 - `apm.yml`: package metadata and immutable direct dependency pins. The
   separately versioned `discuss@atlas` dependency is the durable discussion
   mechanism; do not add an Autogenesis `discuss` operation or path proxy.
@@ -36,6 +36,14 @@ generated runtime. Keep generic review conditional on the target's declared
 architecture and integrations. The optional module template is a passive
 authoring resource, not a new export. Domain scripts and explicitly approved
 full fusion remain valid.
+
+Apply `references/skill-design-principles.md` after Genesis in formal design,
+initialisation and applicable package review. New-surface and new-skill plans
+require the five-row evidence record; hardening may use an abbreviated material
+assessment. SOLID is mandatory consideration, not structural compliance:
+preserve root-only skills, allow reviewed and versioned semantic change, assess
+Liskov substitution only for claimed interchangeability, and do not introduce
+speculative abstractions or semantic validators.
 
 Autogenesis has no external evaluator dependency. Current scenarios are
 portable specifications; run applicable commands with repository tools and

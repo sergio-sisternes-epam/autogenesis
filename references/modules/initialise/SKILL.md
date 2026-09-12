@@ -58,6 +58,14 @@ This operation **stops for approval**. Request **implement** only after explicit
    Absence of this section is a G3 failure.
    If the design produces a skill that itself chains/invokes another skill, the plan **must** include the multi-harness substrate contract (see Atlas decision `autogenesis/decisions/skill-nesting-invocation-pattern.md`).
 
+3b. **Apply the full SOLID principles for skills lens**
+   Load
+   [`../../skill-design-principles.md`](../../skill-design-principles.md)
+   after Genesis. Every new-skill plan must contain the five-row applicable /
+   not-applicable / trade-off record before approval presentation. Use the
+   record to make the root-only versus modular consequence explicit; it must
+   not assume that a new skill needs modules, adapters or runtime machinery.
+
 4. **Invoke support `think-challenge` through the parent registry**
    Pass the candidate plan as `arguments.design_target`; retain confirmed parent context.
    Use `read_file` (or harness equivalent) on the module path. Do **not** perform a name-based root-skill lookup. Prefer grounded counters; if internal-only, state that.

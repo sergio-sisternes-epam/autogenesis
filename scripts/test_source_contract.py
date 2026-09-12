@@ -64,7 +64,7 @@ class SourceContractTests(unittest.TestCase):
     def test_store_constants_are_exact(self) -> None:
         self.assertEqual(
             store_contract.STORE_COMMIT,
-            "73b97db21b8155a7a95ed10259524110d070facc",
+            "ba33992187c047851704c19c28de32bfcdae83dd",
         )
         self.assertEqual(store_contract.STORE_REF, "main")
         self.assertEqual(store_contract.ATLAS_VERSION, "0.9.0")
@@ -186,6 +186,27 @@ class SourceContractTests(unittest.TestCase):
         self.assertEqual(len(indexed_scenarios), len(set(indexed_scenarios)))
         for scenario in indexed_scenarios:
             self.assertTrue((ROOT / "references/scenarios" / scenario).is_file())
+
+    def test_shared_skill_design_principles_are_linked(self) -> None:
+        authority = ROOT / "references/skill-design-principles.md"
+        self.assertTrue(authority.is_file())
+
+        expected_links = {
+            ROOT / "SKILL.md": "references/skill-design-principles.md",
+            ROOT / "references/modules/design/SKILL.md":
+                "../../skill-design-principles.md",
+            ROOT / "references/modules/initialise/SKILL.md":
+                "../../skill-design-principles.md",
+            ROOT / "references/modules/review-package/SKILL.md":
+                "../../skill-design-principles.md",
+            ROOT / (
+                "references/modules/patterns/references/"
+                "parent-routed-skill-module.md"
+            ): "../../../skill-design-principles.md",
+        }
+        for path, link in expected_links.items():
+            with self.subTest(path=path.relative_to(ROOT)):
+                self.assertIn(link, path.read_text(encoding="utf-8"))
 
     def test_actual_root_version_surface_is_v0_6_0(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")

@@ -64,6 +64,15 @@ This operation **stops for approval**. Request **implement** only after explicit
    Absence of required depth for the class is a G3 failure.
    If the design produces a skill that itself chains/invokes another skill, the plan **must** include the multi-harness substrate contract (see `autogenesis/decisions/skill-nesting-invocation-pattern.md`).
 
+1b. **Apply SOLID principles for skills after Genesis**
+   Load the shared authority at
+   [`../../skill-design-principles.md`](../../skill-design-principles.md).
+   A `new-surface` or `new-skill` plan must contain the full five-row
+   applicable / not-applicable / trade-off record. A `hardening` plan may use
+   an abbreviated assessment of material principles. Missing required evidence
+   makes the design incomplete: do not present it for approval. Apply the lens
+   without forcing modules, extension points, adapters or runtime machinery.
+
 2. **Invoke support `think-challenge` through the parent registry**
    Pass the candidate plan as `arguments.design_target`; retain the parent context.
    Use `read_file` (or harness equivalent) on the module path. Do **not** perform a name-based root-skill lookup. Prefer grounded counters; if internal-only, state that. (The module itself applies the substrate contract to `atlas` when memory ops are needed.)

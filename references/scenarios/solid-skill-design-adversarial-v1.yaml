@@ -1,0 +1,61 @@
+id: solid-skill-design-adversarial-v1
+kind: skill-discipline
+version: "1"
+work_id: 2026-09-12-solid-skill-design-lens
+adversarial: true
+packages:
+  - id: subject
+    root: "<candidate-root>"
+    mode: mount
+project:
+  seed_knowledge: []
+smokes:
+  - id: shared-lens-is-linked-not-duplicated
+    source: Parnas information hiding and R3 EXTRACT
+    cmd: |
+      test -f "$PKG_subject/references/skill-design-principles.md" &&
+      grep -Fq "references/skill-design-principles.md" "$PKG_subject/SKILL.md" &&
+      grep -Fq "../../skill-design-principles.md" "$PKG_subject/references/modules/design/SKILL.md" &&
+      grep -Fq "../../skill-design-principles.md" "$PKG_subject/references/modules/initialise/SKILL.md" &&
+      grep -Fq "../../skill-design-principles.md" "$PKG_subject/references/modules/review-package/SKILL.md" &&
+      grep -Fq "../../../skill-design-principles.md" "$PKG_subject/references/modules/patterns/references/parent-routed-skill-module.md" &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}
+  - id: ocp-allows-governed-change
+    source: Fowler Speculative Generality
+    cmd: |
+      grep -Fq "closed to accidental semantic drift" "$PKG_subject/references/skill-design-principles.md" &&
+      grep -Fq "Intentional behavior changes" "$PKG_subject/references/skill-design-principles.md" &&
+      grep -Fq "versioned" "$PKG_subject/references/skill-design-principles.md" &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}
+  - id: lsp-is-conditional
+    source: behavioral substitutability boundary
+    cmd: |
+      grep -Fq "interchangeability is claimed" "$PKG_subject/references/skill-design-principles.md" &&
+      grep -Fq "not-applicable" "$PKG_subject/references/skill-design-principles.md" &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}
+  - id: lens-does-not-force-machinery
+    source: instruction-first S8 and PREMATURE SPLIT
+    cmd: |
+      grep -Fq "does not require modules" "$PKG_subject/references/skill-design-principles.md" &&
+      grep -Fq "semantic validator" "$PKG_subject/references/skill-design-principles.md" &&
+      test ! -e "$PKG_subject/scripts/solid_contract.py" &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}
+  - id: incomplete-design-cannot-seek-approval
+    source: user-pinned mandatory consideration
+    cmd: |
+      grep -Fq "five-row" "$PKG_subject/references/modules/design/SKILL.md" &&
+      grep -Fq "incomplete" "$PKG_subject/references/modules/design/SKILL.md" &&
+      grep -Fq "approval" "$PKG_subject/references/modules/design/SKILL.md" &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}
+  - id: review-is-prospective
+    source: user-pinned adoption boundary
+    cmd: |
+      grep -Fq "materially changed" "$PKG_subject/references/modules/review-package/SKILL.md" &&
+      grep -Fq "legacy" "$PKG_subject/references/modules/review-package/SKILL.md" &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}
