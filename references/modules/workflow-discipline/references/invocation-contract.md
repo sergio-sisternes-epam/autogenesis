@@ -55,6 +55,12 @@ Rules:
   receipt. That receipt must be completed with `result.disposition: approved`
   and the same non-empty `result.approval_ref`; a child-supplied token is not
   approval evidence.
+- The implement request's `arguments.plan_ref` is accepted only when it exactly
+  equals that approved design receipt's non-empty `result.artifact`. The
+  matching design request and implement request must also carry the same
+  protected `context.work_id`. A missing or mismatched artifact, work id,
+  approval reference, or approved disposition blocks before procedure effects;
+  a child cannot pair valid approval evidence with a different plan.
 - Establishing or changing the protected `subject` is an explicit parent
   transition, not a child override. That includes initialise confirmation and a
   discussion-to-design return.

@@ -10,7 +10,8 @@ metadata:
 
 ## Arguments
 
-- Required: `plan_ref` (the persisted formal plan).
+- Required: `plan_ref` (candidate persisted formal plan reference; it must
+  exactly match the approved parent design receipt's `result.artifact`).
 - Optional: none.
 - Protected context and resolved locations come from the parent, not arguments.
   Follow `<skill_root>/references/modules/workflow-discipline/SKILL.md` and
@@ -22,18 +23,25 @@ metadata:
 The parent issues a request targeting `implement`, role `operation`, reads
 this entrypoint and emits the configured full card before the procedure.
 Revalidate the persisted plan and actual explicit approval; approval_ref or
-a requested card alone grants no authority.
+a requested card alone grants no authority. Before any procedure effect, bind
+`arguments.plan_ref` to the parent design receipt: require
+`result.disposition: approved`, the same non-empty `approval_ref`, an exact
+`result.artifact` match, and the same protected `work_id`. Block on any missing
+or mismatched value.
 
 ## When (Change)
 
-1. **G4:** A **persisted plan produced by the formal design operation** (genesis → internal think-challenge → pin → C1–C5) exists **and** has received explicit user approval (“approve”, “implement the plan”, or equivalent).
+1. **G4:** A **persisted plan produced by the formal design operation** (genesis → internal think-challenge → pin → C1–C5) exists **and** has received explicit user approval (“approve”, “implement the plan”, or equivalent). The requested `plan_ref` must equal that approved design receipt's `result.artifact`, and both requests must share the protected `work_id`.
 2. **No product edits** if either is missing, or if the plan was produced by a discussion-mode short-circuit → `incomplete: missing Change (G4)`.
 3. Discussion never has implement authority. Reject a direct transition;
    the parent must first select Run mode and request the design operation.
 
 ## Procedure
 
-1. Confirm approved plan scope (no silent creep).
+1. Confirm the approved artifact binding and plan scope (no silent creep).
+   Reject before effects when `arguments.plan_ref` differs from the approved
+   parent design receipt's `result.artifact`, or when its approval reference,
+   approved disposition, or protected work id is missing or mismatched.
    Read **work_id** from the approved plan. Create work node(s) if missing; set status `implementing`.
    If the plan declares **change-class: new-surface**, verify mini-genesis artifacts are present in the plan (mermaid, interface sketch, cost note, acceptance). If missing → `incomplete: missing Change (G3/G5)` — do not implement; return to design.
    If **change-class: new-skill**, verify full Genesis Artifacts section.

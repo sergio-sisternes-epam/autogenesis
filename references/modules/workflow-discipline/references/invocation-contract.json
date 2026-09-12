@@ -144,6 +144,15 @@
       ]
     }
   },
+  "approval_binding": {
+    "implement_plan_ref_source": "parent_design_receipt.result.artifact",
+    "required_design_disposition": "approved",
+    "required_context_matches": [
+      "approval_ref",
+      "work_id"
+    ],
+    "mismatch_disposition": "blocked-before-effects"
+  },
   "max_attempts": 2,
   "root_arguments": {
     "required": ["objective"],

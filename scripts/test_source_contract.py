@@ -175,6 +175,42 @@ class SourceContractTests(unittest.TestCase):
         self.assertIn("## Procedure", example)
         self.assertIn("## Outcome", example)
 
+    def test_implement_plan_is_bound_to_approved_design_receipt(self) -> None:
+        contract_root = ROOT / "references/modules/workflow-discipline/references"
+        contract = json.loads(
+            (contract_root / "invocation-contract.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        prose = (contract_root / "invocation-contract.md").read_text(
+            encoding="utf-8"
+        )
+        implement = (ROOT / "references/modules/implement/SKILL.md").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertEqual(
+            contract["approval_binding"],
+            {
+                "implement_plan_ref_source":
+                    "parent_design_receipt.result.artifact",
+                "required_design_disposition": "approved",
+                "required_context_matches": ["approval_ref", "work_id"],
+                "mismatch_disposition": "blocked-before-effects",
+            },
+        )
+        self.assertIn("`arguments.plan_ref`", prose)
+        self.assertRegex(
+            prose,
+            r"accepted only when it exactly\s+equals",
+        )
+        self.assertIn("`result.artifact`", prose)
+        self.assertIn("`context.work_id`", prose)
+        self.assertIn("blocks before procedure effects", prose)
+        self.assertIn("exactly match", implement)
+        self.assertIn("approved parent design receipt", implement)
+        self.assertIn("Reject before effects", implement)
+
     def test_live_workflow_has_no_construct_binding(self) -> None:
         live_paths = [
             ROOT / "SKILL.md",
