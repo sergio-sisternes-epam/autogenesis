@@ -1,6 +1,6 @@
 # autogenesis
 
-Autogenesis is an expanded discipline of [`danielmeppiel/genesis`](https://github.com/danielmeppiel/genesis) that uses Atlas as long-term memory for the skill, wherever it is used, pairs with skills such as `discuss` and `think` and incorporates minor new patterns and disciplines, such as Activation Cards, Modules or SOLID principles for package management.
+Autogenesis is an expanded discipline of [`danielmeppiel/genesis`](https://github.com/danielmeppiel/genesis) that uses Atlas as long-term memory for the skill, wherever it is used, pairs with skills such as `discuss` and `think` and incorporates minor new patterns and disciplines, such as Activation Cards, Modules, or a skill-native SOLID design lens.
 
 ## Why / what this is not
 
