@@ -12,12 +12,14 @@ import store_contract
 ROOT = Path(__file__).resolve().parents[1]
 MODULE_RESOURCE_REFERENCE = re.compile(
     r"(?<![/\w])(?P<skill_root><skill_root>/)?"
+    r"(?P<prefix>(?:\./|\.\./)*)"
     r"(?P<path>references/[A-Za-z0-9_.-]+"
     r"(?:/[A-Za-z0-9_.-]+)*\.[A-Za-z0-9]+)"
     r"(?:#[A-Za-z0-9_.-]+)?"
 )
 PARENT_RELATIVE_RESOURCE_REFERENCE = re.compile(
-    r"(?<![/\w])(?P<path>(?:\.\./)+[A-Za-z0-9_.-]+"
+    r"(?<![/\w])(?P<prefix>(?:\./)*)"
+    r"(?P<path>(?:\.\./)+[A-Za-z0-9_.-]+"
     r"(?:/[A-Za-z0-9_.-]+)*\.[A-Za-z0-9]+)"
     r"(?:#[A-Za-z0-9_.-]+)?"
 )
@@ -36,11 +38,19 @@ def module_resource_reference_errors(
     for match in PARENT_RELATIVE_RESOURCE_REFERENCE.finditer(content):
         errors.append(
             f"{entrypoint.relative_to(ROOT)}: parent-relative resource "
-            f"{match.group('path')} escapes the module root"
+            f"{match.group('prefix')}{match.group('path')} escapes the "
+            "module root"
         )
 
     for match in MODULE_RESOURCE_REFERENCE.finditer(content):
         relative = Path(match.group("path"))
+        if match.group("prefix"):
+            errors.append(
+                f"{entrypoint.relative_to(ROOT)}: non-canonical resource "
+                f"path {match.group('prefix')}{relative} uses a relative "
+                "prefix"
+            )
+            continue
         if any(part in {".", ".."} for part in relative.parts):
             errors.append(
                 f"{entrypoint.relative_to(ROOT)}: non-canonical resource "
@@ -380,6 +390,12 @@ class SourceContractTests(unittest.TestCase):
                 "`<skill_root>/references/../../outside.md`",
             "parent-relative sibling module":
                 "`../patterns/SKILL.md`",
+            "dot-relative package-shared resource":
+                "`./references/aware-hook-template.md`",
+            "dot-parent-relative sibling module":
+                "`./../patterns/SKILL.md`",
+            "skill-root dot-relative package-shared resource":
+                "`<skill_root>/./references/aware-hook-template.md`",
         }
         entrypoint = module_root / "aware-runtime/SKILL.md"
         for case, content in mutation_cases.items():
