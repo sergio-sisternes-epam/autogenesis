@@ -20,7 +20,7 @@ Follow `<skill_root>/references/modules/workflow-discipline/SKILL.md` and its
 invocation contract. The parent reads this entrypoint and issues a support
 request with its configured compact card before the procedure. Keep the active
 operation and inherited context; return results and a receipt to the caller.
-Shared assets resolve from skill_root, not cwd. Do not invoke in discussion mode.
+Shared assets resolve from skill_root, not cwd. Do not invoke while catalog Discuss is active.
 
 ## Process
 

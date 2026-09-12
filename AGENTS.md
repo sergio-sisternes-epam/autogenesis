@@ -11,7 +11,9 @@ and `references/` are authoritative package source. Do not introduce a
 - `SKILL.md`: root Autogenesis skill and version surface.
 - `references/`: module entrypoints, shared resources, scenarios, and
   templates.
-- `apm.yml`: package metadata and immutable direct dependency pins.
+- `apm.yml`: package metadata and immutable direct dependency pins. The
+  separately versioned `discuss@atlas` dependency is the durable discussion
+  mechanism; do not add an Autogenesis `discuss` operation or path proxy.
 - `apm.lock.yaml`: committed APM 0.30.0 dependency resolution.
 - `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas`: mutable-main
   store gitlink, checked out at the reviewed commit.
@@ -19,7 +21,7 @@ and `references/` are authoritative package source. Do not introduce a
 - `scripts/`: deterministic local and CI release checks.
 - `.github/`: pinned CI/release automation and contribution templates.
 
-Autogenesis v0.5.0 is a breaking cutover to 21 parent-routed modules. The
+Autogenesis v0.6.0 has 20 parent-routed modules and no `discuss` operation. The
 root `SKILL.md` owns the version surface and module registry; module
 arguments cannot override parent-owned subject, mode, operation, work
 identity, Atlas, or approval. The removed path surface has no aliases.

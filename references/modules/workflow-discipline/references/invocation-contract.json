@@ -15,7 +15,6 @@
     "wire": "operation",
     "review-package": "operation",
     "atlas-migrate": "operation",
-    "discuss": "operation",
     "workflow-discipline": "support",
     "think-challenge": "support",
     "think-grill": "support",
@@ -51,17 +50,6 @@
         "plan_ref"
       ],
       "optional": []
-    },
-    "discuss": {
-      "required": [
-        "objective",
-        "discussion_root",
-        "current_branch"
-      ],
-      "optional": [
-        "stage",
-        "artifact"
-      ]
     },
     "atlas-migrate": {
       "required": [
@@ -313,7 +301,7 @@
     ]
   },
   "inventory_scope": {
-    "module_arguments": "complete authority for all 21 modules; must match each Arguments section"
+    "module_arguments": "complete authority for all 20 modules; must match each Arguments section"
   },
   "retry_requirements": {
     "owner": "immediate-parent",

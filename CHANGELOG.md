@@ -46,6 +46,16 @@ in `SKILL.md`.
 - Update the current package/version surfaces to `v0.5.0`, including install
   commands, bug-report example, and release guidance.
 
+## [0.6.0] - 2026-09-12
+
+### Changed
+
+- Remove the parent-routed Autogenesis `discuss` operation and discussion-mode
+  routing. Durable discussion belongs exclusively to the pinned
+  `discuss@atlas` package; activate that catalog skill directly. Conclusions
+  that require a package change must re-enter formal Autogenesis design and
+  approval before implementation.
+
 ## [0.5.0] - 2026-09-11
 
 ### Changed
@@ -184,7 +194,8 @@ in `SKILL.md`.
 - **Canonical decision:** `wiki-folder-deletion-policy` — no auto-delete on migrate; human-gated archive removal.
 - **Package metadata:** `apm.yml` deps on atlas + okf (not okf-wiki).
 
-[Unreleased]: https://github.com/sergio-sisternes-epam/autogenesis/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/sergio-sisternes-epam/autogenesis/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.6.0
 [0.5.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.5.0
 [0.4.3]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.4.3
 [0.4.2]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.4.2

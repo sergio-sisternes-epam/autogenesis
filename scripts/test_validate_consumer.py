@@ -12,7 +12,7 @@ import validate_consumer
 
 class ValidateConsumerTests(unittest.TestCase):
     package_name = "autogenesis"
-    package_version = "0.5.0"
+    package_version = "0.6.0"
 
     def create_package_root(
         self,

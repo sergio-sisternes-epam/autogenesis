@@ -1,0 +1,50 @@
+id: explicit-discuss-integration-adversarial-v1
+work_id: 2026-09-12-explicit-discuss-integration
+kind: skill-discipline
+packages:
+  - id: subject
+    root: "<candidate-root>"
+    mode: mount
+adversarial: true
+version: 1
+description: "Reject restoration of an embedded Autogenesis Discuss adapter."
+project:
+  seed_knowledge: []
+smokes:
+  - id: embedded-discuss-adapter-absent
+    source: "R4 thin-proxy removal and P3"
+    cmd: |
+      test ! -e "$PKG_subject/references/paths/discuss.md" &&
+      test ! -e "$PKG_subject/references/modules/discuss/SKILL.md" &&
+      ! grep -q 'path: discuss' "$PKG_subject/SKILL.md" &&
+      ! grep -q 'references/modules/discuss/SKILL.md' "$PKG_subject/SKILL.md" &&
+      ! grep -q 'path: discuss' "$PKG_subject/references/modules/workflow-discipline/SKILL.md" &&
+      echo '{"ok":true}'
+    expect:
+      ok: true
+  - id: direct-discuss-dependency-pinned
+    source: "explicit dependency pinning and P1"
+    cmd: |
+      grep -A8 '^dependencies:' "$PKG_subject/apm.yml" |
+      grep -q 'name: discuss' &&
+      grep -A12 'name: discuss' "$PKG_subject/apm.lock.yaml" |
+      grep -q 'resolved_commit: c1c0936d9a0346dce7d877646046c918de335d69' &&
+      echo '{"ok":true}'
+    expect:
+      ok: true
+  - id: docs-route-discussion-to-autogenesis
+    source: "dispatch collision and P2"
+    cmd: |
+      grep -q 'activate the catalog Discuss package directly' "$PKG_subject/README.md" &&
+      ! grep -q 'path: discuss' "$PKG_subject/SKILL.md" &&
+      echo '{"ok":true}'
+    expect:
+      ok: true
+  - id: discussion-shortcuts-to-implementation
+    source: "stage-collapse counter and P4"
+    cmd: |
+      grep -q 'must start a formal Autogenesis' "$PKG_subject/SKILL.md" &&
+      grep -q 'persisted, challenged plan and explicit approval' "$PKG_subject/SKILL.md" &&
+      echo '{"ok":true}'
+    expect:
+      ok: true

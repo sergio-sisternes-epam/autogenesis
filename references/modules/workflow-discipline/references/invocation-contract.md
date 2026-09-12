@@ -63,7 +63,9 @@ Rules:
   a child cannot pair valid approval evidence with a different plan.
 - Establishing or changing the protected `subject` is an explicit parent
   transition, not a child override. That includes initialise confirmation and a
-  discussion-to-design return.
+  fresh Autogenesis design request after catalog Discuss, with explicit
+  protected context. Catalog Discuss cannot perform that parent transition or
+  reuse Autogenesis context.
 - Unknown envelope fields, unknown module arguments, or alias fields such as
   `path_id`, `path`, and `path_module` are rejected with an actionable
   diagnostic.
@@ -84,7 +86,7 @@ Rules:
 source/trace checker can validate exact operation argument names without
 inventing execution logic.
 
-The JSON inventory covers all 21 migrated modules. Each entrypoint declares
+The JSON inventory covers all 20 migrated modules. Each entrypoint declares
 the matching required/optional keys. The core operation and discipline inputs
 are summarised here:
 
@@ -93,7 +95,6 @@ are summarised here:
 | `design` | `objective` | `change_evidence`, `behavioural_contract` |
 | `initialise` | `objective` | `proposed_name`, `activation_card`, `behavioural_contract` |
 | `implement` | `plan_ref` | none |
-| `discuss` | `objective`, `discussion_root`, `current_branch` | `stage`, `artifact` |
 | `atlas-migrate` | `storage_evidence` | `wiki_source` |
 | `workflow-discipline` | `request`, `phase` | `evidence`, `receipt`, `trace`, `notes` |
 

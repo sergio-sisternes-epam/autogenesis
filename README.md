@@ -3,16 +3,16 @@
 Private root-skill APM package (`SKILL.md` + `apm.yml` at the repository
 root): `sergio-sisternes-epam/autogenesis`.
 
-Install the immutable v0.5.0 release for the portable Agent Skills target:
+Install the immutable v0.6.0 release for the portable Agent Skills target:
 
 ```text
-apm install sergio-sisternes-epam/autogenesis#v0.5.0 --target agent-skills
+apm install sergio-sisternes-epam/autogenesis#v0.6.0 --target agent-skills
 ```
 
 Or validate/deploy across the supported stable runtime profile:
 
 ```text
-apm install sergio-sisternes-epam/autogenesis#v0.5.0 --target claude,codex,copilot,cursor,gemini,grok-build,kiro,opencode,windsurf
+apm install sergio-sisternes-epam/autogenesis#v0.6.0 --target claude,codex,copilot,cursor,gemini,grok-build,kiro,opencode,windsurf
 ```
 
 Autogenesis is validated with APM CLI 0.30.0 (`8c2e0d9`). The package is
@@ -22,12 +22,13 @@ credential with repository Contents access. CI uses the repository secret
 
 ## Breaking invocation cutover
 
-Autogenesis v0.5.0 is a breaking cutover to 21 parent-routed modules. The
-root skill remains the only catalog export; it owns the version surface and
-module registry. Each module is loaded by its named entrypoint under
-`references/modules/<name>/SKILL.md`, and the parent-owned request context
-cannot be overridden by module arguments. There are no compatibility aliases
-for the removed path surface.
+Autogenesis v0.6.0 is a breaking cutover to 20 parent-routed modules: the
+`discuss` operation is removed and durable discussion is the catalog Discuss
+package. The root skill remains the only catalog export; it owns the version
+surface and module registry. Each module is loaded by its named entrypoint
+under `references/modules/<name>/SKILL.md`, and the parent-owned request
+context cannot be overridden by module arguments. There are no compatibility
+aliases for the removed path surface or the removed discuss operation.
 
 An invocation request carries task arguments, parent-owned context and the
 resolved entrypoint. Its **activation card** is a visible request cue, not
@@ -82,11 +83,12 @@ python3 <atlas-skill>/scripts/atlas.py resolve github.com/sergio-sisternes-epam/
 
 Default mount and compile/query root:
 `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas`.
-The package source and dependency graph are immutable at `v0.5.0`, while the
+The package source and dependency graph are immutable at `v0.6.0`, while the
 store intentionally retains mutable `main` semantics in `.gitmodules` and
 `atlas-mesh.json`. This repository records the reviewed store snapshot as
-gitlink `73b97db21b8155a7a95ed10259524110d070facc`; later store movement is a
-separate governed change.
+gitlink `73b97db21b8155a7a95ed10259524110d070facc`. v0.6.0 does not advance
+that gitlink; companion Discuss lineage on a later store commit is a separate
+governed change after it lands on `main`.
 
 For work on another subject, Autogenesis uses that subject repository's
 declared Atlas. It never writes process memory into the installed skill tree.
@@ -107,7 +109,7 @@ that has not migrated fails closed with an actionable error.
 
 ## Dependency contract
 
-`apm.lock.yaml` is committed and is the reproducible v0.5.0 dependency
+`apm.lock.yaml` is committed and is the reproducible v0.6.0 dependency
 contract. Direct dependencies are declared as marketplace objects on
 `atlas` (`name` + `marketplace`) and resolve to the same
 released pins:
@@ -127,6 +129,15 @@ Catalog Atlas v0.11.2 and Discuss v0.3.10 resolve nested OKF/Atlas through
 the same marketplace pins as this root, so there are no reviewed graph
 divergences. Any graph warning or unexpected resolved commit is a release
 blocker.
+
+## Discuss integration
+
+`discuss@atlas` is a direct immutable package dependency. For durable
+discussion, activate the catalog Discuss package directly; Autogenesis no
+longer provides a `discuss` operation, `path: discuss` adapter, or Discuss Atlas
+handoff. Discuss never authorizes implementation. A discussion conclusion that
+requires a package change must begin a formal Autogenesis design Run and
+receive the normal persisted-plan approval before implementation.
 
 ## Release process
 
@@ -151,12 +162,12 @@ See `CONTRIBUTING.md` for the local commands and approval boundaries.
 
 ## Update a global APM consumer
 
-Do **not** update any global consumer yet. After v0.5.0 has been merged and
+Do **not** update any global consumer yet. After v0.6.0 has been merged and
 released, and only with explicit approval:
 
 1. Back up `~/.apm/apm.yml` and `~/.apm/apm.lock.yaml`.
 2. Prefer an immutable dependency:
-   `sergio-sisternes-epam/autogenesis#v0.5.0`.
+   `sergio-sisternes-epam/autogenesis#v0.6.0`.
 3. Preview:
    `apm update -g sergio-sisternes-epam/autogenesis --dry-run`.
 4. Apply:

@@ -49,7 +49,7 @@ in `apm.lock.yaml`. The lock is generated state: commit it, but never edit
 it by hand. `apm_modules/` and harness deployment directories are disposable
 and must remain untracked.
 
-Autogenesis v0.5.0 is a breaking cutover to 21 parent-routed modules. The
+Autogenesis v0.6.0 has 20 parent-routed modules and no `discuss` operation. The
 root `SKILL.md` owns the version surface and module registry. Module
 arguments cannot override parent-owned subject, mode, operation, work
 identity, Atlas, or approval, and the removed path surface has no aliases.
@@ -57,6 +57,12 @@ identity, Atlas, or approval, and the removed path surface has no aliases.
 The Autogenesis Atlas uses mutable `main` semantics in `.gitmodules` and
 `atlas-mesh.json`; the gitlink itself must match the reviewed commit. Updating
 the store pointer requires separate store evidence and review.
+
+`discuss@atlas` is a direct external dependency. Do not add a local
+`references/modules/discuss/SKILL.md` or `references/paths/discuss.md` adapter
+or discussion-mode routing to Autogenesis. Changes identified through a
+Discuss session must return through the normal Autogenesis design and
+approval flow.
 
 ## Local checks
 

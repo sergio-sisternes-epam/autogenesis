@@ -22,7 +22,7 @@ What should have happened?
 
 - OS:
 - APM CLI version:
-- **Package version:** e.g. autogenesis v0.5.0
+- **Package version:** e.g. autogenesis v0.6.0
 - Target harness (agent-skills, Copilot, Cursor, other):
 
 ## Additional context
