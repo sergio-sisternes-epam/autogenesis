@@ -27,7 +27,7 @@ apm install autogenesis@atlas
 ## Use
 
 ```text
-/autogenesis Let's discuss how can we <objective>
+/autogenesis Let's discuss how we can <objective>
 ```
 
 Procedures and invocation rules live in `SKILL.md`.
@@ -48,7 +48,8 @@ Procedures and invocation rules live in `SKILL.md`.
 | wire | Record approved wiring with version provenance |
 | atlas-migrate | Migrate legacy Atlas storage and preserve knowledge |
 
-Support, validation, and think helpers stay in `references/modules/`.
+The table lists the public operations. Support, validation, and think
+helpers remain in `SKILL.md` and `references/modules/`.
 
 ## Related
 
