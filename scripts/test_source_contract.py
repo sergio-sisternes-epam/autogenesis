@@ -330,24 +330,24 @@ class SourceContractTests(unittest.TestCase):
         authority = ROOT / "references/skill-design-principles.md"
         self.assertTrue(authority.is_file())
 
-        expected_links = {
-            ROOT / "SKILL.md": "references/skill-design-principles.md",
+        expected_references = {
+            ROOT / "SKILL.md":
+                "](references/skill-design-principles.md)",
             ROOT / "references/modules/design/SKILL.md":
-                "../../skill-design-principles.md",
+                "`<skill_root>/references/skill-design-principles.md`",
             ROOT / "references/modules/initialise/SKILL.md":
-                "../../skill-design-principles.md",
+                "`<skill_root>/references/skill-design-principles.md`",
             ROOT / "references/modules/review-package/SKILL.md":
-                "../../skill-design-principles.md",
+                "`<skill_root>/references/skill-design-principles.md`",
             ROOT / (
                 "references/modules/patterns/references/"
                 "parent-routed-skill-module.md"
-            ): "../../../skill-design-principles.md",
+            ): "](../../../skill-design-principles.md)",
         }
-        for path, link in expected_links.items():
+        for path, reference in expected_references.items():
             with self.subTest(path=path.relative_to(ROOT)):
                 content = path.read_text(encoding="utf-8")
-                self.assertIn(f"]({link})", content)
-                self.assertTrue((path.parent / link).resolve().is_file())
+                self.assertIn(reference, content)
 
     def test_actual_root_version_surface_is_v0_6_0(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")

@@ -60,7 +60,7 @@ This operation **stops for approval**. Request **implement** only after explicit
 
 3b. **Apply the full SOLID principles for skills lens**
    Load
-   [`../../skill-design-principles.md`](../../skill-design-principles.md)
+   `<skill_root>/references/skill-design-principles.md`
    after Genesis. Every new-skill plan must contain the five-row applicable /
    not-applicable / trade-off record before approval presentation. Use the
    record to make the root-only versus modular consequence explicit.

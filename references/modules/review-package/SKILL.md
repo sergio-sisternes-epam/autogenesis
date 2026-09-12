@@ -59,7 +59,7 @@ Produces a single structured REPORT. Does **not** replace the narrow `validate-s
 
 1b. **Apply SOLID principles for skills prospectively**
    Load
-   [`../../skill-design-principles.md`](../../skill-design-principles.md)
+   `<skill_root>/references/skill-design-principles.md`
    and assess the principles that apply to the target's current or materially changed
    design. Identify its change class: require the full five-row record for
    `new-surface` and `new-skill`, or an abbreviated material assessment that
