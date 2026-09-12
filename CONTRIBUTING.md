@@ -168,16 +168,16 @@ and target-specific consumer commands stay here.
 Keep these commands on the same version as `apm.yml`:
 
 ```text
-apm install sergio-sisternes-epam/autogenesis#v0.6.0 --target agent-skills
+apm install sergio-sisternes-epam/autogenesis#v0.7.0 --target agent-skills
 ```
 
 ```text
-apm install sergio-sisternes-epam/autogenesis#v0.6.0 --target claude,codex,copilot,cursor,gemini,grok-build,kiro,opencode,windsurf
+apm install sergio-sisternes-epam/autogenesis#v0.7.0 --target claude,codex,copilot,cursor,gemini,grok-build,kiro,opencode,windsurf
 ```
 
 Do not update any global consumer yet. After a release, and only with
 explicit approval, prefer an immutable dependency:
-  `sergio-sisternes-epam/autogenesis#v0.6.0`.
+  `sergio-sisternes-epam/autogenesis#v0.7.0`.
 
 ## Release handoff
 
