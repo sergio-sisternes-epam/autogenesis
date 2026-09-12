@@ -3,13 +3,17 @@
 Root-skill APM package (`SKILL.md` + `apm.yml` at the repository
 root): `sergio-sisternes-epam/autogenesis`.
 
-Install from the public Atlas catalog on github.com. Consumers do not need
-a personal access token:
+Install from the Atlas catalog on github.com:
 
 ```text
 apm marketplace add sergio-sisternes-epam/atlas-marketplace --name atlas
 apm install autogenesis@atlas
 ```
+
+Public github.com consumers do not need a personal access token for public
+catalog and package sources. This repository's consumer CI jobs still
+require the `APM_READ_TOKEN` workflow secret and fail closed when it is
+absent.
 
 Or install the immutable v0.6.0 release by git tag for the portable Agent
 Skills target:
@@ -24,8 +28,7 @@ Or validate/deploy across the supported stable runtime profile:
 apm install sergio-sisternes-epam/autogenesis#v0.6.0 --target claude,codex,copilot,cursor,gemini,grok-build,kiro,opencode,windsurf
 ```
 
-Autogenesis is validated with APM CLI 0.30.0 (`8c2e0d9`). CI uses the
-repository secret `APM_READ_TOKEN` and fails closed when it is absent.
+Autogenesis is validated with APM CLI 0.30.0 (`8c2e0d9`).
 
 ## Breaking invocation cutover
 
