@@ -123,4 +123,16 @@ Rollback restores the saved manifest/lock or pins the previous known-good ref,
 then runs the same explicit update flow. This package never updates the global
 installation automatically.
 
+## License and attribution
+
+Autogenesis is Copyright 2026 Sergio Sisternes and is licensed under the
+[Apache License 2.0](LICENSE), as declared in `apm.yml`.
+
+Autogenesis integrates with and builds upon concepts from
+[Genesis](https://github.com/danielmeppiel/genesis), Copyright 2025 Daniel
+Meppiel. The Genesis repository code is licensed under Apache-2.0. Its
+long-form book is a separate work licensed under CC BY-NC 4.0; that book
+license does not apply to the Genesis repository code or to Autogenesis.
+See [NOTICE](NOTICE) for the preserved attribution.
+
 See `SKILL.md` and `CHANGELOG.md`.

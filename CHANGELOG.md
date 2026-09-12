@@ -7,6 +7,12 @@ in `SKILL.md`.
 
 ## [Unreleased]
 
+### Added
+
+- Add the complete Apache License 2.0 text, Autogenesis copyright notice, and
+  preserved Genesis attribution; document that the separately published
+  Genesis book uses CC BY-NC 4.0 while the repository code uses Apache-2.0.
+
 ## [0.4.3] - 2026-09-10
 
 ### Changed
