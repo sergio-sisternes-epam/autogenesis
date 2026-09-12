@@ -30,19 +30,21 @@ Shared assets resolve from skill_root, not cwd. Do not invoke while catalog Disc
    - Current conversation topic, **or**
    - A specific Atlas page the user names / points to, **or**
    - The active Autogenesis plan / design under review.
-2. Apply the multi-harness substrate contract to the **external catalog skill**
+2. Resolve the parent-owned subject Atlas root **before** any nested load
+   (`atlas resolve <atlas_id>`). Fail closed if that root is missing. Pass
+   that subject context/write root into the nested catalog request.
+   Fail closed before loading if the catalog procedure cannot honor that write root.
+   Conversation-only catalog fallback is not legal during a Run.
+3. Apply the multi-harness substrate contract to the **external catalog skill**
    named `think-grill` from package `think` / `think@atlas`. Use the harness
    skill loader. Map this wrapper's arguments onto that catalog procedure
    before following it: `topic` is the idea to grill; if set,
    `assumption_list` and `clarity_goal` constrain the questions. Do not
    rely on ambient conversation alone when those arguments are present.
-   Follow that catalog body for Socratic questions. This nested load is not
-   an Autogenesis module request: do not resolve it through the parent
-   registry, do not `read_file` this wrapper again, and do not treat the
-   catalog skill name as a re-entry into this module.
-3. **Autogenesis overlays (Run only), after the catalog body:**
-   - Read and persist only through the subject Atlas via the substrate
-     contract to `atlas` (`query` / `remember`). Conversation-only catalog fallback is not legal during a Run.
+   Follow that catalog body for Socratic questions against the subject
+   Atlas from step 2. This nested load is not an Autogenesis module
+   request: do not resolve it through the parent registry, do not
+   `read_file` this wrapper again, and do not treat the catalog skill name as a re-entry into this module.
 4. Return results and a receipt to the caller.
 
 ## Rules

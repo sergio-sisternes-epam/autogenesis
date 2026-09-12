@@ -28,25 +28,28 @@ is a Run validation gate, never a discussion user verb.
 ## Process
 
 1. Identify the exact idea or claim to challenge (from the current conversation, the active Autogenesis plan, or a named Atlas page).
-2. Apply the multi-harness substrate contract to the **external catalog skill**
+2. Resolve the parent-owned subject Atlas root **before** any nested load
+   (`atlas resolve <atlas_id>`). Fail closed if that root is missing. Pass
+   that subject context/write root into the nested catalog request.
+   Fail closed before loading if the catalog procedure cannot honor that write root.
+   Conversation-only catalog fallback is not legal during a Run.
+3. Apply the multi-harness substrate contract to the **external catalog skill**
    named `think-challenge` from package `think` / `think@atlas`. Use the
    harness skill loader. Map this wrapper's arguments onto that catalog
    procedure before following it: `design_target` is the claim to challenge;
    if set, `relevant_atlas_page` is the named page and `evidence_scope`
    bounds evidence. Do not rely on ambient conversation alone when those
    arguments are present. Follow that catalog body for search-grounded
-   counters. This nested load is not an Autogenesis module request: do not
-   resolve it through the parent registry, do not `read_file` this wrapper
-   again, and do not treat the catalog skill name as a re-entry into this module.
-3. **Autogenesis overlays (Run only), after the catalog body:**
-   - Persist lasting conclusions only through the subject Atlas via the
-     substrate contract to `atlas` (`remember`). Conversation-only catalog fallback is not legal during a Run.
+   counters against the subject Atlas from step 2. This nested load is not
+   an Autogenesis module request: do not resolve it through the parent
+   registry, do not `read_file` this wrapper again, and do not treat the catalog skill name as a re-entry into this module.
+4. **Autogenesis overlays (Run only), after the catalog body:**
    - **Adversarial-scenario derivation** on behavior-changing work: after
      search, derive additional smokes from named theories and model knowledge
      if needed so the suite is non-empty. Each smoke names its source.
    - When called from design, return the counters for autonomous pin
      evaluation. Do not invite a user discussion verb here.
-4. Return findings and a receipt to the caller.
+5. Return findings and a receipt to the caller.
 
 ## Rules
 

@@ -31,7 +31,8 @@ Shared assets resolve from skill_root, not cwd. Do not invoke while catalog Disc
    `atlas resolve <atlas_id>`, then `autogenesis/experiences/` (or the
    appropriate type). Fail closed if that root is missing. Pass that
    subject context/write root into the nested catalog request.
-   Fail closed before loading if the catalog procedure cannot honor that write root.
+   Fail closed before loading if the catalog procedure cannot honor that write root,
+   type-correct frontmatter, or Autogenesis-authored `relates_to` paths.
    Conversation-only catalog fallback is not legal during a Run.
 3. Apply the multi-harness substrate contract to the **external catalog skill**
    named `think-ramble` from package `think` / `think@atlas`. Use the harness
@@ -39,7 +40,8 @@ Shared assets resolve from skill_root, not cwd. Do not invoke while catalog Disc
    before following it: `thoughts` is the free-form text to capture; if set,
    `theme` and `capture_title` label the page. Do not rely on ambient
    conversation alone when `thoughts` is present. Follow that catalog body
-   for capture into the write root from step 2. This nested load is not an
+   for capture into the write root from step 2, with those metadata
+   constraints. This nested load is not an
    Autogenesis module request: do not resolve it through the parent
    registry, do not `read_file` this wrapper again, and do not treat the
    catalog skill name as a re-entry into this module.

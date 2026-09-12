@@ -259,6 +259,14 @@ class SourceContractTests(unittest.TestCase):
             "Fail closed before loading if the catalog procedure cannot honor",
             ramble,
         )
+        self.assertIn(
+            "Fail closed before loading if the catalog procedure cannot honor",
+            challenge,
+        )
+        self.assertIn(
+            "Fail closed before loading if the catalog procedure cannot honor",
+            grill,
+        )
 
     def test_store_constants_are_exact(self) -> None:
         self.assertEqual(

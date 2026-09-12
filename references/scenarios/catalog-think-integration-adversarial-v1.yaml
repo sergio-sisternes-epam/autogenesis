@@ -56,6 +56,14 @@ smokes:
       echo '{"ok":true}'
     expect:
       ok: true
+  - id: challenge-grill-fail-closed-on-write-root
+    source: "subject Atlas before nested query/persist"
+    cmd: |
+      grep -q 'Fail closed before loading if the catalog procedure cannot honor that write root' "$PKG_subject/references/modules/think-challenge/SKILL.md" &&
+      grep -q 'Fail closed before loading if the catalog procedure cannot honor that write root' "$PKG_subject/references/modules/think-grill/SKILL.md" &&
+      echo '{"ok":true}'
+    expect:
+      ok: true
   - id: ramble-fail-closed-on-write-root
     source: "subject Atlas write-home before nested persist"
     cmd: |
