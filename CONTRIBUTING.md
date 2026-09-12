@@ -9,10 +9,9 @@
 | APM CLI | 0.30.0 (`8c2e0d9`) | Frozen install and audit |
 
 Use any available Python 3.12 interpreter (`python3.12` if installed, or the
-default `python3` when it reports 3.12). Local checks can use an existing
-`gh` login or another read-only GitHub credential with repository Contents
-access. The CI convention uses `APM_READ_TOKEN` and fails closed when that
-secret is absent.
+default `python3` when it reports 3.12). Public github.com consumers do not
+need a personal access token. The CI convention uses `APM_READ_TOKEN` as a
+workflow secret and fails closed when that secret is absent.
 
 ```text
 python3 - <<'PY'
@@ -75,9 +74,9 @@ python3 scripts/dependency_contract.py
 python3 scripts/store_contract.py
 ```
 
-With the private read credential configured, register the catalog (required
-`--name`; do not use alias `me` or default `atlas-marketplace`), then replay
-the exact dependency lock and audit source:
+Register the public catalog (required `--name`; do not use alias `me` or
+default `atlas-marketplace`), then replay the exact dependency lock and
+audit source:
 
 ```text
 apm marketplace add sergio-sisternes-epam/atlas-marketplace --name atlas

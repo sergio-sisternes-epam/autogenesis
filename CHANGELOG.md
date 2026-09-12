@@ -26,6 +26,12 @@ in `SKILL.md`.
 
 ### Changed
 
+- Document public GitHub consumer install via the Atlas catalog
+  (`apm marketplace add sergio-sisternes-epam/atlas-marketplace --name atlas`
+  then `apm install autogenesis@atlas`). Direct git-tag install remains.
+  Consumers do not need a github.com personal access token. Local contributing
+  steps no longer treat a private read credential as required to register the
+  catalog; CI still describes `APM_READ_TOKEN` as a workflow secret.
 - Keep the module discipline instruction-first by removing the proposed generic
   Python source/trace validator and its dedicated test harness; current scenario
   checks now use existing repository tests and lightweight shell assertions.

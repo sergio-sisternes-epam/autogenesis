@@ -2,7 +2,7 @@
 
 ## Package boundary
 
-This repository is one private APM root-skill package. `apm.yml`, `SKILL.md`,
+This repository is one APM root-skill package. `apm.yml`, `SKILL.md`,
 and `references/` are authoritative package source. Do not introduce a
 `packages/` tree or marketplace manifest.
 
@@ -60,12 +60,11 @@ Do not hand-edit generated lock entries.
 
 Run `python3 -m unittest discover -s scripts -p 'test_*.py'` first with a
 Python 3.12 interpreter (`python3.12`, or `python3` if it reports 3.12). For
-release-sensitive work, follow `CONTRIBUTING.md`; local checks can use an
-existing `gh` login or other read-only GitHub credential with repository
-Contents access. The CI convention uses `APM_READ_TOKEN` and fails closed
-when it is absent. Do not expose normal `gh` credentials in logs or files. Do
-not suppress the two documented dependency anchor warnings, and do not accept
-additional warnings without review.
+release-sensitive work, follow `CONTRIBUTING.md`. Public github.com consumers
+do not need a personal access token. The CI convention uses `APM_READ_TOKEN`
+and fails closed when it is absent. Do not expose normal `gh` credentials in
+logs or files. Do not suppress the two documented dependency anchor warnings,
+and do not accept additional warnings without review.
 
 Do not create, move, delete, or push tags; publish releases; change repository
 settings; or update global APM consumers as part of local release preparation.
