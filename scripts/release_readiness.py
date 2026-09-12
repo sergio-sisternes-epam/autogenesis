@@ -50,19 +50,19 @@ SURFACES = (
     ),
     VersionSurface(
         "agent-skills install command",
-        "README.md",
+        "CONTRIBUTING.md",
         rf"^apm install sergio-sisternes-epam/autogenesis#v({SEMVER})"
         rf"\s+--target\s+agent-skills\s*$",
     ),
     VersionSurface(
         "stable-runtime install command",
-        "README.md",
+        "CONTRIBUTING.md",
         rf"^apm install sergio-sisternes-epam/autogenesis#v({SEMVER})"
         rf"\s+--target\s+{re.escape(STABLE_TARGETS)}\s*$",
     ),
     VersionSurface(
         "global update pin",
-        "README.md",
+        "CONTRIBUTING.md",
         rf"^\s+`sergio-sisternes-epam/autogenesis#v({SEMVER})`\.\s*$",
     ),
     VersionSurface(

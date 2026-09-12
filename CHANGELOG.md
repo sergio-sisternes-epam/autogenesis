@@ -26,6 +26,10 @@ in `SKILL.md`.
 
 ### Changed
 
+- Restructure the root README to the family outline (purpose, why / what
+  this is not, install, use, modules, related, contributing, license).
+  Maintainer install pins, dependency commits, and required-check names
+  move to `CONTRIBUTING.md`.
 - Document Atlas catalog consumer install
   (`apm marketplace add sergio-sisternes-epam/atlas-marketplace --name atlas`
   then `apm install autogenesis@atlas`). Direct git-tag install remains.
