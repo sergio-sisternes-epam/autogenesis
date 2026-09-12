@@ -15,7 +15,7 @@ RESOURCE_REFERENCE_TOKEN = re.compile(
     r"(?:\./)*<skill_root>/[A-Za-z0-9_./<>-]+"
     r"|(?:\./|\.\./)*references/[A-Za-z0-9_./<>-]+"
     r"|(?:\./)*(?:\.\./)+[A-Za-z0-9_./<>-]+"
-    r"|/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+"
+    r"|/+[A-Za-z0-9_.-]+(?:/+[A-Za-z0-9_.-]+)*"
     r")(?![A-Za-z0-9_./<>-])"
 )
 WORKFLOW_ENTRYPOINT = Path(
@@ -468,6 +468,10 @@ class SourceContractTests(unittest.TestCase):
                 "`/references/aware-hook-template.md`",
             "absolute external resource":
                 "`/tmp/template.md`",
+            "absolute single-component resource":
+                "`/tmp`",
+            "absolute repeated-separator resource":
+                "`/tmp//outside.md`",
             "extensionless missing module resource":
                 "`references/missing-reference`",
             "extensionless direct sibling module":
@@ -476,6 +480,8 @@ class SourceContractTests(unittest.TestCase):
                 "Load references/aware-hook-template.md before continuing.",
             "templated skill-root traversal":
                 "`<skill_root>/../<outside>.md`",
+            "nested templated skill-root traversal":
+                "`<skill_root>/references/modules/<module>/../../outside.md`",
             "templated parent-relative sibling":
                 "`../<module>/SKILL.md`",
         }
