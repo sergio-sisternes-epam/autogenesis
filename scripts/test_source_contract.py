@@ -10,6 +10,145 @@ import store_contract
 
 
 ROOT = Path(__file__).resolve().parents[1]
+RESOURCE_REFERENCE_TOKEN = re.compile(
+    r"(?<![A-Za-z0-9_./<>-])(?P<token>"
+    r"(?:\./)*<skill_root>/[A-Za-z0-9_./<>-]+"
+    r"|(?:\./|\.\./)*references/[A-Za-z0-9_./<>-]+"
+    r"|(?:\./)*(?:\.\./)+[A-Za-z0-9_./<>-]+"
+    r"|/+[A-Za-z0-9_.-]+(?:/+[A-Za-z0-9_.-]+)*"
+    r")(?![A-Za-z0-9_./<>-])"
+)
+WORKFLOW_ENTRYPOINT = Path(
+    "references/modules/workflow-discipline/SKILL.md"
+)
+
+
+def module_resource_reference_errors(
+    entrypoint: Path,
+    content: str,
+) -> list[str]:
+    errors: list[str] = []
+    module_root = entrypoint.parent
+
+    for match in RESOURCE_REFERENCE_TOKEN.finditer(content):
+        path_token = match.group("token").rstrip(".,;:")
+        if "/" not in path_token:
+            continue
+
+        if "<skill_root>" in path_token:
+            if not path_token.startswith("<skill_root>/"):
+                errors.append(
+                    f"{entrypoint.relative_to(ROOT)}: non-canonical resource "
+                    f"path {path_token} must start at <skill_root>"
+                )
+                continue
+            raw_path = path_token.removeprefix("<skill_root>/")
+            if (
+                raw_path.startswith(("./", "../", "/"))
+                or "//" in raw_path
+            ):
+                errors.append(
+                    f"{entrypoint.relative_to(ROOT)}: non-canonical "
+                    f"package-shared resource {path_token}"
+                )
+                continue
+            relative = Path(raw_path)
+            if any(part in {".", ".."} for part in relative.parts):
+                errors.append(
+                    f"{entrypoint.relative_to(ROOT)}: non-canonical resource "
+                    f"path {path_token} contains a traversal segment"
+                )
+                continue
+            if "<" in raw_path or ">" in raw_path:
+                continue
+
+            resource = (ROOT / relative).resolve()
+            try:
+                resource.relative_to(ROOT.resolve())
+            except ValueError:
+                errors.append(
+                    f"{entrypoint.relative_to(ROOT)}: package-shared resource "
+                    f"{path_token} escapes the skill root"
+                )
+                continue
+            if not resource.exists():
+                errors.append(
+                    f"{entrypoint.relative_to(ROOT)}: missing package-shared "
+                    f"resource {path_token}"
+                )
+            module_entrypoints = (ROOT / "references/modules").resolve()
+            workflow_entrypoint = (ROOT / WORKFLOW_ENTRYPOINT).resolve()
+            if (
+                resource.is_relative_to(module_entrypoints)
+                and resource != workflow_entrypoint
+            ):
+                errors.append(
+                    f"{entrypoint.relative_to(ROOT)}: sibling module "
+                    f"{relative} must resolve through the parent registry"
+                )
+            continue
+
+        if path_token.startswith("/"):
+            errors.append(
+                f"{entrypoint.relative_to(ROOT)}: absolute resource "
+                f"{path_token} must use a declared resolution root"
+            )
+            continue
+        if path_token.startswith("./"):
+            errors.append(
+                f"{entrypoint.relative_to(ROOT)}: non-canonical resource "
+                f"path {path_token} uses a relative prefix"
+            )
+            continue
+        if path_token.startswith("../"):
+            errors.append(
+                f"{entrypoint.relative_to(ROOT)}: parent-relative resource "
+                f"{path_token} escapes the module root"
+            )
+            continue
+        if "<" in path_token or ">" in path_token:
+            continue
+        if not path_token.startswith("references/"):
+            continue
+
+        relative = Path(path_token)
+        if "//" in path_token:
+            errors.append(
+                f"{entrypoint.relative_to(ROOT)}: non-canonical resource "
+                f"path {path_token} contains a repeated separator"
+            )
+            continue
+        if any(part in {".", ".."} for part in relative.parts):
+            errors.append(
+                f"{entrypoint.relative_to(ROOT)}: non-canonical resource "
+                f"path {relative} contains a traversal segment"
+            )
+            continue
+
+        module_resource = (module_root / relative).resolve()
+        try:
+            module_resource.relative_to(module_root.resolve())
+        except ValueError:
+            errors.append(
+                f"{entrypoint.relative_to(ROOT)}: module-local resource "
+                f"{relative} escapes the module root"
+            )
+            continue
+        if module_resource.exists():
+            continue
+        shared_resource = (ROOT / relative).resolve()
+        if shared_resource.exists():
+            errors.append(
+                f"{entrypoint.relative_to(ROOT)}: package-shared resource "
+                f"{relative} must use <skill_root>/{relative}"
+            )
+        else:
+            errors.append(
+                f"{entrypoint.relative_to(ROOT)}: unresolved bare resource "
+                f"{relative}; module-local paths resolve from {module_root}"
+            )
+
+    return errors
 
 
 class SourceContractTests(unittest.TestCase):
@@ -191,24 +330,24 @@ class SourceContractTests(unittest.TestCase):
         authority = ROOT / "references/skill-design-principles.md"
         self.assertTrue(authority.is_file())
 
-        expected_links = {
-            ROOT / "SKILL.md": "references/skill-design-principles.md",
+        expected_references = {
+            ROOT / "SKILL.md":
+                "](references/skill-design-principles.md)",
             ROOT / "references/modules/design/SKILL.md":
-                "../../skill-design-principles.md",
+                "`<skill_root>/references/skill-design-principles.md`",
             ROOT / "references/modules/initialise/SKILL.md":
-                "../../skill-design-principles.md",
+                "`<skill_root>/references/skill-design-principles.md`",
             ROOT / "references/modules/review-package/SKILL.md":
-                "../../skill-design-principles.md",
+                "`<skill_root>/references/skill-design-principles.md`",
             ROOT / (
                 "references/modules/patterns/references/"
                 "parent-routed-skill-module.md"
-            ): "../../../skill-design-principles.md",
+            ): "](../../../skill-design-principles.md)",
         }
-        for path, link in expected_links.items():
+        for path, reference in expected_references.items():
             with self.subTest(path=path.relative_to(ROOT)):
                 content = path.read_text(encoding="utf-8")
-                self.assertIn(f"]({link})", content)
-                self.assertTrue((path.parent / link).resolve().is_file())
+                self.assertIn(reference, content)
 
     def test_actual_root_version_surface_is_v0_6_0(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
@@ -276,21 +415,105 @@ class SourceContractTests(unittest.TestCase):
         self.assertIn("approved parent design receipt", implement)
         self.assertIn("Reject before effects", implement)
 
-    def test_shared_template_references_are_skill_root_qualified(self) -> None:
-        expected = {
+    def test_module_resource_references_resolve_from_declared_roots(self) -> None:
+        module_root = ROOT / "references/modules"
+        entrypoints = sorted(module_root.glob("*/SKILL.md"))
+        authority = " ".join(
+            (module_root / "workflow-discipline/SKILL.md")
+            .read_text(encoding="utf-8")
+            .split()
+        )
+        for rule in (
+            "Normal references resolve from this module root.",
+            "Shared package resources resolve from `<skill_root>`.",
+            "Siblings resolve through the active parent registry.",
+            "Never use cwd as the base.",
+        ):
+            self.assertIn(rule, authority)
+
+        errors = []
+        for entrypoint in entrypoints:
+            errors.extend(
+                module_resource_reference_errors(
+                    entrypoint,
+                    entrypoint.read_text(encoding="utf-8"),
+                )
+            )
+        self.assertEqual([], errors)
+
+        expected_shared_resources = {
             "aware-runtime": "references/aware-hook-template.md",
-            "reflect-challenge": "references/behaviour-challenge-template.md",
+            "reflect-challenge":
+                "references/behaviour-challenge-template.md",
         }
-        for module, relative_template in expected.items():
+        for module, relative in expected_shared_resources.items():
             with self.subTest(module=module):
                 content = (
-                    ROOT / "references/modules" / module / "SKILL.md"
+                    module_root / module / "SKILL.md"
                 ).read_text(encoding="utf-8")
-                self.assertIn(
-                    f"<skill_root>/{relative_template}",
-                    content,
+                self.assertIn(f"<skill_root>/{relative}", content)
+                self.assertTrue((ROOT / relative).is_file())
+
+        mutation_cases = {
+            "bare package-shared resource":
+                "`references/aware-hook-template.md`",
+            "missing package-shared resource":
+                "`<skill_root>/references/missing-template.md`",
+            "missing module-local resource":
+                "`references/missing-reference.md`",
+            "direct sibling module":
+                "`<skill_root>/references/modules/patterns/SKILL.md`",
+            "normalized direct sibling module":
+                "`<skill_root>/references/./modules/patterns/SKILL.md`",
+            "skill-root traversal":
+                "`<skill_root>/references/../../outside.md`",
+            "parent-relative sibling module":
+                "`../patterns/SKILL.md`",
+            "dot-relative package-shared resource":
+                "`./references/aware-hook-template.md`",
+            "dot-parent-relative sibling module":
+                "`./../patterns/SKILL.md`",
+            "skill-root dot-relative package-shared resource":
+                "`<skill_root>/./references/aware-hook-template.md`",
+            "skill-root parent traversal":
+                "`<skill_root>/../outside.md`",
+            "skill-root dot-parent traversal":
+                "`<skill_root>/./../outside.md`",
+            "skill-root repeated-separator traversal":
+                "`<skill_root>/references//../../outside.md`",
+            "complete malformed path token":
+                "`<skill_root>/references/aware-hook-template.md-extra`",
+            "prefixed skill-root placeholder":
+                "`./<skill_root>/references/aware-hook-template.md`",
+            "skill-root repeated separator before traversal":
+                "`<skill_root>//../outside.md`",
+            "absolute package resource":
+                "`/references/aware-hook-template.md`",
+            "absolute external resource":
+                "`/tmp/template.md`",
+            "absolute single-component resource":
+                "`/tmp`",
+            "absolute repeated-separator resource":
+                "`/tmp//outside.md`",
+            "extensionless missing module resource":
+                "`references/missing-reference`",
+            "extensionless direct sibling module":
+                "`<skill_root>/references/modules/patterns`",
+            "plain bare package-shared resource":
+                "Load references/aware-hook-template.md before continuing.",
+            "templated skill-root traversal":
+                "`<skill_root>/../<outside>.md`",
+            "nested templated skill-root traversal":
+                "`<skill_root>/references/modules/<module>/../../outside.md`",
+            "templated parent-relative sibling":
+                "`../<module>/SKILL.md`",
+        }
+        entrypoint = module_root / "aware-runtime/SKILL.md"
+        for case, content in mutation_cases.items():
+            with self.subTest(case=case):
+                self.assertTrue(
+                    module_resource_reference_errors(entrypoint, content)
                 )
-                self.assertTrue((ROOT / relative_template).is_file())
 
     def test_live_workflow_has_no_construct_binding(self) -> None:
         live_paths = [

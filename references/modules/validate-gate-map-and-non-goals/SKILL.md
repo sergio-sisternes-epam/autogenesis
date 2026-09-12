@@ -25,7 +25,8 @@ not an override of the target skill's actual configuration.
 
 ## Procedure
 
-1. Locate the target skill root and read its root SKILL.md plus any module entrypoints under `references/modules/`.
+1. Locate the target skill root and read its root SKILL.md plus any module
+   entrypoints under `<target>/references/modules/`.
 2. Verify the target's own declared boundaries:
    - A declared gate map matches actual blocking points. Do not require
      Autogenesis's G0–G8 names or a gate map for a simple skill.

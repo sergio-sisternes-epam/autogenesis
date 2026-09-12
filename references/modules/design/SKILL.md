@@ -66,7 +66,7 @@ This operation **stops for approval**. Request **implement** only after explicit
 
 1b. **Apply SOLID principles for skills after Genesis**
    Load the shared authority at
-   [`../../skill-design-principles.md`](../../skill-design-principles.md).
+   `<skill_root>/references/skill-design-principles.md`.
    A `new-surface` or `new-skill` plan must contain the full five-row
    applicable / not-applicable / trade-off record. A `hardening` plan may use
    an abbreviated assessment of material principles, but it must explain why
