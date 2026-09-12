@@ -65,6 +65,17 @@ Task-serving scripts are allowed. Full Genesis discipline applies to the design
 process; generated runtime capabilities, including memory or full Autogenesis
 fusion, must be chosen explicitly. This repository's release checks are separate.
 
+## SOLID principles for skills
+
+Autogenesis applies a
+[skill-native SOLID lens](references/skill-design-principles.md) after Genesis
+for formal design work. New surfaces and new skills record all five principles
+as applicable, not-applicable or a trade-off; hardening records the material
+principles. The lens protects cohesive responsibilities, governed semantics,
+complete progressive interfaces and justified dependencies without requiring
+modules or speculative abstractions. Substitutability is assessed only when an
+interchangeable contract is claimed.
+
 ## Immutable package, mutable store
 
 Process memory is **not** authored in the installed skill package. The
@@ -86,9 +97,8 @@ Default mount and compile/query root:
 The package source and dependency graph are immutable at `v0.6.0`, while the
 store intentionally retains mutable `main` semantics in `.gitmodules` and
 `atlas-mesh.json`. This repository records the reviewed store snapshot as
-gitlink `73b97db21b8155a7a95ed10259524110d070facc`. v0.6.0 does not advance
-that gitlink; companion Discuss lineage on a later store commit is a separate
-governed change after it lands on `main`.
+gitlink `161fb87c0420f149cd1efba9e998eab575bce13a`. Companion Discuss lineage
+and later store movement remain separate governed changes.
 
 For work on another subject, Autogenesis uses that subject repository's
 declared Atlas. It never writes process memory into the installed skill tree.
