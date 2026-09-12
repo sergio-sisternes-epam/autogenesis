@@ -34,7 +34,7 @@ class SourceContractTests(unittest.TestCase):
     def test_store_constants_are_exact(self) -> None:
         self.assertEqual(
             store_contract.STORE_COMMIT,
-            "1ba15358a3157e3c946436ee60e73b87f3c77a0f",
+            "73b97db21b8155a7a95ed10259524110d070facc",
         )
         self.assertEqual(store_contract.STORE_REF, "main")
         self.assertEqual(store_contract.ATLAS_VERSION, "0.9.0")
@@ -130,12 +130,24 @@ class SourceContractTests(unittest.TestCase):
                 encoding="utf-8"
             )
         )
+        registry_rows = re.findall(
+            r"(?m)^\| ([a-z0-9-]+) \| (?:operation|support) \| .* "
+            r"\| `([^`]+)` \|$",
+            root_skill,
+        )
 
         self.assertEqual(len(module_entrypoints), 21)
+        self.assertEqual(len(registry_rows), 21)
+        self.assertEqual(
+            len(registry_rows),
+            len({module for module, _ in registry_rows}),
+        )
+        registry = dict(registry_rows)
         for entrypoint in module_entrypoints:
-            self.assertIn(
-                f"references/modules/{entrypoint.parent.name}/SKILL.md",
-                root_skill,
+            module = entrypoint.parent.name
+            self.assertEqual(
+                registry.get(module),
+                f"references/modules/{module}/SKILL.md",
             )
         indexed_scenarios = (
             scenario_index["current"] + scenario_index["historical"]

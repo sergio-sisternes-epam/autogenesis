@@ -21,8 +21,9 @@ in `SKILL.md`.
   Python source/trace validator and its dedicated test harness; current scenario
   checks now use existing repository tests and lightweight shell assertions.
 - Advance the reviewed Autogenesis Atlas snapshot to
-  `1ba15358a3157e3c946436ee60e73b87f3c77a0f` for the module-evolution design
-  and implementation record.
+  `73b97db21b8155a7a95ed10259524110d070facc` for the module-evolution records
+  and the approved SOLID design plan. The SOLID product behavior remains
+  deferred to a separate post-merge implementation.
 - Remove the unavailable external evaluator dependency from Autogenesis's live
   workflow, lineage fields and current acceptance contract. Portable
   scenarios, repository-native checks, actual evidence and GitHub CI remain.
