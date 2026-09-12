@@ -50,8 +50,10 @@ in `apm.lock.yaml`. The lock is generated state: commit it, but never edit
 it by hand. `apm_modules/` and harness deployment directories are disposable
 and must remain untracked.
 
-Autogenesis v0.6.0 has 20 parent-routed modules and no `discuss` operation. The
-root `SKILL.md` owns the version surface and module registry. Module
+Autogenesis v0.7.0 has 20 parent-routed modules and no `discuss` operation.
+Think support modules nest-load catalog `think@atlas`; they do not vendor
+forked think procedure. The root `SKILL.md` owns the version surface and
+module registry. Module
 arguments cannot override parent-owned subject, mode, operation, work
 identity, Atlas, or approval, and the removed path surface has no aliases.
 

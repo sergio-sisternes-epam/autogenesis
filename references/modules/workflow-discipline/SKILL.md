@@ -86,7 +86,8 @@ proves execution.
      `## Behavioural contract (agent-spec)` section or claim that the contract
      is complete.
    - Do not invoke internal `think-grill` or `think-ramble` while catalog
-     Discuss is active.
+     Discuss is active. Those wrappers nest-load catalog think skills; the
+     Discuss fence applies before that nested load.
 4. **Default routing.** Root default remains `design` for Run. Durable
    discussion is activated by loading the catalog **discuss** package
    directly; it is not an Autogenesis operation. The requested operation is

@@ -15,17 +15,17 @@ catalog and package sources. This repository's consumer CI jobs still
 require the `APM_READ_TOKEN` workflow secret and fail closed when it is
 absent.
 
-Or install the immutable v0.6.0 release by git tag for the portable Agent
+Or install the immutable v0.7.0 release by git tag for the portable Agent
 Skills target:
 
 ```text
-apm install sergio-sisternes-epam/autogenesis#v0.6.0 --target agent-skills
+apm install sergio-sisternes-epam/autogenesis#v0.7.0 --target agent-skills
 ```
 
 Or validate/deploy across the supported stable runtime profile:
 
 ```text
-apm install sergio-sisternes-epam/autogenesis#v0.6.0 --target claude,codex,copilot,cursor,gemini,grok-build,kiro,opencode,windsurf
+apm install sergio-sisternes-epam/autogenesis#v0.7.0 --target claude,codex,copilot,cursor,gemini,grok-build,kiro,opencode,windsurf
 ```
 
 Autogenesis is validated with APM CLI 0.30.0 (`8c2e0d9`).
@@ -34,7 +34,9 @@ Autogenesis is validated with APM CLI 0.30.0 (`8c2e0d9`).
 
 Autogenesis v0.6.0 is a breaking cutover to 20 parent-routed modules: the
 `discuss` operation is removed and durable discussion is the catalog Discuss
-package. The root skill remains the only catalog export; it owns the version
+package. Autogenesis v0.7.0 nest-loads catalog `think@atlas` from the
+parent-routed think wrappers; it does not vendor forked think procedure.
+The root skill remains the only catalog export; it owns the version
 surface and module registry. Each module is loaded by its named entrypoint
 under `references/modules/<name>/SKILL.md`, and the parent-owned request
 context cannot be overridden by module arguments. There are no compatibility
@@ -104,10 +106,10 @@ python3 <atlas-skill>/scripts/atlas.py resolve github.com/sergio-sisternes-epam/
 
 Default mount and compile/query root:
 `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas`.
-The package source and dependency graph are immutable at `v0.6.0`, while the
+The package source and dependency graph are immutable at `v0.7.0`, while the
 store intentionally retains mutable `main` semantics in `.gitmodules` and
 `atlas-mesh.json`. This repository records the reviewed store snapshot as
-gitlink `161fb87c0420f149cd1efba9e998eab575bce13a`. Companion Discuss lineage
+gitlink `110cab3deb3a87695003c6276ad92426e6262521`. Companion Discuss lineage
 and later store movement remain separate governed changes.
 
 For work on another subject, Autogenesis uses that subject repository's
@@ -129,7 +131,7 @@ that has not migrated fails closed with an actionable error.
 
 ## Dependency contract
 
-`apm.lock.yaml` is committed and is the reproducible v0.6.0 dependency
+`apm.lock.yaml` is committed and is the reproducible v0.7.0 dependency
 contract. Direct dependencies are declared as marketplace objects on
 `atlas` (`name` + `marketplace`) and resolve to the same
 released pins:
@@ -159,6 +161,16 @@ handoff. Discuss never authorizes implementation. A discussion conclusion that
 requires a package change must begin a formal Autogenesis design Run and
 receive the normal persisted-plan approval before implementation.
 
+## Think integration
+
+`think@atlas` is a direct immutable package dependency. During an Autogenesis
+Run, `think-challenge`, `think-grill`, and `think-ramble` remain parent-routed
+wrappers. Each wrapper nest-loads the matching catalog skill through the
+harness skill loader and then applies Run overlays: parent invocation,
+think-challenge as a design validation gate with named-theory smokes,
+subject-Atlas write-home, and no grill/ramble while catalog Discuss is active.
+The nested load must not re-enter the Autogenesis module or parent registry.
+
 ## Release process
 
 Every pull request and `main` update runs stable checks for metadata, source
@@ -181,12 +193,12 @@ See `CONTRIBUTING.md` for the local commands and approval boundaries.
 
 ## Update a global APM consumer
 
-Do **not** update any global consumer yet. After v0.6.0 has been merged and
+Do **not** update any global consumer yet. After v0.7.0 has been merged and
 released, and only with explicit approval:
 
 1. Back up `~/.apm/apm.yml` and `~/.apm/apm.lock.yaml`.
 2. Prefer an immutable dependency:
-   `sergio-sisternes-epam/autogenesis#v0.6.0`.
+   `sergio-sisternes-epam/autogenesis#v0.7.0`.
 3. Preview:
    `apm update -g sergio-sisternes-epam/autogenesis --dry-run`.
 4. Apply:

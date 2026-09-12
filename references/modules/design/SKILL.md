@@ -76,7 +76,12 @@ This operation **stops for approval**. Request **implement** only after explicit
 
 2. **Invoke support `think-challenge` through the parent registry**
    Pass the candidate plan as `arguments.design_target`; retain the parent context.
-   Use `read_file` (or harness equivalent) on the module path. Do **not** perform a name-based root-skill lookup. Prefer grounded counters; if internal-only, state that. (The module itself applies the substrate contract to `atlas` when memory ops are needed.)
+   Use `read_file` (or harness equivalent) on the Autogenesis module path. Do
+   **not** perform a name-based Autogenesis root-skill lookup. The wrapper
+   nest-loads catalog `think-challenge` from `think@atlas` as an external
+   skill and then applies Run overlays (named-theory smokes, subject-Atlas
+   persist, design-gate return). Prefer grounded counters; if internal-only,
+   state that.
 
 3. **Evaluate feedback and pin autonomously**
    Accept / reject / modify each material counter. Visible **Pinned decisions** in the plan. **Do not implement** SKILL/code here.

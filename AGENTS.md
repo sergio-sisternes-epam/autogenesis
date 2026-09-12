@@ -21,8 +21,10 @@ and `references/` are authoritative package source. Do not introduce a
 - `scripts/`: deterministic local and CI release checks.
 - `.github/`: pinned CI/release automation and contribution templates.
 
-Autogenesis v0.6.0 has 20 parent-routed modules and no `discuss` operation. The
-root `SKILL.md` owns the version surface and module registry; module
+Autogenesis v0.7.0 has 20 parent-routed modules and no `discuss` operation.
+Think support modules nest-load catalog `think@atlas`; they do not vendor
+forked think procedure. The root `SKILL.md` owns the version surface and
+module registry; module
 arguments cannot override parent-owned subject, mode, operation, work
 identity, Atlas, or approval. The removed path surface has no aliases.
 
