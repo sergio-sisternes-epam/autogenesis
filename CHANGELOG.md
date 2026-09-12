@@ -19,6 +19,9 @@ in `SKILL.md`.
 
 ### Added
 
+- Align GitHub issue and pull request templates with the family hybrid set,
+  including a security-advisory contact link and Autogenesis-specific PR
+  extras.
 - Add the complete Apache License 2.0 text, Autogenesis copyright notice, and
   preserved Genesis attribution; document that the separately published
   Genesis book uses CC BY-NC 4.0 while the repository code uses Apache-2.0.

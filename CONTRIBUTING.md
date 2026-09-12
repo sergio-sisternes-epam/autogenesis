@@ -24,6 +24,20 @@ PY
 Never print, persist, or commit credentials. Do not expose normal `gh`
 credentials in logs or files.
 
+## Issues and pull requests
+
+Use the GitHub issue templates in `.github/ISSUE_TEMPLATE/` for bugs and
+feature requests. Do not file public issues for vulnerabilities; report them
+through a
+[private GitHub security advisory](https://github.com/sergio-sisternes-epam/autogenesis/security/advisories/new).
+
+External substantive work needs a linked issue first. Maintainer-authored
+small docs or maintenance may skip that wait. Open pull requests with
+`.github/PULL_REQUEST_TEMPLATE.md`. Confirm human scope approval before agent
+implementation, except for maintainer-authored small docs or maintenance. The
+GitHub author owns the change, including any agent-generated diffs, and must
+not open the pull request as an unattended GitHub author.
+
 ## Repository contract
 
 The package root contains `SKILL.md` and `apm.yml`. Direct dependency refs in
