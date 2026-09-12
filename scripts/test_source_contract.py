@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import unittest
@@ -80,6 +81,19 @@ class SourceContractTests(unittest.TestCase):
         self.assertIn("apm_modules/", ignore)
         self.assertIn("Commit `apm.lock.yaml`", agents)
         self.assertIn("Never commit `apm_modules/`", agents)
+
+    def test_license_and_notice_contract(self) -> None:
+        license_bytes = (ROOT / "LICENSE").read_bytes()
+        notice = (ROOT / "NOTICE").read_text(encoding="utf-8")
+        self.assertEqual(
+            hashlib.sha256(license_bytes).hexdigest(),
+            "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        )
+        self.assertIn("Copyright 2026 Sergio Sisternes", notice)
+        self.assertIn("Copyright 2025 Daniel Meppiel", notice)
+        self.assertIn("https://github.com/danielmeppiel/genesis", notice)
+        self.assertIn("repository code is licensed under the Apache License", notice)
+        self.assertIn("CC BY-NC 4.0", notice)
 
     def test_store_constants_are_exact(self) -> None:
         self.assertEqual(
