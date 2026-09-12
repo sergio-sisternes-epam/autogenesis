@@ -39,8 +39,9 @@ emit the matching receipt.
 - Parent-owned context (`subject`, `mode`, `operation`, `work_id`, `atlas_id`,
   `atlas_root`, `approval_ref`) is never a child-supplied override.
 - Subject establishment is an explicit parent transition (for example root
-  selection, initialise confirmation, or discussion-to-design re-entry), never
-  a child argument override.
+  selection, initialise confirmation, or a fresh Autogenesis design request
+  after catalog Discuss), never a child argument override. Catalog Discuss
+  cannot reuse or hand off Autogenesis protected context.
 - For formal design or reevaluation, the root assigns `work_id` before dispatch
   and the operation validates and records that inherited value.
 - Task-specific inputs belong in `arguments`, not in protected context.
@@ -237,7 +238,7 @@ Lineage is an obligation, not a chat claim.
 
 | Gate | Cluster | Requirement |
 |---|---|---|
-| G0 | Enter | mode is explicit; Run requires subject; discussion has no implement authority |
+| G0 | Enter | mode is explicit Run; subject required; catalog Discuss is external and has no implement authority |
 | G1 | Enter | actual requested entrypoint read; one active operation; no silent invokes |
 | G2 | Change/Exit | Atlas writes go to the resolved subject Atlas root |
 | G3 | Change | design has change-class, required Genesis depth, challenge, pins, and `## Genesis Artifacts` |

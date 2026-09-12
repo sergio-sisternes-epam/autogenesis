@@ -63,7 +63,9 @@ Rules:
   a child cannot pair valid approval evidence with a different plan.
 - Establishing or changing the protected `subject` is an explicit parent
   transition, not a child override. That includes initialise confirmation and a
-  discussion-to-design return.
+  fresh Autogenesis design request after catalog Discuss, with explicit
+  protected context. Catalog Discuss cannot perform that parent transition or
+  reuse Autogenesis context.
 - Unknown envelope fields, unknown module arguments, or alias fields such as
   `path_id`, `path`, and `path_module` are rejected with an actionable
   diagnostic.
