@@ -78,7 +78,7 @@ This operation does not reimplement those mechanics.
 ### 2. Relocate the Atlas mount
 
 Apply the substrate contract to skill **atlas**, emit its `path: migrate`
-card, read `references/paths/migrate.md`, and follow it exactly.
+card, load its `migrate` path module, and follow it exactly.
 
 The resulting repository state must satisfy all of these:
 

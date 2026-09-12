@@ -142,7 +142,7 @@ When behaviour is in scope:
 | Rule | Requirement |
 |---|---|
 | Subject | Every Run declares a subject in protected context. |
-| Atlas write-home | Resolve the subject repository's declared `atlas_id` through Atlas `references/paths/mount.md` and `atlas resolve`; write plans/memory only to that resolved root. |
+| Atlas write-home | Resolve the subject repository's declared `atlas_id` through Atlas path `mount` and `atlas resolve`; write plans/memory only to that resolved root. |
 | Plan home | Design plans persist only at `autogenesis/plans/<work_id>.md` inside the resolved subject Atlas. |
 | Approval | Implement is forbidden until a persisted formal design plan is explicitly approved. |
 | Discussion to implement | Forbidden; re-enter design first. |
@@ -178,7 +178,7 @@ The active subject git root is the write-home boundary.
 2. Resolve `atlas_id` from explicit context or exactly one mesh store;
    zero/many without an explicit ID is ambiguous.
 3. Apply the substrate contract to the external `atlas` skill, load its
-   `references/paths/mount.md`, and mount if missing with no `--target`.
+   `mount` path module, and mount if missing with no `--target`.
    Do not remount an already registered dirty checkout containing this Run's
    writes; resolve that existing mount instead.
 4. Run `atlas resolve <atlas_id>`, set `atlas_root` only to that result, and

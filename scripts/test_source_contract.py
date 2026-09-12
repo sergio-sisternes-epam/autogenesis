@@ -9,6 +9,56 @@ import store_contract
 
 
 ROOT = Path(__file__).resolve().parents[1]
+MODULE_RESOURCE_REFERENCE = re.compile(
+    r"(?<![/\w])(?P<skill_root><skill_root>/)?"
+    r"(?P<path>references/[A-Za-z0-9_.-]+"
+    r"(?:/[A-Za-z0-9_.-]+)*\.[A-Za-z0-9]+)"
+    r"(?:#[A-Za-z0-9_.-]+)?"
+)
+WORKFLOW_ENTRYPOINT = Path(
+    "references/modules/workflow-discipline/SKILL.md"
+)
+
+
+def module_resource_reference_errors(
+    entrypoint: Path,
+    content: str,
+) -> list[str]:
+    errors: list[str] = []
+    module_root = entrypoint.parent
+
+    for match in MODULE_RESOURCE_REFERENCE.finditer(content):
+        relative = Path(match.group("path"))
+        if match.group("skill_root"):
+            if not (ROOT / relative).is_file():
+                errors.append(
+                    f"{entrypoint.relative_to(ROOT)}: missing package-shared "
+                    f"resource <skill_root>/{relative}"
+                )
+            if (
+                relative.parts[:2] == ("references", "modules")
+                and relative != WORKFLOW_ENTRYPOINT
+            ):
+                errors.append(
+                    f"{entrypoint.relative_to(ROOT)}: sibling module "
+                    f"{relative} must resolve through the parent registry"
+                )
+            continue
+
+        if (module_root / relative).is_file():
+            continue
+        if (ROOT / relative).is_file():
+            errors.append(
+                f"{entrypoint.relative_to(ROOT)}: package-shared resource "
+                f"{relative} must use <skill_root>/{relative}"
+            )
+        else:
+            errors.append(
+                f"{entrypoint.relative_to(ROOT)}: unresolved bare resource "
+                f"{relative}; module-local paths resolve from {module_root}"
+            )
+
+    return errors
 
 
 class SourceContractTests(unittest.TestCase):
@@ -223,21 +273,48 @@ class SourceContractTests(unittest.TestCase):
         self.assertIn("approved parent design receipt", implement)
         self.assertIn("Reject before effects", implement)
 
-    def test_shared_template_references_are_skill_root_qualified(self) -> None:
-        expected = {
-            "aware-runtime": "references/aware-hook-template.md",
-            "reflect-challenge": "references/behaviour-challenge-template.md",
-        }
-        for module, relative_template in expected.items():
-            with self.subTest(module=module):
-                content = (
-                    ROOT / "references/modules" / module / "SKILL.md"
-                ).read_text(encoding="utf-8")
-                self.assertIn(
-                    f"<skill_root>/{relative_template}",
-                    content,
+    def test_module_resource_references_resolve_from_declared_roots(self) -> None:
+        module_root = ROOT / "references/modules"
+        entrypoints = sorted(module_root.glob("*/SKILL.md"))
+        authority = " ".join(
+            (module_root / "workflow-discipline/SKILL.md")
+            .read_text(encoding="utf-8")
+            .split()
+        )
+        for rule in (
+            "Normal references resolve from this module root.",
+            "Shared package resources resolve from `<skill_root>`.",
+            "Siblings resolve through the active parent registry.",
+            "Never use cwd as the base.",
+        ):
+            self.assertIn(rule, authority)
+
+        errors = []
+        for entrypoint in entrypoints:
+            errors.extend(
+                module_resource_reference_errors(
+                    entrypoint,
+                    entrypoint.read_text(encoding="utf-8"),
                 )
-                self.assertTrue((ROOT / relative_template).is_file())
+            )
+        self.assertEqual([], errors)
+
+        mutation_cases = {
+            "bare package-shared resource":
+                "`references/aware-hook-template.md`",
+            "missing package-shared resource":
+                "`<skill_root>/references/missing-template.md`",
+            "missing module-local resource":
+                "`references/missing-reference.md`",
+            "direct sibling module":
+                "`<skill_root>/references/modules/patterns/SKILL.md`",
+        }
+        entrypoint = module_root / "aware-runtime/SKILL.md"
+        for case, content in mutation_cases.items():
+            with self.subTest(case=case):
+                self.assertTrue(
+                    module_resource_reference_errors(entrypoint, content)
+                )
 
     def test_live_workflow_has_no_construct_binding(self) -> None:
         live_paths = [
