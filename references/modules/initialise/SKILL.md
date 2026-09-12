@@ -63,8 +63,9 @@ This operation **stops for approval**. Request **implement** only after explicit
    [`../../skill-design-principles.md`](../../skill-design-principles.md)
    after Genesis. Every new-skill plan must contain the five-row applicable /
    not-applicable / trade-off record before approval presentation. Use the
-   record to make the root-only versus modular consequence explicit; it must
-   not assume that a new skill needs modules, adapters or runtime machinery.
+   record to make the root-only versus modular consequence explicit.
+   It must not assume that a new skill needs modules, adapters or runtime
+   machinery.
 
 4. **Invoke support `think-challenge` through the parent registry**
    Pass the candidate plan as `arguments.design_target`; retain confirmed parent context.

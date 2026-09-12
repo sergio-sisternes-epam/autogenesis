@@ -97,7 +97,7 @@ Default mount and compile/query root:
 The package source and dependency graph are immutable at `v0.6.0`, while the
 store intentionally retains mutable `main` semantics in `.gitmodules` and
 `atlas-mesh.json`. This repository records the reviewed store snapshot as
-gitlink `ba33992187c047851704c19c28de32bfcdae83dd`. Companion Discuss lineage
+gitlink `161fb87c0420f149cd1efba9e998eab575bce13a`. Companion Discuss lineage
 and later store movement remain separate governed changes.
 
 For work on another subject, Autogenesis uses that subject repository's

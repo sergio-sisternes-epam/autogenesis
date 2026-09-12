@@ -52,10 +52,21 @@ smokes:
       grep -Fq "approval" "$PKG_subject/references/modules/design/SKILL.md" &&
       printf '{"ok":true}\n'
     expect: {ok: true}
+  - id: initialise-requires-full-lens-without-forced-modules
+    source: new-skill evidence and PREMATURE SPLIT boundary
+    cmd: |
+      grep -Fq "five-row" "$PKG_subject/references/modules/initialise/SKILL.md" &&
+      grep -Fq "before approval" "$PKG_subject/references/modules/initialise/SKILL.md" &&
+      grep -Fq "root-only versus modular" "$PKG_subject/references/modules/initialise/SKILL.md" &&
+      grep -Fq "must not assume" "$PKG_subject/references/modules/initialise/SKILL.md" &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}
   - id: review-is-prospective
     source: user-pinned adoption boundary
     cmd: |
       grep -Fq "materially changed" "$PKG_subject/references/modules/review-package/SKILL.md" &&
+      grep -Fq "five-row" "$PKG_subject/references/modules/review-package/SKILL.md" &&
+      grep -Fq "needs-work" "$PKG_subject/references/modules/review-package/SKILL.md" &&
       grep -Fq "legacy" "$PKG_subject/references/modules/review-package/SKILL.md" &&
       printf '{"ok":true}\n'
     expect: {ok: true}

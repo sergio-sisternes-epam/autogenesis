@@ -61,10 +61,13 @@ Produces a single structured REPORT. Does **not** replace the narrow `validate-s
    Load
    [`../../skill-design-principles.md`](../../skill-design-principles.md)
    and assess the principles that apply to the target's current or materially changed
-   design. Do not report untouched legacy artifacts as nonconforming
-   solely because they lack historical lens evidence. Treat `not-applicable`
-   and explicit trade-offs as valid reasoned outcomes; do not force modules,
-   speculative extension points or dependency abstractions.
+   design. Identify its change class: require the full five-row record for
+   `new-surface` and `new-skill`, or an abbreviated material assessment that
+   explains omitted principles for `hardening`. Missing required SOLID evidence
+   is a `needs-work` result. Do not report untouched legacy artifacts as
+   nonconforming solely because they lack historical lens evidence. Treat
+   `not-applicable` and explicit trade-offs as valid reasoned outcomes; do not
+   force modules, speculative extension points or dependency abstractions.
 
 2. **Invoke the facet modules through the parent registry**:
    - `validate-skill-import-links`

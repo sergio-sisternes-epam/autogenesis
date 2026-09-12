@@ -64,7 +64,7 @@ class SourceContractTests(unittest.TestCase):
     def test_store_constants_are_exact(self) -> None:
         self.assertEqual(
             store_contract.STORE_COMMIT,
-            "ba33992187c047851704c19c28de32bfcdae83dd",
+            "161fb87c0420f149cd1efba9e998eab575bce13a",
         )
         self.assertEqual(store_contract.STORE_REF, "main")
         self.assertEqual(store_contract.ATLAS_VERSION, "0.9.0")
