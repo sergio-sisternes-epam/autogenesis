@@ -1,0 +1,18 @@
+Autogenesis
+Copyright 2026 Sergio Sisternes
+
+This product integrates with and builds upon concepts from the Genesis
+agent-skill:
+
+Genesis
+Copyright 2025 Daniel Meppiel
+https://github.com/danielmeppiel/genesis
+
+Genesis is a design-discipline catalogue for AI-coding-agent systems authored
+by Daniel Meppiel.
+
+The Genesis repository code is licensed under the Apache License, Version 2.0.
+Its accompanying long-form book is a separate work published under Creative
+Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0). The
+book's license does not apply to the Apache-2.0-licensed Genesis repository
+code or to Autogenesis.

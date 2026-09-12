@@ -1,0 +1,53 @@
+id: specify-only-adversarial-v2
+kind: skill-discipline
+version: "2"
+work_id: 2026-09-11-skill-module-invocation
+adversarial: true
+description: >
+  Successor to specify-only-adversarial-v1. Preserve the sole-Gherkin-producer
+  rule, design-card behavioural hint, discussion zero-write contract,
+  one-line deferral reason and required loading of agent-spec when specify is
+  invoked or coverage is validated.
+packages:
+  - id: subject
+    root: "<candidate-root>"
+    mode: mount
+project:
+  seed_knowledge: []
+smokes:
+  - id: design-authors-gherkin-directly
+    source: dual-authoring drift literature / sole-producer pin
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; d=(Path(os.environ['PKG_subject'])/'references/modules/design/SKILL.md').read_text(); w=(Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/SKILL.md').read_text(); ok=('only legal writer of behavioural Gherkin' in d and 'Autogenesis must never author or edit `.feature` files directly.' in w); print(json.dumps({'ok':ok}))"
+    expect:
+      ok: true
+  - id: design-missing-behavioural-hint
+    source: activation-card discipline
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; d=(Path(os.environ['PKG_subject'])/'references/modules/design/SKILL.md').read_text(); w=(Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/SKILL.md').read_text(); ok=('behavioural_contract: specify | deferred:<reason>' in d and 'behavioural_contract: specify | deferred:<reason>' in w); print(json.dumps({'ok':ok}))"
+    expect:
+      ok: true
+  - id: discussion-claims-contract-complete
+    source: discussion-mode zero-write / ownership boundary
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; w=(Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/SKILL.md').read_text(); print(json.dumps({'ok':'may not materialise a finished' in w and 'claim that the contract is complete' in w}))"
+    expect:
+      ok: true
+  - id: deferred-without-reason
+    source: G-BDD
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; d=(Path(os.environ['PKG_subject'])/'references/modules/design/SKILL.md').read_text(); print(json.dumps({'ok':'record an explicit `deferred: <one-line reason>`' in d and 'contains the deferred reason' in d}))"
+    expect:
+      ok: true
+  - id: protected-scenarios-must-be-named
+    source: behavioural guard coverage
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; d=(Path(os.environ['PKG_subject'])/'references/modules/design/SKILL.md').read_text(); print(json.dumps({'ok':'`@forbidden` / `@critical` scenarios that protect the change must be named' in d}))"
+    expect:
+      ok: true
+  - id: agent-spec-must-be-loaded
+    source: substrate ownership
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; d=(Path(os.environ['PKG_subject'])/'references/modules/design/SKILL.md').read_text(); print(json.dumps({'ok':'Load skill `agent-spec` (substrate) when calling specify or validating layout/coverage.' in d}))"
+    expect:
+      ok: true

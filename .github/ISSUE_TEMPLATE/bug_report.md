@@ -23,7 +23,7 @@ What you expected to happen.
 
 - **OS:** e.g. Ubuntu 24.04 / macOS 15
 - **APM CLI version:** e.g. 0.30.0 (8c2e0d9)
-- **Package version:** e.g. autogenesis v0.5.0
+- **Package version:** e.g. autogenesis v0.6.0
 - **Target / harness:** e.g. agent-skills, copilot, cursor
 
 ## Additional context

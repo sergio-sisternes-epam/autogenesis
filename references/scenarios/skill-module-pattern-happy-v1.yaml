@@ -1,0 +1,20 @@
+id: skill-module-pattern-happy-v1
+kind: skill-discipline
+version: "1"
+work_id: 2026-09-11-parent-routed-skill-module-pattern
+adversarial: false
+packages:
+  - id: subject
+    root: "<candidate-root>"
+    mode: mount
+project:
+  seed_knowledge: []
+smokes:
+  - id: valid-pattern-and-selection
+    source: "Approved pattern interface, registry and parent-selected applicability"
+    cmd: |
+      cd "$PKG_subject" &&
+      test -f references/modules/patterns/references/parent-routed-skill-module.md &&
+      grep -Fq 'Require an applicability reason' references/modules/patterns/references/parent-routed-skill-module.md &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}

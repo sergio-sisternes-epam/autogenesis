@@ -1,0 +1,55 @@
+id: patterns-module-adversarial-v2
+kind: skill-discipline
+version: "2"
+work_id: 2026-09-11-skill-module-invocation
+adversarial: true
+description: >
+  Successor to patterns-module-adversarial-v1. Preserve repeated-use admission,
+  cheap known-use recording, progressive load of the Autogenesis delta only,
+  deferred scan/relate work and the B17 activation-card pattern with module-
+  local references.
+packages:
+  - id: subject
+    root: "<candidate-root>"
+    mode: mount
+project:
+  seed_knowledge: []
+smokes:
+  - id: no-scan-or-relate-in-v2
+    source: extraction/mining precision literature + deferred pin
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/patterns/SKILL.md').read_text(); print(json.dumps({'ok':'Scan/detect and Relate remain deferred.' in t}))"
+    expect:
+      ok: true
+  - id: create-requires-repeated-use
+    source: Alexander pattern definition + user admission bar
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/patterns/SKILL.md').read_text(); print(json.dumps({'ok':'Create to active requires repeated use evidence.' in t}))"
+    expect:
+      ok: true
+  - id: known-use-recordable
+    source: living Known uses lock
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/patterns/SKILL.md').read_text(); print(json.dumps({'ok':'**Record known-use** — append to the living Known uses section of B17.' in t}))"
+    expect:
+      ok: true
+  - id: load-progressive-and-delta-only
+    source: agent skills progressive disclosure research
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; patterns=(Path(os.environ['PKG_subject'])/'references/modules/patterns/SKILL.md').read_text(); design=(Path(os.environ['PKG_subject'])/'references/modules/design/SKILL.md').read_text(); ok=('**Load** — returns B17 (and future extensions).' in patterns and 'delta only' in design and 'not a full dump' in design); print(json.dumps({'ok':ok}))"
+    expect:
+      ok: true
+  - id: activation-card-first-pattern
+    source: discussion seed
+    cmd: |
+      test -f "$PKG_subject/references/modules/patterns/references/activation-card.md" &&
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/patterns/references/activation-card.md').read_text(); print(json.dumps({'ok':'# B17. ACTIVATION CARD' in t and '## Known uses' in t}))"
+    expect:
+      ok: true
+  - id: canonical-template-remains-module-local
+    source: passive resource ownership
+    cmd: >
+      test -f "$PKG_subject/references/modules/patterns/references/template.md" &&
+      echo '{"ok":true}'
+    expect:
+      ok: true

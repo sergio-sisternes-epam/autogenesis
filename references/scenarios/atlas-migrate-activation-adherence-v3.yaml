@@ -1,0 +1,86 @@
+id: atlas-migrate-activation-adherence-v3
+kind: skill-discipline
+version: "3"
+work_id: 2026-09-11-skill-module-invocation
+adversarial: false
+description: >
+  Successor to atlas-migrate-activation-adherence-v2 for the module-entrypoint
+  cutover. Preserve storage-first activation, explicit atlas_id resolution,
+  fail-closed subject Atlas handling, claim conversion, relationship review and
+  discipline rewrite under references/modules/atlas-migrate/SKILL.md.
+packages:
+  - id: subject
+    root: "<candidate-root>"
+    mode: mount
+project:
+  seed_knowledge: []
+smokes:
+  - id: module-entrypoint-exists
+    source: activation - operation entrypoint on disk
+    cmd: >
+      test -f "$PKG_subject/references/modules/atlas-migrate/SKILL.md" &&
+      echo '{"ok":true}'
+    expect:
+      ok: true
+  - id: root-registry-lists-storage-first-module
+    source: activation - root registry row matches operation entrypoint
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'SKILL.md').read_text(); print(json.dumps({'ok':'| atlas-migrate | operation | Migrate legacy storage through Atlas' in t and 'references/modules/atlas-migrate/SKILL.md' in t}))"
+    expect:
+      ok: true
+  - id: module-frontmatter-uses-parent-role-metadata
+    source: activation - module metadata replaces path_id surface
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/atlas-migrate/SKILL.md').read_text(); ok=('autogenesis-parent: autogenesis' in t and 'autogenesis-role: operation' in t and 'path_id:' not in t); print(json.dumps({'ok':ok}))"
+    expect:
+      ok: true
+  - id: atlas-id-selection-matches-shared-contract
+    source: workflow-discipline subject Atlas selection
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/atlas-migrate/SKILL.md').read_text(); need=['explicit `atlas_id`','exactly one store','fail closed','never select by order']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true
+  - id: storage-migration-precedes-content-intake
+    source: current Atlas migrate contract
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/atlas-migrate/SKILL.md').read_text(); a=t.index('### 2. Relocate the Atlas mount'); b=t.index('### 3. Optional legacy okf-wiki intake'); print(json.dumps({'ok':a < b}))"
+    expect:
+      ok: true
+  - id: mount-resolve-no-target
+    source: current Atlas write-home contract
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/atlas-migrate/SKILL.md').read_text(); print(json.dumps({'ok':'no `--target`' in t and 'atlas resolve <atlas_id>' in t and '<subject_atlas>/SCHEMA.json' in t}))"
+    expect:
+      ok: true
+  - id: single-writer-migration
+    source: no compatibility split authority
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/atlas-migrate/SKILL.md').read_text().lower(); print(json.dumps({'ok':'single-writer' in t and 'no symlink, copy, dual-write' in t}))"
+    expect:
+      ok: true
+  - id: claim-and-relationship-gates-preserved
+    source: Autogenesis legacy-content migration contract
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/atlas-migrate/SKILL.md').read_text(); need=['Claim conversion','Thorough relationship review','quality_edges_added','staging_empty']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true
+  - id: receipt-fields-preserved
+    source: atlas-migrate invocation receipt contract
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/atlas-migrate/SKILL.md').read_text(); need=['storage_relocated','promoted_count','staging_empty','relationship_review','discipline_rewrite']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true
+  - id: canonical-store-gitlink
+    source: source package storage metadata
+    cmd: |
+      python3 -c "import configparser,json,os; from pathlib import Path; p=Path(os.environ['PKG_subject']); c=configparser.ConfigParser(); c.read(p/'.gitmodules'); s=c['submodule \".atlas/github.com/sergio-sisternes-epam/autogenesis-atlas\"']; m=json.loads((p/'atlas-mesh.json').read_text())['stores'][0]; assert s['path']==m['path']=='.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas' and s['branch']==m['ref']=='main'" &&
+      git -C "$PKG_subject" ls-files -s .atlas/github.com/sergio-sisternes-epam/autogenesis-atlas |
+      grep -q "^160000" && echo '{"ok":true}'
+    expect:
+      ok: true
+  - id: skill-version-documents-migration
+    source: v0.6.0 release contract
+    cmd: |
+      python3 -c "import json,os,re; from pathlib import Path; p=Path(os.environ['PKG_subject']); skill=re.search(r'^version: ([0-9.]+)$',(p/'SKILL.md').read_text(),re.M).group(1); apm=re.search(r'^version: ([0-9.]+)$',(p/'apm.yml').read_text(),re.M).group(1); print(json.dumps({'ok':skill==apm=='0.6.0'}))"
+    expect:
+      ok: true

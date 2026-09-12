@@ -7,15 +7,72 @@ in `SKILL.md`.
 
 ## [Unreleased]
 
-## [0.5.0] - 2026-09-12
+## [0.6.0] - 2026-09-12
 
 ### Changed
 
-- Replace the embedded Autogenesis `path: discuss` adapter with the explicit,
-  immutable `discuss@atlas` package integration. Discuss now exclusively owns
-  durable discussion entry and runtime protocol; conclusions requiring package
-  changes must re-enter formal Autogenesis design and approval before
-  implementation.
+- Remove the parent-routed Autogenesis `discuss` operation and discussion-mode
+  routing. Durable discussion belongs exclusively to the pinned
+  `discuss@atlas` package; activate that catalog skill directly. Conclusions
+  that require a package change must re-enter formal Autogenesis design and
+  approval before implementation.
+
+### Added
+
+- Add the complete Apache License 2.0 text, Autogenesis copyright notice, and
+  preserved Genesis attribution; document that the separately published
+  Genesis book uses CC BY-NC 4.0 while the repository code uses Apache-2.0.
+- Add an optional instruction-only skill-module template without runtime
+  validators, protocol schemas or mandatory resource directories.
+- Add Autogenesis-scoped S8 Parent-routed Skill Module as a draft structural
+  pattern, with applicability/admission guidance in design, initialise and
+  package review. B17 Activation Card remains active; Genesis is unchanged.
+
+### Changed
+
+- Keep the module discipline instruction-first by removing the proposed generic
+  Python source/trace validator and its dedicated test harness; current scenario
+  checks now use existing repository tests and lightweight shell assertions.
+- Advance the reviewed Autogenesis Atlas snapshot to
+  `73b97db21b8155a7a95ed10259524110d070facc` for the module-evolution records
+  and the approved SOLID design plan. The SOLID product behavior remains
+  deferred to a separate post-merge implementation.
+- Remove the unavailable external evaluator dependency from Autogenesis's live
+  workflow, lineage fields and current acceptance contract. Portable
+  scenarios, repository-native checks, actual evidence and GitHub CI remain.
+- Refine draft S8 to version 0.2 as instruction-first guidance for derived
+  skills. Separate Genesis authoring discipline from generated runtime;
+  make full fusion explicit and generic review conditional on adopted
+  modules, gates and memory integration. Autogenesis's own protocol and
+  release tooling remain local policy.
+- Clarify B17's portable request cue separately from its Autogenesis-specific
+  receipt, retry and memory policy; retain its active status.
+- Breaking cutover to 21 parent-routed modules under
+  `references/modules/<name>/SKILL.md`, with the root skill remaining the only
+  catalog export and module arguments unable to override parent-owned context.
+- Update the current package/version surfaces to `v0.5.0`, including install
+  commands, bug-report example, and release guidance.
+
+## [0.5.0] - 2026-09-11
+
+### Changed
+
+- Promote Autogenesis to `v0.5.0` as a breaking release. The root skill now
+  routes 21 parent-owned modules, the old path surface is removed, and the
+  invocation contract requires module entrypoints under
+  `references/modules/<name>/SKILL.md`.
+- Update the release and consumer guidance to use `v0.5.0` install / update
+  examples while preserving the historical `v0.4.3` release notes below.
+- Keep the repository release process locked to the existing dependency pins
+  and reviewed store snapshot; no lock refresh was required for this surface
+  cutover.
+- Separate invocation requests, configured full/compact activation cards and
+  evidence-bearing receipts; protect parent context and permit at most one
+  transient, known-repeat-safe retry without parent replay resets.
+- Add instruction-first module contracts and complete owned deployment checks,
+  including frozen-replay content validation. Version current scenario
+  contracts while preserving historical suites. GitHub CI remains the final
+  acceptance gate.
 
 ## [0.4.3] - 2026-09-10
 
@@ -134,7 +191,8 @@ in `SKILL.md`.
 - **Canonical decision:** `wiki-folder-deletion-policy` — no auto-delete on migrate; human-gated archive removal.
 - **Package metadata:** `apm.yml` deps on atlas + okf (not okf-wiki).
 
-[Unreleased]: https://github.com/sergio-sisternes-epam/autogenesis/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/sergio-sisternes-epam/autogenesis/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.6.0
 [0.5.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.5.0
 [0.4.3]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.4.3
 [0.4.2]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.4.2

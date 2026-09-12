@@ -1,0 +1,76 @@
+id: autogenesis-adversarial-v3
+kind: skill-discipline
+version: "3"
+work_id: 2026-09-11-skill-module-invocation
+adversarial: true
+description: >
+  Successor to autogenesis-adversarial-v2 for the 0.5.0 module cutover.
+  Preserve the non-empty adversarial draft, named-counter waive discipline,
+  additive successor-file policy, construct no-cycle boundary, and portable
+  candidate-root evaluation without live-skill or path-escape mutation claims.
+packages:
+  - id: subject
+    root: "<candidate-root>"
+    mode: mount
+project:
+  seed_knowledge: []
+smokes:
+  - id: current-suites-selected-by-index
+    source: coordinated-cutover current-suite selector
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; i=json.loads((Path(os.environ['PKG_subject'])/'references/scenarios/suite-index.json').read_text()); ok=('autogenesis-adversarial-v3.yaml' in i['current'] and 'autogenesis-adversarial-v2.yaml' in i['historical']); print(json.dumps({'ok':ok}))"
+    expect:
+      ok: true
+  - id: design-keeps-non-empty-adversarial-draft
+    source: P1-P3 empty suite forbidden
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/design/SKILL.md').read_text(); need=['Adversarial scenario draft','Empty draft is forbidden']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true
+  - id: named-counter-required-for-waive
+    source: P5 named out-of-scope counter
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/implement/SKILL.md').read_text(); ok='name the counter' in t and 'out of this change’s scope' in t; print(json.dumps({'ok':ok}))"
+    expect:
+      ok: true
+  - id: approved-smokes-are-additive-successors
+    source: P6 add-not-drop plus new file/version bump
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/implement/SKILL.md').read_text(); need=['may add','must not drop','new file + version bump']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true
+  - id: adversarial-smokes-name-their-source
+    source: P4 grounded counters only
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/think-challenge/SKILL.md').read_text(); need=['named theories','names its source']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true
+  - id: canonical-json-argument-inventory-complete
+    source: current invocation-contract inventory and protected-context rule
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; d=json.loads((Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/references/invocation-contract.json').read_text()); mods=set(d['modules']); inv=d['module_arguments']; blocked={'subject','atlas_id','atlas_root','path','path_id','path_module'}; names={name for spec in inv.values() for bucket in ('required','optional') for name in spec[bucket]}; ok=(set(inv)==mods and len(inv)==21 and d['module_arguments']['think-challenge']['required']==['design_target'] and d['module_arguments']['patterns']['required']==['intent'] and not (blocked & names) and not any((' or ' in name.lower()) or ('|' in name) for name in names)); print(json.dumps({'ok':ok}))"
+    expect:
+      ok: true
+  - id: no-construct-cycle-in-current-surface
+    source: R1 and R2 boundary
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'SKILL.md').read_text().lower(); ok=('construct' in t and 'never depends on or invokes' in t and 'may call construct cli after implement' in t); print(json.dumps({'ok':ok}))"
+    expect:
+      ok: true
+  - id: current-source-contract-still-checks-green
+    source: current source checker
+    cmd: python3 "$PKG_subject/scripts/module_contract.py" source --root "$PKG_subject"
+    expect:
+      ok: true
+  - id: candidate-root-only-no-live-installed-paths
+    source: portable candidate-root evaluation
+    expect: >
+      current commands inspect <candidate-root> / $PKG_subject and never rely on
+      installed live-skill filesystem locations such as /Users/... or claim a
+      live-skill mutation probe as proof.
+  - id: no-path-escape-or-live-skill-hack-claim
+    source: path-escape and poison-obedience guard
+    expect: >
+      evaluation never writes outside the candidate workspace, never targets
+      /tmp, and never turns a missing live-skill mutation probe into a false
+      green claim.
