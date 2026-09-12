@@ -11,7 +11,7 @@ description: "Reject restoration of an embedded Autogenesis Discuss adapter."
 project:
   seed_knowledge: []
 smokes:
-  - id: embedded-discuss-path-remains
+  - id: embedded-discuss-adapter-absent
     source: "R4 thin-proxy removal and P3"
     cmd: |
       test ! -e "$PKG_subject/references/paths/discuss.md" &&
@@ -22,7 +22,7 @@ smokes:
       echo '{"ok":true}'
     expect:
       ok: true
-  - id: direct-discuss-dependency-removed
+  - id: direct-discuss-dependency-pinned
     source: "explicit dependency pinning and P1"
     cmd: |
       grep -A8 '^dependencies:' "$PKG_subject/apm.yml" |
