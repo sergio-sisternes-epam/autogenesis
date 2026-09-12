@@ -23,6 +23,11 @@ PARENT_RELATIVE_RESOURCE_REFERENCE = re.compile(
     r"(?:/[A-Za-z0-9_.-]+)*\.[A-Za-z0-9]+)"
     r"(?:#[A-Za-z0-9_.-]+)?"
 )
+SKILL_ROOT_TRAVERSAL_REFERENCE = re.compile(
+    r"<skill_root>/(?P<path>(?:\./)*(?:\.\./)+[A-Za-z0-9_.-]+"
+    r"(?:/[A-Za-z0-9_.-]+)*\.[A-Za-z0-9]+)"
+    r"(?:#[A-Za-z0-9_.-]+)?"
+)
 WORKFLOW_ENTRYPOINT = Path(
     "references/modules/workflow-discipline/SKILL.md"
 )
@@ -34,6 +39,12 @@ def module_resource_reference_errors(
 ) -> list[str]:
     errors: list[str] = []
     module_root = entrypoint.parent
+
+    for match in SKILL_ROOT_TRAVERSAL_REFERENCE.finditer(content):
+        errors.append(
+            f"{entrypoint.relative_to(ROOT)}: package-shared resource "
+            f"<skill_root>/{match.group('path')} escapes the skill root"
+        )
 
     for match in PARENT_RELATIVE_RESOURCE_REFERENCE.finditer(content):
         errors.append(
@@ -396,6 +407,10 @@ class SourceContractTests(unittest.TestCase):
                 "`./../patterns/SKILL.md`",
             "skill-root dot-relative package-shared resource":
                 "`<skill_root>/./references/aware-hook-template.md`",
+            "skill-root parent traversal":
+                "`<skill_root>/../outside.md`",
+            "skill-root dot-parent traversal":
+                "`<skill_root>/./../outside.md`",
         }
         entrypoint = module_root / "aware-runtime/SKILL.md"
         for case, content in mutation_cases.items():
