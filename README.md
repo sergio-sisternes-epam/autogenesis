@@ -47,6 +47,8 @@ Procedures and invocation rules live in `SKILL.md`.
 | aware-runtime | Maintain governed runtime awareness |
 | wire | Record approved wiring with version provenance |
 | atlas-migrate | Migrate legacy Atlas storage and preserve knowledge |
+| help | Explain Autogenesis modules without executing them |
+| getting-started | First-use purpose, prerequisites, and shortest useful journey |
 
 The table lists the public operations. Support, validation, and think
 helpers remain in `SKILL.md` and `references/modules/`.

@@ -15,6 +15,8 @@
     "wire": "operation",
     "review-package": "operation",
     "atlas-migrate": "operation",
+    "help": "operation",
+    "getting-started": "operation",
     "workflow-discipline": "support",
     "think-challenge": "support",
     "think-grill": "support",
@@ -86,6 +88,14 @@
     "review-package": {
       "required": ["target"],
       "optional": ["scope", "focus", "related_suites"]
+    },
+    "help": {
+      "required": [],
+      "optional": ["target"]
+    },
+    "getting-started": {
+      "required": [],
+      "optional": ["goal"]
     },
     "think-challenge": {
       "required": ["design_target"],
@@ -291,7 +301,11 @@
       "state",
       "redactions",
       "notes",
-      "error"
+      "error",
+      "atlas_used",
+      "atlas_status",
+      "atlas_reason",
+      "help_status"
     ],
     "request_arguments_object": "module-defined named arguments are allowed",
     "receipt_result_object": "module-defined result keys are allowed",
@@ -301,7 +315,7 @@
     ]
   },
   "inventory_scope": {
-    "module_arguments": "complete authority for all 20 modules; must match each Arguments section"
+    "module_arguments": "complete authority for all 22 modules; must match each Arguments section"
   },
   "retry_requirements": {
     "owner": "immediate-parent",

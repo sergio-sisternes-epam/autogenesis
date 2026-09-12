@@ -1,6 +1,6 @@
 ---
 name: autogenesis
-description: Use this skill to evolve, design, review, or initialise agent skills from durable experience, including module structure, invocation discipline and skill composition even when Autogenesis is not named. Route through parent-controlled operation modules. Discussion does not implement; design stops for explicit approval. Do not use for ordinary application refactoring, automatic wiring, or direct module discovery.
+description: Use this skill to evolve, design, review, or initialise agent skills from durable experience, including module structure, invocation discipline and skill composition even when Autogenesis is not named. Route through parent-controlled operation modules. Use getting-started or help when the user asks how Autogenesis itself works or how a named Autogenesis module works. Discussion does not implement; design stops for explicit approval. Do not use for ordinary application refactoring, automatic wiring, direct module discovery, or unrelated help requests.
 version: 0.7.0
 activation_card: on
 ---
@@ -152,8 +152,11 @@ dispatching formal design, root assigns its stable `work_id`; the design module
 inherits and validates it rather than creating protected context.
 
 Entrypoints are relative to the loaded skill root, never the shell cwd.
-Default operation is `design` in Run mode. Durable discussion is not an
-Autogenesis operation; activate the catalog **discuss** package directly.
+Default operation is `design` in Run mode. Route first-use questions to
+`getting-started` and Autogenesis how-to questions to `help`. Unqualified
+help about unrelated work must not select those operations. Durable
+discussion is not an Autogenesis operation; activate the catalog **discuss**
+package directly.
 Supporting invocations retain the active operation and return to their caller.
 The parent owns subject, mode, operation, work identity, storage, approval and
 resolved locations. Module arguments cannot override them. Missing, duplicate
@@ -172,6 +175,8 @@ or escaping entrypoints reject explicitly; there is no catalogue fallback.
 | wire | operation | Explicitly approved wiring with version provenance | `references/modules/wire/SKILL.md` |
 | review-package | operation | Review the target's chosen composition and applicable conformance facets; advisory report | `references/modules/review-package/SKILL.md` |
 | atlas-migrate | operation | Migrate legacy storage through Atlas and preserve knowledge | `references/modules/atlas-migrate/SKILL.md` |
+| help | operation | Explain Autogenesis modules without executing them | `references/modules/help/SKILL.md` |
+| getting-started | operation | First-use purpose, prerequisites, and shortest useful journey | `references/modules/getting-started/SKILL.md` |
 | workflow-discipline | support | Apply Autogenesis-local Enter, Change, Exit and invocation contracts | `references/modules/workflow-discipline/SKILL.md` |
 | think-challenge | support | Nest-load catalog think-challenge; Run design-gate overlays | `references/modules/think-challenge/SKILL.md` |
 | think-grill | support | Nest-load catalog think-grill; Run overlays, not discussion | `references/modules/think-grill/SKILL.md` |

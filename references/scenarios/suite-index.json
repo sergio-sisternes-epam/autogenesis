@@ -8,6 +8,7 @@
     "catalogue-review-gate-adversarial-v2.yaml",
     "catalog-think-integration-adversarial-v1.yaml",
     "derived-skill-modules-adversarial-v1.yaml",
+    "help-getting-started-adversarial-v1.yaml",
     "explicit-discuss-integration-adversarial-v1.yaml",
     "module-invocation-adversarial-v1.yaml",
     "module-invocation-happy-v1.yaml",
