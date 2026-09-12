@@ -127,7 +127,7 @@ Follow it exactly for:
 - Activation card schema and rules
 - Enter | Change | Exit clusters
 - Gate map G0–G8
-- External Discuss handoff and the formal-design requirement before implementation
+- Direct catalog Discuss activation and the formal-design requirement before implementation
 - Invocation receipt format and bounded safe retries
 - Substrate-contract reminders
 - Future extraction notes

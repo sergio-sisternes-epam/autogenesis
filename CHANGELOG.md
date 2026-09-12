@@ -7,16 +7,6 @@ in `SKILL.md`.
 
 ## [Unreleased]
 
-## [0.6.0] - 2026-09-12
-
-### Changed
-
-- Remove the parent-routed Autogenesis `discuss` operation and discussion-mode
-  routing. Durable discussion belongs exclusively to the pinned
-  `discuss@atlas` package; activate that catalog skill directly. Conclusions
-  that require a package change must re-enter formal Autogenesis design and
-  approval before implementation.
-
 ### Added
 
 - Align GitHub issue and pull request templates with the family hybrid set,
@@ -55,6 +45,16 @@ in `SKILL.md`.
   catalog export and module arguments unable to override parent-owned context.
 - Update the current package/version surfaces to `v0.5.0`, including install
   commands, bug-report example, and release guidance.
+
+## [0.6.0] - 2026-09-12
+
+### Changed
+
+- Remove the parent-routed Autogenesis `discuss` operation and discussion-mode
+  routing. Durable discussion belongs exclusively to the pinned
+  `discuss@atlas` package; activate that catalog skill directly. Conclusions
+  that require a package change must re-enter formal Autogenesis design and
+  approval before implementation.
 
 ## [0.5.0] - 2026-09-11
 
