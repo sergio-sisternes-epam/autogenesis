@@ -43,8 +43,6 @@ def module_resource_reference_errors(
                 )
                 continue
             raw_path = path_token.removeprefix("<skill_root>/")
-            if "<" in raw_path or ">" in raw_path:
-                continue
             if (
                 raw_path.startswith(("./", "../", "/"))
                 or "//" in raw_path
@@ -60,6 +58,8 @@ def module_resource_reference_errors(
                     f"{entrypoint.relative_to(ROOT)}: non-canonical resource "
                     f"path {path_token} contains a traversal segment"
                 )
+                continue
+            if "<" in raw_path or ">" in raw_path:
                 continue
 
             resource = (ROOT / relative).resolve()
@@ -88,8 +88,6 @@ def module_resource_reference_errors(
                 )
             continue
 
-        if "<" in path_token or ">" in path_token:
-            continue
         if path_token.startswith("/"):
             errors.append(
                 f"{entrypoint.relative_to(ROOT)}: absolute resource "
@@ -107,6 +105,8 @@ def module_resource_reference_errors(
                 f"{entrypoint.relative_to(ROOT)}: parent-relative resource "
                 f"{path_token} escapes the module root"
             )
+            continue
+        if "<" in path_token or ">" in path_token:
             continue
         if not path_token.startswith("references/"):
             continue
@@ -458,6 +458,10 @@ class SourceContractTests(unittest.TestCase):
                 "`<skill_root>/references/modules/patterns`",
             "plain bare package-shared resource":
                 "Load references/aware-hook-template.md before continuing.",
+            "templated skill-root traversal":
+                "`<skill_root>/../<outside>.md`",
+            "templated parent-relative sibling":
+                "`../<module>/SKILL.md`",
         }
         entrypoint = module_root / "aware-runtime/SKILL.md"
         for case, content in mutation_cases.items():
