@@ -25,7 +25,7 @@ Return a receipt with actual results, never card-only completion.
 1. Probe the peer repository's `atlas-mesh.json`. Resolve an explicit store id,
    or the only store when exactly one exists. Multiple stores without an
    explicit id are ambiguous; stop rather than guessing. A legacy
-   `<subject>/references/wiki/` is read-only archive evidence, not a live store.
+   `<peer>/references/wiki/` is read-only archive evidence, not a live store.
 2. Write usage-memory / peer-link experience in the **subject** Atlas only (`autogenesis/experiences/` via atlas remember).
 3. Record what we rely on, contracts, progressive-disclosure load notes.
 4. `atlas compile` green on subject Atlas. Stop.
