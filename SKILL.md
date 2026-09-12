@@ -1,13 +1,13 @@
 ---
 name: autogenesis
 description: Use this skill to evolve, design, review, or initialise agent skills from durable experience, including module structure, invocation discipline and skill composition even when Autogenesis is not named. Route through parent-controlled operation modules. Discussion does not implement; design stops for explicit approval. Do not use for ordinary application refactoring, automatic wiring, or direct module discovery.
-version: 0.5.0
+version: 0.6.0
 activation_card: on
 ---
 
 # autogenesis
 
-**v0.5.0** (semver). Version history lives in `CHANGELOG.md`.
+**v0.6.0** (semver). Version history lives in `CHANGELOG.md`.
 
 Grows a skillset from durable experience, or designs a new package using full
 Genesis discipline. Derived skills receive the runtime capabilities their
@@ -127,7 +127,7 @@ Follow it exactly for:
 - Activation card schema and rules
 - Enter | Change | Exit clusters
 - Gate map G0–G8
-- Discussion vs Run mode (including the hard block on discussion → implement)
+- Direct catalog Discuss activation and the formal-design requirement before implementation
 - Invocation receipt format and bounded safe retries
 - Substrate-contract reminders
 - Future extraction notes
@@ -143,7 +143,8 @@ dispatching formal design, root assigns its stable `work_id`; the design module
 inherits and validates it rather than creating protected context.
 
 Entrypoints are relative to the loaded skill root, never the shell cwd.
-Default operation is `design` in Run mode and `discuss` in discussion mode.
+Default operation is `design` in Run mode. Durable discussion is not an
+Autogenesis operation; activate the catalog **discuss** package directly.
 Supporting invocations retain the active operation and return to their caller.
 The parent owns subject, mode, operation, work identity, storage, approval and
 resolved locations. Module arguments cannot override them. Missing, duplicate
@@ -162,7 +163,6 @@ or escaping entrypoints reject explicitly; there is no catalogue fallback.
 | wire | operation | Explicitly approved wiring with version provenance | `references/modules/wire/SKILL.md` |
 | review-package | operation | Review the target's chosen composition and applicable conformance facets; advisory report | `references/modules/review-package/SKILL.md` |
 | atlas-migrate | operation | Migrate legacy storage through Atlas and preserve knowledge | `references/modules/atlas-migrate/SKILL.md` |
-| discuss | operation | Invoke external Discuss; durable discussion without implementation | `references/modules/discuss/SKILL.md` |
 | workflow-discipline | support | Apply Autogenesis-local Enter, Change, Exit and invocation contracts | `references/modules/workflow-discipline/SKILL.md` |
 | think-challenge | support | Challenge a Run design with grounded counters | `references/modules/think-challenge/SKILL.md` |
 | think-grill | support | Clarify assumptions in a Run, not discussion | `references/modules/think-grill/SKILL.md` |
@@ -211,10 +211,16 @@ While an Autogenesis **Run** is active, the three think verbs resolve to interna
 
 Load with `read_file` on the module path. Root-level `think-*` skills remain available for non-Autogenesis use and are never deleted or overwritten by this skill.
 
-While discussion mode / operation **discuss** is active: do **not** invoke
-think-grill or think-ramble. External Discuss is the discussion mechanism.
-think-challenge is not user-activable; it is a validation support for Run
-operations such as design.
+## Discuss package boundary
+
+Autogenesis declares `discuss@atlas` as an immutable direct APM dependency,
+but does not expose a `discuss` operation or proxy its runtime protocol. Activate the
+catalog **discuss** package directly for durable discussion. Discuss has no
+implementation authority: a discussion conclusion that changes a package must start a formal Autogenesis `mode: run` design operation, followed by a persisted, challenged plan and explicit approval before implementation.
+
+While an Autogenesis Run is active, think-challenge is an internal validation
+gate only; it is not user-activable as a discussion verb. Do not invoke
+think-grill or think-ramble while catalog Discuss is active.
 
 ## Current evaluations
 

@@ -39,15 +39,16 @@ emit the matching receipt.
 - Parent-owned context (`subject`, `mode`, `operation`, `work_id`, `atlas_id`,
   `atlas_root`, `approval_ref`) is never a child-supplied override.
 - Subject establishment is an explicit parent transition (for example root
-  selection, initialise confirmation, or discussion-to-design re-entry), never
-  a child argument override.
+  selection, initialise confirmation, or a fresh Autogenesis design request
+  after catalog Discuss), never a child argument override. Catalog Discuss
+  cannot reuse or hand off Autogenesis protected context.
 - For formal design or reevaluation, the root assigns `work_id` before dispatch
   and the operation validates and records that inherited value.
 - Task-specific inputs belong in `arguments`, not in protected context.
 
 ## Authority and packaging
 
-- One root package, one parent router, 21 ordinary modules. No separate module
+- One root package, one parent router, 20 ordinary modules. No separate module
   packages, aliases, forwarding stubs, or invocation engine.
 - Normal references resolve from this module root. Shared package resources
   resolve from `<skill_root>`. Siblings resolve through the active parent
@@ -56,7 +57,7 @@ emit the matching receipt.
   unchanged. Autogenesis records only its own requests, cards, and receipts
   honestly around those loads.
 - Checker-facing argument inventory lives in
-  `references/invocation-contract.json` and covers all 21 modules. Keep it aligned
+  `references/invocation-contract.json` and covers all 20 modules. Keep it aligned
   with each entrypoint's Arguments section; never infer extra allowed keys.
 
 ## Enter (blocking)
@@ -74,20 +75,22 @@ proves execution.
 2. **One active operation at a time.** Support requests run under an active
    parent request and return to that caller. No silent operation-to-operation
    jumps and no child replaces the active operation.
-3. **Discussion mode is tightly scoped.**
-   - `mode: discussion` has zero implement authority and no product-file writes.
-   - The requested operation module must be `discuss`.
+3. **Durable discussion is external.** Catalog **discuss** owns durable
+   discussion. Autogenesis has no `discuss` operation and no discussion-mode
+   routing.
+   - Discussion has zero implement authority and no product-file writes.
    - The only legal progression to changes is `discussion -> design -> explicit
      approval -> implement`.
    - Discussion may invoke agent-spec `specify` only for exploration or review
      of candidate behaviours. It may not materialise a finished
      `## Behavioural contract (agent-spec)` section or claim that the contract
      is complete.
-   - Do not invoke internal `think-grill` or `think-ramble` while `discuss` is
-     active.
-4. **Default routing.** Root defaults remain `design` for Run and `discuss`
-   for discussion, but the requested operation is still explicit in the
-   canonical request once selected.
+   - Do not invoke internal `think-grill` or `think-ramble` while catalog
+     Discuss is active.
+4. **Default routing.** Root default remains `design` for Run. Durable
+   discussion is activated by loading the catalog **discuss** package
+   directly; it is not an Autogenesis operation. The requested operation is
+   still explicit in the canonical request once selected.
 5. **Card modes do not disable gates.**
    - `activation_card` absent or `off`: card rendering is disabled.
    - `on`: full root and operation cards, plus compact support cards, are
@@ -235,7 +238,7 @@ Lineage is an obligation, not a chat claim.
 
 | Gate | Cluster | Requirement |
 |---|---|---|
-| G0 | Enter | mode is explicit; Run requires subject; discussion has no implement authority |
+| G0 | Enter | mode is explicit Run; subject required; catalog Discuss is external and has no implement authority |
 | G1 | Enter | actual requested entrypoint read; one active operation; no silent invokes |
 | G2 | Change/Exit | Atlas writes go to the resolved subject Atlas root |
 | G3 | Change | design has change-class, required Genesis depth, challenge, pins, and `## Genesis Artifacts` |
@@ -275,8 +278,8 @@ to internal support modules:
 | `think-ramble`, capture thoughts, brain dump | `think-ramble/SKILL.md` |
 
 These are parent-routed support calls, not peer root-skill activation. While
-discussion mode / operation `discuss` is active, do not invoke `think-grill` or
-`think-ramble`; external Discuss remains the discussion mechanism.
+catalog Discuss is active, do not invoke `think-grill` or `think-ramble`;
+external Discuss remains the discussion mechanism.
 
 ## Non-goals
 

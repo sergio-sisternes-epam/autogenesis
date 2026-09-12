@@ -79,8 +79,8 @@ smokes:
     expect:
       ok: true
   - id: skill-version-documents-migration
-    source: v0.5.0 release contract
+    source: v0.6.0 release contract
     cmd: |
-      python3 -c "import json,os,re; from pathlib import Path; p=Path(os.environ['PKG_subject']); skill=re.search(r'^version: ([0-9.]+)$',(p/'SKILL.md').read_text(),re.M).group(1); apm=re.search(r'^version: ([0-9.]+)$',(p/'apm.yml').read_text(),re.M).group(1); print(json.dumps({'ok':skill==apm=='0.5.0'}))"
+      python3 -c "import json,os,re; from pathlib import Path; p=Path(os.environ['PKG_subject']); skill=re.search(r'^version: ([0-9.]+)$',(p/'SKILL.md').read_text(),re.M).group(1); apm=re.search(r'^version: ([0-9.]+)$',(p/'apm.yml').read_text(),re.M).group(1); print(json.dumps({'ok':skill==apm=='0.6.0'}))"
     expect:
       ok: true

@@ -41,7 +41,7 @@ smokes:
   - id: legacy-live-instructions-absent
     source: no split authority and Atlas write-home rule
     cmd: |
-      python3 -c "import json,os,re; from pathlib import Path; p=Path(os.environ['PKG_subject']); files=[p/'SKILL.md',p/'references/modules/workflow-discipline/SKILL.md',p/'references/modules/patterns/references/activation-card.md',p/'references/modules/think-ramble/SKILL.md',p/'references/modules/validate-okf-conformance/SKILL.md',p/'references/modules/discuss/SKILL.md',p/'references/modules/research/SKILL.md',p/'references/modules/learn-skill/SKILL.md',p/'references/run-record-template.md']; bad=re.compile(r'--target references/atlas|atlas_root: <subject>/references/atlas|subject_atlas = <subject>/references/atlas'); print(json.dumps({'ok':not any(bad.search(f.read_text()) for f in files)}))"
+      python3 -c "import json,os,re; from pathlib import Path; p=Path(os.environ['PKG_subject']); files=[p/'SKILL.md',p/'references/modules/workflow-discipline/SKILL.md',p/'references/modules/patterns/references/activation-card.md',p/'references/modules/think-ramble/SKILL.md',p/'references/modules/validate-okf-conformance/SKILL.md',p/'references/modules/research/SKILL.md',p/'references/modules/learn-skill/SKILL.md',p/'references/run-record-template.md']; bad=re.compile(r'--target references/atlas|atlas_root: <subject>/references/atlas|subject_atlas = <subject>/references/atlas'); print(json.dumps({'ok':not any(bad.search(f.read_text()) for f in files)}))"
     expect:
       ok: true
   - id: mount-resolve-contract-is-explicit
@@ -77,6 +77,6 @@ smokes:
   - id: release-surfaces-match-current-version
     source: release identity gate
     cmd: |
-      python3 -c "import json,os,re; from pathlib import Path; p=Path(os.environ['PKG_subject']); skill=re.search(r'^version: ([0-9.]+)$',(p/'SKILL.md').read_text(),re.M).group(1); apm=re.search(r'^version: ([0-9.]+)$',(p/'apm.yml').read_text(),re.M).group(1); print(json.dumps({'ok':skill==apm=='0.5.0' and '## 0.5.0' in (p/'CHANGELOG.md').read_text()}))"
+      python3 -c "import json,os,re; from pathlib import Path; p=Path(os.environ['PKG_subject']); skill=re.search(r'^version: ([0-9.]+)$',(p/'SKILL.md').read_text(),re.M).group(1); apm=re.search(r'^version: ([0-9.]+)$',(p/'apm.yml').read_text(),re.M).group(1); print(json.dumps({'ok':skill==apm=='0.6.0' and '## [0.6.0]' in (p/'CHANGELOG.md').read_text()}))"
     expect:
       ok: true

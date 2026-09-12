@@ -158,14 +158,14 @@ class SourceContractTests(unittest.TestCase):
         ignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
         agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
         self.assertIn("name: autogenesis\n", manifest)
-        self.assertIn("version: 0.5.0\n", manifest)
+        self.assertIn("version: 0.6.0\n", manifest)
         self.assertIn("license: Apache-2.0\n", manifest)
         self.assertIn(
             "repository: https://github.com/sergio-sisternes-epam/autogenesis\n",
             manifest,
         )
         self.assertIn("name: autogenesis\n", skill)
-        self.assertIn("version: 0.5.0\n", skill)
+        self.assertIn("version: 0.6.0\n", skill)
         self.assertTrue((ROOT / "apm.lock.yaml").is_file())
         self.assertIn("apm_modules/", ignore)
         self.assertIn("Commit `apm.lock.yaml`", agents)
@@ -183,6 +183,22 @@ class SourceContractTests(unittest.TestCase):
         self.assertIn("https://github.com/danielmeppiel/genesis", notice)
         self.assertIn("repository code is licensed under the Apache License", notice)
         self.assertIn("CC BY-NC 4.0", notice)
+
+    def test_discuss_is_an_explicit_external_integration(self) -> None:
+        manifest = (ROOT / "apm.yml").read_text(encoding="utf-8")
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        discipline = (
+            ROOT / "references/modules/workflow-discipline/SKILL.md"
+        ).read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn("- name: discuss\n      marketplace: atlas", manifest)
+        self.assertFalse((ROOT / "references/modules/discuss/SKILL.md").exists())
+        self.assertFalse((ROOT / "references/paths/discuss.md").exists())
+        self.assertNotIn("path: discuss", skill)
+        self.assertNotIn("references/modules/discuss/SKILL.md", skill)
+        self.assertNotIn("path: discuss", discipline)
+        self.assertIn("Activate the\ncatalog **discuss** package directly", skill)
+        self.assertIn("activate the catalog Discuss package directly", readme)
 
     def test_store_constants_are_exact(self) -> None:
         self.assertEqual(
@@ -289,8 +305,8 @@ class SourceContractTests(unittest.TestCase):
             root_skill,
         )
 
-        self.assertEqual(len(module_entrypoints), 21)
-        self.assertEqual(len(registry_rows), 21)
+        self.assertEqual(len(module_entrypoints), 20)
+        self.assertEqual(len(registry_rows), 20)
         self.assertEqual(
             len(registry_rows),
             len({module for module, _ in registry_rows}),
@@ -305,20 +321,20 @@ class SourceContractTests(unittest.TestCase):
         indexed_scenarios = (
             scenario_index["current"] + scenario_index["historical"]
         )
-        self.assertEqual(len(indexed_scenarios), 27)
+        self.assertEqual(len(indexed_scenarios), 28)
         self.assertEqual(len(indexed_scenarios), len(set(indexed_scenarios)))
         for scenario in indexed_scenarios:
             self.assertTrue((ROOT / "references/scenarios" / scenario).is_file())
 
-    def test_actual_root_version_surface_is_v0_5_0(self) -> None:
+    def test_actual_root_version_surface_is_v0_6_0(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         manifest = (ROOT / "apm.yml").read_text(encoding="utf-8")
 
         self.assertRegex(skill, r"(?m)^name: autogenesis$")
-        self.assertRegex(skill, r'(?m)^version: "?0\.5\.0"?$')
+        self.assertRegex(skill, r'(?m)^version: "?0\.6\.0"?$')
         self.assertRegex(skill, r"(?m)^activation_card: on$")
         self.assertIn("name: autogenesis\n", manifest)
-        self.assertIn("version: 0.5.0\n", manifest)
+        self.assertIn("version: 0.6.0\n", manifest)
 
     def test_optional_module_template_is_instruction_only(self) -> None:
         template = (

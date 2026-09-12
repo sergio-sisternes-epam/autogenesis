@@ -15,7 +15,7 @@ smokes:
     source: "C1: Agent Skills specification and APM native-copy/consumer evidence"
     cmd: |
       cd "$PKG_subject" &&
-      test "$(find references/modules -mindepth 2 -maxdepth 2 -name SKILL.md | wc -l | tr -d ' ')" = 21 &&
+      test "$(find references/modules -mindepth 2 -maxdepth 2 -name SKILL.md | wc -l | tr -d ' ')" = 20 &&
       test ! -d references/paths &&
       printf '{"ok":true}\n'
     expect: {ok: true}
