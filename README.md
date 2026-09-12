@@ -23,13 +23,7 @@ apm marketplace add sergio-sisternes-epam/atlas-marketplace --name atlas
 apm install autogenesis@atlas
 ```
 
-Optional immutable git-tag install:
-
-```bash
-apm install sergio-sisternes-epam/autogenesis#v0.6.0
-```
-
-Autogenesis is validated with APM CLI 0.30.0 (`8c2e0d9`).
+`--name atlas` is required so the package resolves as `autogenesis@atlas`.
 
 ## Use
 

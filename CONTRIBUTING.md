@@ -162,6 +162,9 @@ Released pins from `apm.lock.yaml`:
 
 ## Consumer version pins
 
+The public README documents only the Atlas marketplace install. Git-tag
+and target-specific consumer commands stay here.
+
 Keep these commands on the same version as `apm.yml`:
 
 ```text
