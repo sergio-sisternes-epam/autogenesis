@@ -10,27 +10,7 @@ import store_contract
 
 
 ROOT = Path(__file__).resolve().parents[1]
-MODULE_RESOURCE_REFERENCE = re.compile(
-    r"(?<![/\w])(?P<skill_root><skill_root>/)?"
-    r"(?P<prefix>(?:\./|\.\./)*)"
-    r"(?P<path>references/[A-Za-z0-9_./-]*"
-    r"\.[A-Za-z0-9_.-]+)"
-    r"(?:#[A-Za-z0-9_.-]+)?"
-    r"(?![A-Za-z0-9_./-])"
-)
-PARENT_RELATIVE_RESOURCE_REFERENCE = re.compile(
-    r"(?<![/\w])(?P<prefix>(?:\./)*)"
-    r"(?P<path>(?:\.\./)+[A-Za-z0-9_./-]*"
-    r"\.[A-Za-z0-9_.-]+)"
-    r"(?:#[A-Za-z0-9_.-]+)?"
-    r"(?![A-Za-z0-9_./-])"
-)
-SKILL_ROOT_TRAVERSAL_REFERENCE = re.compile(
-    r"<skill_root>/(?P<path>(?:\./)*(?:\.\./)+"
-    r"[A-Za-z0-9_./-]*\.[A-Za-z0-9_.-]+)"
-    r"(?:#[A-Za-z0-9_.-]+)?"
-    r"(?![A-Za-z0-9_./-])"
-)
+INLINE_CODE_REFERENCE = re.compile(r"`(?P<token>[^`\n]+)`")
 WORKFLOW_ENTRYPOINT = Path(
     "references/modules/workflow-discipline/SKILL.md"
 )
@@ -43,56 +23,52 @@ def module_resource_reference_errors(
     errors: list[str] = []
     module_root = entrypoint.parent
 
-    for match in SKILL_ROOT_TRAVERSAL_REFERENCE.finditer(content):
-        errors.append(
-            f"{entrypoint.relative_to(ROOT)}: package-shared resource "
-            f"<skill_root>/{match.group('path')} escapes the skill root"
-        )
-
-    for match in PARENT_RELATIVE_RESOURCE_REFERENCE.finditer(content):
-        errors.append(
-            f"{entrypoint.relative_to(ROOT)}: parent-relative resource "
-            f"{match.group('prefix')}{match.group('path')} escapes the "
-            "module root"
-        )
-
-    for match in MODULE_RESOURCE_REFERENCE.finditer(content):
-        raw_path = match.group("path")
-        relative = Path(raw_path)
-        if match.group("prefix"):
-            errors.append(
-                f"{entrypoint.relative_to(ROOT)}: non-canonical resource "
-                f"path {match.group('prefix')}{relative} uses a relative "
-                "prefix"
-            )
-            continue
-        if "//" in raw_path:
-            errors.append(
-                f"{entrypoint.relative_to(ROOT)}: non-canonical resource "
-                f"path {raw_path} contains a repeated separator"
-            )
-            continue
-        if any(part in {".", ".."} for part in relative.parts):
-            errors.append(
-                f"{entrypoint.relative_to(ROOT)}: non-canonical resource "
-                f"path {relative} contains a traversal segment"
-            )
+    for match in INLINE_CODE_REFERENCE.finditer(content):
+        token = match.group("token")
+        path_token = token.split("#", 1)[0]
+        if "/" not in path_token or not Path(path_token).suffix:
             continue
 
-        if match.group("skill_root"):
+        if "<skill_root>" in path_token:
+            if not path_token.startswith("<skill_root>/"):
+                errors.append(
+                    f"{entrypoint.relative_to(ROOT)}: non-canonical resource "
+                    f"path {path_token} must start at <skill_root>"
+                )
+                continue
+            raw_path = path_token.removeprefix("<skill_root>/")
+            if "<" in raw_path or ">" in raw_path:
+                continue
+            if (
+                raw_path.startswith(("./", "../", "/"))
+                or "//" in raw_path
+            ):
+                errors.append(
+                    f"{entrypoint.relative_to(ROOT)}: non-canonical "
+                    f"package-shared resource {path_token}"
+                )
+                continue
+            relative = Path(raw_path)
+            if any(part in {".", ".."} for part in relative.parts):
+                errors.append(
+                    f"{entrypoint.relative_to(ROOT)}: non-canonical resource "
+                    f"path {path_token} contains a traversal segment"
+                )
+                continue
+
             resource = (ROOT / relative).resolve()
             try:
                 resource.relative_to(ROOT.resolve())
             except ValueError:
                 errors.append(
                     f"{entrypoint.relative_to(ROOT)}: package-shared resource "
-                    f"<skill_root>/{relative} escapes the skill root"
+                    f"{path_token} escapes the skill root"
                 )
                 continue
             if not resource.is_file():
                 errors.append(
                     f"{entrypoint.relative_to(ROOT)}: missing package-shared "
-                    f"resource <skill_root>/{relative}"
+                    f"resource {path_token}"
                 )
             module_entrypoints = (ROOT / "references/modules").resolve()
             workflow_entrypoint = (ROOT / WORKFLOW_ENTRYPOINT).resolve()
@@ -104,6 +80,37 @@ def module_resource_reference_errors(
                     f"{entrypoint.relative_to(ROOT)}: sibling module "
                     f"{relative} must resolve through the parent registry"
                 )
+            continue
+
+        if "<" in path_token or ">" in path_token:
+            continue
+        if path_token.startswith("./"):
+            errors.append(
+                f"{entrypoint.relative_to(ROOT)}: non-canonical resource "
+                f"path {path_token} uses a relative prefix"
+            )
+            continue
+        if path_token.startswith("../"):
+            errors.append(
+                f"{entrypoint.relative_to(ROOT)}: parent-relative resource "
+                f"{path_token} escapes the module root"
+            )
+            continue
+        if not path_token.startswith("references/"):
+            continue
+
+        relative = Path(path_token)
+        if "//" in path_token:
+            errors.append(
+                f"{entrypoint.relative_to(ROOT)}: non-canonical resource "
+                f"path {path_token} contains a repeated separator"
+            )
+            continue
+        if any(part in {".", ".."} for part in relative.parts):
+            errors.append(
+                f"{entrypoint.relative_to(ROOT)}: non-canonical resource "
+                f"path {relative} contains a traversal segment"
+            )
             continue
 
         module_resource = (module_root / relative).resolve()
@@ -425,6 +432,10 @@ class SourceContractTests(unittest.TestCase):
                 "`<skill_root>/references//../../outside.md`",
             "complete malformed path token":
                 "`<skill_root>/references/aware-hook-template.md-extra`",
+            "prefixed skill-root placeholder":
+                "`./<skill_root>/references/aware-hook-template.md`",
+            "skill-root repeated separator before traversal":
+                "`<skill_root>//../outside.md`",
         }
         entrypoint = module_root / "aware-runtime/SKILL.md"
         for case, content in mutation_cases.items():
