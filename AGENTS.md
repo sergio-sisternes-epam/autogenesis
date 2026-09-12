@@ -47,6 +47,9 @@ preserve root-only skills, allow reviewed and versioned semantic change, assess
 Liskov substitution only for claimed interchangeability, and do not introduce
 speculative abstractions or semantic validators.
 
+When dogfooding Autogenesis on this repository, load the workspace `SKILL.md`
+from the checkout, not an installed catalog copy. Record `skill_root`. Catalog v0.4.3 is not evidence.
+
 Autogenesis has no external evaluator dependency. Current scenarios are
 portable specifications; run applicable commands with repository tools and
 record actual evidence. GitHub CI remains the final release gate.
