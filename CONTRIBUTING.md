@@ -158,7 +158,9 @@ Released pins from `apm.lock.yaml`:
 | Direct package | Released pin | Resolved commit |
 |---|---|---|
 | Atlas | `v0.11.2` | `579e8090273ce991ea0717abed0775dc03f28de2` |
+| OKF | `v0.2.1` | `5246f7b193b58a32ac8a15fc76aedf37c42b042c` |
 | Discuss | `v0.3.10` | `c1c0936d9a0346dce7d877646046c918de335d69` |
+| Think | `v0.1.0` | `874613a67018c74ee95f857416fb315d2f80b92b` |
 
 ## Consumer version pins
 

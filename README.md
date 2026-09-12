@@ -43,6 +43,9 @@ Procedures and invocation rules live in `SKILL.md`.
 | review-package | Review a package's composition and applicable conformance |
 | reflect-challenge | Challenge observed behaviour without implementing |
 | learn-skill | Record peer skill usage without mutating the peer |
+| reevaluate | Assess material knowledge impact; advisory only |
+| aware-runtime | Maintain governed runtime awareness |
+| wire | Record approved wiring with version provenance |
 | atlas-migrate | Migrate legacy Atlas storage and preserve knowledge |
 
 Support, validation, and think helpers stay in `references/modules/`.
