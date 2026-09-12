@@ -17,6 +17,9 @@ in `SKILL.md`.
 
 ### Changed
 
+- Keep the module discipline instruction-first by removing the proposed generic
+  Python source/trace validator and its dedicated test harness; current scenario
+  checks now use existing repository tests and lightweight shell assertions.
 - Advance the reviewed Autogenesis Atlas snapshot to
   `1ba15358a3157e3c946436ee60e73b87f3c77a0f` for the module-evolution design
   and implementation record.
@@ -52,9 +55,10 @@ in `SKILL.md`.
 - Separate invocation requests, configured full/compact activation cards and
   evidence-bearing receipts; protect parent context and permit at most one
   transient, known-repeat-safe retry without parent replay resets.
-- Add source/trace conformance and complete owned deployment checks, including
-  frozen-replay content validation. Version current scenario contracts while
-  preserving historical suites. GitHub CI remains the final acceptance gate.
+- Add instruction-first module contracts and complete owned deployment checks,
+  including frozen-replay content validation. Version current scenario
+  contracts while preserving historical suites. GitHub CI remains the final
+  acceptance gate.
 
 ## [0.4.3] - 2026-09-10
 

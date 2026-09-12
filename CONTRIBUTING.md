@@ -50,7 +50,6 @@ Run the focused offline suite first with a Python 3.12 interpreter:
 
 ```text
 python3 -m unittest discover -s scripts -p 'test_*.py'
-python3 scripts/module_contract.py source --root .
 python3 scripts/release_readiness.py
 python3 scripts/dependency_contract.py
 python3 scripts/store_contract.py
@@ -85,10 +84,10 @@ They also reject extra Autogenesis-owned exports and missing or altered nested
 assets, repeating ownership/content validation after frozen replay. Legitimate
 APM link transformations are constrained, not treated as arbitrary text drift.
 
-Invocation traces can be checked with
-`python3 scripts/module_contract.py trace --input <trace.json>`. A successful
-structural check does not attest to tool execution. Use actual tool/file
-evidence for behavioural claims. Current suites come from
+Module behavior is governed by the root router, module instructions and their
+linked contract. Do not introduce a generic runtime validator solely to enforce
+instruction-level routing. Use actual tool/file evidence for behavioural
+claims. Current suites come from
 `references/scenarios/suite-index.json`; never rewrite historical suite bodies.
 Local checks support implementation; final acceptance is GitHub CI, including
 the pinned Linux APM artifact and both consumer profiles.

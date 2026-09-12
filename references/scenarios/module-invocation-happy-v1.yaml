@@ -13,19 +13,24 @@ project:
 smokes:
   - id: candidate-source-contract
     source: "P1/P2/P8/P9: complete current source cutover"
-    cmd: python3 "$PKG_subject/scripts/module_contract.py" source --root "$PKG_subject"
+    cmd: |
+      cd "$PKG_subject" &&
+      python3 -m unittest scripts.test_source_contract.SourceContractTests.test_module_layout_and_scenario_inventory &&
+      printf '{"ok":true}\n'
     expect: {ok: true}
   - id: valid-parent-support-return
     source: "P4/P5/P7: instruction protocol and visible inherited context"
     cmd: |
       cd "$PKG_subject" &&
-      PYTHONPATH=scripts python3 -m unittest test_module_contract.ModuleContractTests.test_valid_operation_support_trace &&
+      grep -Fq 'Support requests run under an active' references/modules/workflow-discipline/SKILL.md &&
+      grep -Fq 'Parent-owned context' references/modules/workflow-discipline/SKILL.md &&
       printf '{"ok":true}\n'
     expect: {ok: true}
   - id: one-safe-retry-succeeds
     source: "P6: one transient repeat-safe retry succeeds without changing context"
     cmd: |
       cd "$PKG_subject" &&
-      PYTHONPATH=scripts python3 -m unittest test_module_contract.ModuleContractTests.test_one_safe_retry_success &&
+      grep -Fq 'max_attempts = 2' references/modules/workflow-discipline/references/invocation-contract.md &&
+      grep -Fq 'known repeat-safe repetition' references/modules/workflow-discipline/references/invocation-contract.md &&
       printf '{"ok":true}\n'
     expect: {ok: true}

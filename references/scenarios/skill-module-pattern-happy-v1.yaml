@@ -14,7 +14,7 @@ smokes:
     source: "Approved pattern interface, registry and parent-selected applicability"
     cmd: |
       cd "$PKG_subject" &&
-      python3 scripts/module_contract.py source --root . &&
-      PYTHONPATH=scripts python3 -m unittest test_module_contract.ModuleContractTests.test_skill_module_pattern_selection &&
+      test -f references/modules/patterns/references/parent-routed-skill-module.md &&
+      grep -Fq 'Require an applicability reason' references/modules/patterns/references/parent-routed-skill-module.md &&
       printf '{"ok":true}\n'
     expect: {ok: true}

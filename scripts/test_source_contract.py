@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+import json
 import re
 import unittest
 from pathlib import Path
 
-import module_contract
 import store_contract
 
 
@@ -121,27 +121,37 @@ class SourceContractTests(unittest.TestCase):
             ci,
         )
 
-    def test_actual_source_validator_passes_complete_current_source(self) -> None:
-        report = module_contract.validate_source_tree(ROOT)
+    def test_module_layout_and_scenario_inventory(self) -> None:
+        module_root = ROOT / "references/modules"
+        module_entrypoints = sorted(module_root.glob("*/SKILL.md"))
+        root_skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        scenario_index = json.loads(
+            (ROOT / "references/scenarios/suite-index.json").read_text(
+                encoding="utf-8"
+            )
+        )
 
-        self.assertEqual(report.command, "source")
-        self.assertEqual(report.details.get("module_count"), 21)
-        self.assertEqual(report.details.get("registry_rows"), 21)
-        self.assertEqual(report.details.get("module_entrypoints"), 21)
-        self.assertEqual(report.details.get("scenario_files"), 27)
-        self.assertTrue(report.ok, report.as_dict())
-        self.assertEqual(report.errors, [])
+        self.assertEqual(len(module_entrypoints), 21)
+        for entrypoint in module_entrypoints:
+            self.assertIn(
+                f"references/modules/{entrypoint.parent.name}/SKILL.md",
+                root_skill,
+            )
+        indexed_scenarios = (
+            scenario_index["current"] + scenario_index["historical"]
+        )
+        self.assertEqual(len(indexed_scenarios), 27)
+        self.assertEqual(len(indexed_scenarios), len(set(indexed_scenarios)))
+        for scenario in indexed_scenarios:
+            self.assertTrue((ROOT / "references/scenarios" / scenario).is_file())
 
     def test_actual_root_version_surface_is_v0_5_0(self) -> None:
-        root_frontmatter = module_contract.parse_frontmatter(
-            (ROOT / "SKILL.md").read_text(encoding="utf-8"),
-            "SKILL.md",
-        )
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         manifest = (ROOT / "apm.yml").read_text(encoding="utf-8")
 
-        self.assertEqual(root_frontmatter.fields["name"], "autogenesis")
-        self.assertEqual(root_frontmatter.fields["version"], "0.5.0")
-        self.assertEqual(root_frontmatter.fields["activation_card"], "on")
+        self.assertRegex(skill, r"(?m)^name: autogenesis$")
+        self.assertRegex(skill, r'(?m)^version: "?0\.5\.0"?$')
+        self.assertRegex(skill, r"(?m)^activation_card: on$")
         self.assertIn("name: autogenesis\n", manifest)
         self.assertIn("version: 0.5.0\n", manifest)
 
@@ -150,15 +160,20 @@ class SourceContractTests(unittest.TestCase):
             ROOT / "references/modules/patterns/references/skill-module-template.md"
         ).read_text(encoding="utf-8")
         example = template.split("```markdown\n", 1)[1].split("```", 1)[0]
-        module = module_contract.parse_frontmatter(example, "template example")
+        frontmatter = example.split("---\n", 2)[1]
+        fields = {
+            line.split(":", 1)[0]
+            for line in frontmatter.splitlines()
+            if ":" in line
+        }
 
-        self.assertEqual(set(module.fields), {"name", "description"})
+        self.assertEqual(fields, {"name", "description"})
         self.assertNotIn("autogenesis.invocation-", example)
         self.assertNotIn("workflow-discipline", example)
         self.assertNotIn(".py", example)
-        self.assertIn("## Inputs and boundaries", module.body)
-        self.assertIn("## Procedure", module.body)
-        self.assertIn("## Outcome", module.body)
+        self.assertIn("## Inputs and boundaries", example)
+        self.assertIn("## Procedure", example)
+        self.assertIn("## Outcome", example)
 
     def test_live_workflow_has_no_construct_binding(self) -> None:
         live_paths = [

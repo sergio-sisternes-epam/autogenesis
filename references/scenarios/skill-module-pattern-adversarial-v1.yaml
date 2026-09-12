@@ -14,20 +14,22 @@ smokes:
     source: "Genesis S1/S3 and composition-substrate MODULE; existing pattern admission"
     cmd: |
       cd "$PKG_subject" &&
-      PYTHONPATH=scripts python3 -m unittest test_module_contract.ModuleContractTests.test_skill_module_pattern_admission &&
+      grep -Fq 'status: draft' references/modules/patterns/references/parent-routed-skill-module.md &&
+      grep -Fq 'not an upstream ID reservation' references/modules/patterns/references/parent-routed-skill-module.md &&
       printf '{"ok":true}\n'
     expect: {ok: true}
   - id: ownership-and-no-false-authority
     source: "Agent Skills specification; B17 and Autogenesis protected invocation context"
     cmd: |
       cd "$PKG_subject" &&
-      PYTHONPATH=scripts python3 -m unittest test_module_contract.ModuleContractTests.test_skill_module_pattern_boundaries &&
+      grep -Fq 'One public catalogue identity' references/modules/patterns/references/parent-routed-skill-module.md &&
+      grep -Fq 'not approval or execution evidence' references/modules/patterns/references/parent-routed-skill-module.md &&
       printf '{"ok":true}\n'
     expect: {ok: true}
   - id: no-premature-split
     source: "Genesis R1 PREMATURE SPLIT and C1 EAGER BLOAT"
     cmd: |
       cd "$PKG_subject" &&
-      PYTHONPATH=scripts python3 -m unittest test_module_contract.ModuleContractTests.test_skill_module_pattern_selection &&
+      grep -Fq 'Do not split a short single-purpose procedure' references/modules/patterns/references/parent-routed-skill-module.md &&
       printf '{"ok":true}\n'
     expect: {ok: true}

@@ -46,6 +46,9 @@ smokes:
       ok: true
   - id: current-source-contract-still-checks-green
     source: repository-native source checker
-    cmd: python3 "$PKG_subject/scripts/module_contract.py" source --root "$PKG_subject"
+    cmd: |
+      cd "$PKG_subject" &&
+      python3 -m unittest scripts.test_source_contract.SourceContractTests.test_module_layout_and_scenario_inventory &&
+      printf '{"ok":true}\n'
     expect:
       ok: true
