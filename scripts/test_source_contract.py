@@ -84,7 +84,7 @@ def module_resource_reference_errors(
 
         if "<" in path_token or ">" in path_token:
             continue
-        if path_token.startswith("/references/"):
+        if path_token.startswith("/"):
             errors.append(
                 f"{entrypoint.relative_to(ROOT)}: absolute resource "
                 f"{path_token} must use a declared resolution root"
@@ -444,6 +444,8 @@ class SourceContractTests(unittest.TestCase):
                 "`<skill_root>//../outside.md`",
             "absolute package resource":
                 "`/references/aware-hook-template.md`",
+            "absolute external resource":
+                "`/tmp/template.md`",
             "extensionless missing module resource":
                 "`references/missing-reference`",
             "extensionless direct sibling module":
