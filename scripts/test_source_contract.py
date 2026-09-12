@@ -13,20 +13,23 @@ ROOT = Path(__file__).resolve().parents[1]
 MODULE_RESOURCE_REFERENCE = re.compile(
     r"(?<![/\w])(?P<skill_root><skill_root>/)?"
     r"(?P<prefix>(?:\./|\.\./)*)"
-    r"(?P<path>references/[A-Za-z0-9_.-]+"
-    r"(?:/[A-Za-z0-9_.-]+)*\.[A-Za-z0-9]+)"
+    r"(?P<path>references/[A-Za-z0-9_./-]*"
+    r"\.[A-Za-z0-9_.-]+)"
     r"(?:#[A-Za-z0-9_.-]+)?"
+    r"(?![A-Za-z0-9_./-])"
 )
 PARENT_RELATIVE_RESOURCE_REFERENCE = re.compile(
     r"(?<![/\w])(?P<prefix>(?:\./)*)"
-    r"(?P<path>(?:\.\./)+[A-Za-z0-9_.-]+"
-    r"(?:/[A-Za-z0-9_.-]+)*\.[A-Za-z0-9]+)"
+    r"(?P<path>(?:\.\./)+[A-Za-z0-9_./-]*"
+    r"\.[A-Za-z0-9_.-]+)"
     r"(?:#[A-Za-z0-9_.-]+)?"
+    r"(?![A-Za-z0-9_./-])"
 )
 SKILL_ROOT_TRAVERSAL_REFERENCE = re.compile(
-    r"<skill_root>/(?P<path>(?:\./)*(?:\.\./)+[A-Za-z0-9_.-]+"
-    r"(?:/[A-Za-z0-9_.-]+)*\.[A-Za-z0-9]+)"
+    r"<skill_root>/(?P<path>(?:\./)*(?:\.\./)+"
+    r"[A-Za-z0-9_./-]*\.[A-Za-z0-9_.-]+)"
     r"(?:#[A-Za-z0-9_.-]+)?"
+    r"(?![A-Za-z0-9_./-])"
 )
 WORKFLOW_ENTRYPOINT = Path(
     "references/modules/workflow-discipline/SKILL.md"
@@ -54,12 +57,19 @@ def module_resource_reference_errors(
         )
 
     for match in MODULE_RESOURCE_REFERENCE.finditer(content):
-        relative = Path(match.group("path"))
+        raw_path = match.group("path")
+        relative = Path(raw_path)
         if match.group("prefix"):
             errors.append(
                 f"{entrypoint.relative_to(ROOT)}: non-canonical resource "
                 f"path {match.group('prefix')}{relative} uses a relative "
                 "prefix"
+            )
+            continue
+        if "//" in raw_path:
+            errors.append(
+                f"{entrypoint.relative_to(ROOT)}: non-canonical resource "
+                f"path {raw_path} contains a repeated separator"
             )
             continue
         if any(part in {".", ".."} for part in relative.parts):
@@ -411,6 +421,10 @@ class SourceContractTests(unittest.TestCase):
                 "`<skill_root>/../outside.md`",
             "skill-root dot-parent traversal":
                 "`<skill_root>/./../outside.md`",
+            "skill-root repeated-separator traversal":
+                "`<skill_root>/references//../../outside.md`",
+            "complete malformed path token":
+                "`<skill_root>/references/aware-hook-template.md-extra`",
         }
         entrypoint = module_root / "aware-runtime/SKILL.md"
         for case, content in mutation_cases.items():
