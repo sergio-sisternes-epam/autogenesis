@@ -1,9 +1,22 @@
 # autogenesis
 
-Private root-skill APM package (`SKILL.md` + `apm.yml` at the repository
+Root-skill APM package (`SKILL.md` + `apm.yml` at the repository
 root): `sergio-sisternes-epam/autogenesis`.
 
-Install the immutable v0.6.0 release for the portable Agent Skills target:
+Install from the Atlas catalog on github.com:
+
+```text
+apm marketplace add sergio-sisternes-epam/atlas-marketplace --name atlas
+apm install autogenesis@atlas
+```
+
+Public github.com consumers do not need a personal access token for public
+catalog and package sources. This repository's consumer CI jobs still
+require the `APM_READ_TOKEN` workflow secret and fail closed when it is
+absent.
+
+Or install the immutable v0.6.0 release by git tag for the portable Agent
+Skills target:
 
 ```text
 apm install sergio-sisternes-epam/autogenesis#v0.6.0 --target agent-skills
@@ -15,10 +28,7 @@ Or validate/deploy across the supported stable runtime profile:
 apm install sergio-sisternes-epam/autogenesis#v0.6.0 --target claude,codex,copilot,cursor,gemini,grok-build,kiro,opencode,windsurf
 ```
 
-Autogenesis is validated with APM CLI 0.30.0 (`8c2e0d9`). The package is
-private; local checks can use an existing `gh` login or any read-only GitHub
-credential with repository Contents access. CI uses the repository secret
-`APM_READ_TOKEN` and fails closed when it is absent.
+Autogenesis is validated with APM CLI 0.30.0 (`8c2e0d9`).
 
 ## Breaking invocation cutover
 
@@ -153,9 +163,8 @@ receive the normal persisted-plan approval before implementation.
 
 Every pull request and `main` update runs stable checks for metadata, source
 audit, frozen dependency replay, the exact checked-out store, Atlas v0.9.0
-lint/compile, and disposable consumer installations. Private cross-repository
-reads use the repository secret `APM_READ_TOKEN`; workflows fail clearly when
-it is unavailable.
+lint/compile, and disposable consumer installations. Workflows use the
+repository secret `APM_READ_TOKEN` and fail clearly when it is unavailable.
 
 The stable required-check names are **Release metadata**, **APM source
 integrity**, **Frozen dependency graph**, **Atlas store validation**,
