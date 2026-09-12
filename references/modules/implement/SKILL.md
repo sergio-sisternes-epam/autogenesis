@@ -32,7 +32,7 @@ or mismatched value.
 ## When (Change)
 
 1. **G4:** A **persisted plan produced by the formal design operation** (genesis → internal think-challenge → pin → C1–C5) exists **and** has received explicit user approval (“approve”, “implement the plan”, or equivalent). The requested `plan_ref` must equal that approved design receipt's `result.artifact`, and both requests must share the protected `work_id`.
-2. **No product edits** if either is missing, or if the plan was produced by a discussion-mode short-circuit → `incomplete: missing Change (G4)`.
+2. **No product edits** if either is missing, or if the plan was produced by catalog Discuss or any discussion short-circuit → `incomplete: missing Change (G4)`.
 3. Discussion never has implement authority. Reject a direct transition;
    the parent must first select Run mode and request the design operation.
 

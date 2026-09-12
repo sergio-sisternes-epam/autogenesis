@@ -301,7 +301,7 @@
     ]
   },
   "inventory_scope": {
-    "module_arguments": "complete authority for all 21 modules; must match each Arguments section"
+    "module_arguments": "complete authority for all 20 modules; must match each Arguments section"
   },
   "retry_requirements": {
     "owner": "immediate-parent",

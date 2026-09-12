@@ -47,7 +47,7 @@ emit the matching receipt.
 
 ## Authority and packaging
 
-- One root package, one parent router, 21 ordinary modules. No separate module
+- One root package, one parent router, 20 ordinary modules. No separate module
   packages, aliases, forwarding stubs, or invocation engine.
 - Normal references resolve from this module root. Shared package resources
   resolve from `<skill_root>`. Siblings resolve through the active parent
@@ -56,7 +56,7 @@ emit the matching receipt.
   unchanged. Autogenesis records only its own requests, cards, and receipts
   honestly around those loads.
 - Checker-facing argument inventory lives in
-  `references/invocation-contract.json` and covers all 21 modules. Keep it aligned
+  `references/invocation-contract.json` and covers all 20 modules. Keep it aligned
   with each entrypoint's Arguments section; never infer extra allowed keys.
 
 ## Enter (blocking)
