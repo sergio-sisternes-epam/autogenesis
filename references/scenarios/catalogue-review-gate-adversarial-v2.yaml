@@ -1,0 +1,53 @@
+id: catalogue-review-gate-adversarial-v2
+kind: skill-discipline
+version: "2"
+work_id: 2026-09-11-skill-module-invocation
+adversarial: true
+description: >
+  Successor to catalogue-review-gate-adversarial-v1. Preserve the blocking
+  catalogue-review requirement for topology or gate work, the docs/typo n/a
+  escape hatch with rationale, Genesis read-only discipline and relevant-only
+  catalogue loading plus B17 injector visibility.
+packages:
+  - id: subject
+    root: "<candidate-root>"
+    mode: mount
+project:
+  seed_knowledge: []
+smokes:
+  - id: in-scope-design-must-run-catalogue-review
+    source: decision-patterns-extend-genesis-catalogue-review
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/design/SKILL.md').read_text(); need=['**Catalogue Review (when in scope)**','**In scope** (block required)','Missing block on in-scope work → **Change incomplete**']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true
+  - id: n-a-allowed-for-docs-only-with-rationale
+    source: decision-patterns-extend-genesis-catalogue-review
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/design/SKILL.md').read_text(); print(json.dumps({'ok':'plan may set `catalogue_review: n/a` with one-line rationale' in t and 'pure docs, typo, version bump, non-topology fix' in t}))"
+    expect:
+      ok: true
+  - id: no-genesis-edit
+    source: plan non-goals
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/patterns/SKILL.md').read_text(); print(json.dumps({'ok':'Genesis itself remains **read-only**.' in t and 'never writes into the genesis skill' in t}))"
+    expect:
+      ok: true
+  - id: progressive-not-full-dump
+    source: patterns.md design-time catalogue review
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/design/SKILL.md').read_text(); need=['relevant Tier-2 / Tier-3 entries only','not a full dump','delta only']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true
+  - id: b17-injector-is-loaded-with-genesis
+    source: extension visibility during review
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; design=(Path(os.environ['PKG_subject'])/'references/modules/design/SKILL.md').read_text(); patterns=(Path(os.environ['PKG_subject'])/'references/modules/patterns/SKILL.md').read_text(); ok=('also invoke support `patterns` through the parent registry' in design and 'Present **B17. ACTIVATION CARD**' in patterns); print(json.dumps({'ok':ok}))"
+    expect:
+      ok: true
+  - id: progressive-disclosure-facet-uses-current-output-shape
+    source: review-package facet output contract
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/validate-progressive-disclosure/SKILL.md').read_text(); need=['module_resource_separation: pass | gaps','one_operation_at_a_time: pass | gaps','parent_routing: pass | gaps','reference_resolution: pass | gaps']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true

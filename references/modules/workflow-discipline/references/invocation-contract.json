@@ -1,0 +1,345 @@
+{
+  "schema": "autogenesis.invocation-contract/v1",
+  "request_schema": "autogenesis.invocation-request/v1",
+  "receipt_schema": "autogenesis.invocation-receipt/v1",
+  "trace_schema": "autogenesis.invocation-trace/v1",
+  "modules": {
+    "design": "operation",
+    "initialise": "operation",
+    "implement": "operation",
+    "research": "operation",
+    "reflect-challenge": "operation",
+    "learn-skill": "operation",
+    "reevaluate": "operation",
+    "aware-runtime": "operation",
+    "wire": "operation",
+    "review-package": "operation",
+    "atlas-migrate": "operation",
+    "discuss": "operation",
+    "workflow-discipline": "support",
+    "think-challenge": "support",
+    "think-grill": "support",
+    "think-ramble": "support",
+    "patterns": "support",
+    "validate-skill-import-links": "support",
+    "validate-progressive-disclosure": "support",
+    "validate-okf-conformance": "support",
+    "validate-gate-map-and-non-goals": "support"
+  },
+  "module_arguments": {
+    "design": {
+      "required": [
+        "objective"
+      ],
+      "optional": [
+        "change_evidence",
+        "behavioural_contract"
+      ]
+    },
+    "initialise": {
+      "required": [
+        "objective"
+      ],
+      "optional": [
+        "proposed_name",
+        "activation_card",
+        "behavioural_contract"
+      ]
+    },
+    "implement": {
+      "required": [
+        "plan_ref"
+      ],
+      "optional": []
+    },
+    "discuss": {
+      "required": [
+        "objective",
+        "discussion_root",
+        "current_branch"
+      ],
+      "optional": [
+        "stage",
+        "artifact"
+      ]
+    },
+    "atlas-migrate": {
+      "required": [
+        "storage_evidence"
+      ],
+      "optional": [
+        "wiki_source"
+      ]
+    },
+    "research": {
+      "required": ["question"],
+      "optional": ["source_material", "capture_scope"]
+    },
+    "reflect-challenge": {
+      "required": ["objective", "observations"],
+      "optional": ["current_behaviours", "recalled_behaviours", "tension"]
+    },
+    "learn-skill": {
+      "required": ["peer_identity"],
+      "optional": ["evidence", "reliance_notes"]
+    },
+    "reevaluate": {
+      "required": ["changed_knowledge"],
+      "optional": ["scope", "materiality_note", "prior_proposals"]
+    },
+    "aware-runtime": {
+      "required": ["target_artifact"],
+      "optional": ["scope", "governance_note", "closing_step"]
+    },
+    "wire": {
+      "required": ["target", "version_evidence"],
+      "optional": ["provenance", "reversible_note"]
+    },
+    "review-package": {
+      "required": ["target"],
+      "optional": ["scope", "focus", "related_suites"]
+    },
+    "think-challenge": {
+      "required": ["design_target"],
+      "optional": ["relevant_atlas_page", "evidence_scope"]
+    },
+    "think-grill": {
+      "required": ["topic"],
+      "optional": ["assumption_list", "clarity_goal"]
+    },
+    "think-ramble": {
+      "required": ["thoughts"],
+      "optional": ["theme", "capture_title"]
+    },
+    "patterns": {
+      "required": ["intent"],
+      "optional": ["target", "genesis_load_context", "extension_scope", "pattern_name"]
+    },
+    "validate-skill-import-links": {
+      "required": ["target"],
+      "optional": ["report_format", "harness_filter"]
+    },
+    "validate-progressive-disclosure": {
+      "required": ["target"],
+      "optional": ["registry_hint", "module_scope"]
+    },
+    "validate-okf-conformance": {
+      "required": ["target"],
+      "optional": ["store_hint", "format_scope"]
+    },
+    "validate-gate-map-and-non-goals": {
+      "required": ["target"],
+      "optional": ["card_state", "gate_scope"]
+    },
+    "workflow-discipline": {
+      "required": [
+        "request",
+        "phase"
+      ],
+      "optional": [
+        "evidence",
+        "receipt",
+        "trace",
+        "notes"
+      ]
+    }
+  },
+  "approval_binding": {
+    "implement_plan_ref_source": "parent_design_receipt.result.artifact",
+    "required_design_disposition": "approved",
+    "required_context_matches": [
+      "approval_ref",
+      "work_id"
+    ],
+    "mismatch_disposition": "blocked-before-effects"
+  },
+  "max_attempts": 2,
+  "root_arguments": {
+    "required": ["objective"],
+    "optional": []
+  },
+  "request_fields": [
+    "schema",
+    "request_id",
+    "parent_request_id",
+    "target",
+    "arguments",
+    "context",
+    "resolved"
+  ],
+  "context_fields": [
+    "subject",
+    "mode",
+    "operation",
+    "work_id",
+    "atlas_id",
+    "atlas_root",
+    "approval_ref"
+  ],
+  "states": [
+    "requested",
+    "rejected",
+    "blocked",
+    "running",
+    "failed",
+    "completed"
+  ],
+  "card_modes": [
+    "off",
+    "on",
+    "debug"
+  ],
+  "target_fields": [
+    "skill",
+    "module",
+    "role"
+  ],
+  "resolved_fields": [
+    "skill_root",
+    "module_root",
+    "entrypoint"
+  ],
+  "receipt_fields": [
+    "schema",
+    "request_id",
+    "parent_request_id",
+    "target",
+    "operation",
+    "status",
+    "attempts",
+    "result",
+    "evidence",
+    "gates"
+  ],
+  "attempt_fields": [
+    "number",
+    "outcome",
+    "transient",
+    "repeat_safe",
+    "retry_owner",
+    "reason",
+    "repeat_safety_evidence",
+    "tool_retries"
+  ],
+  "attempt_required_fields": ["number", "outcome"],
+  "retry_evidence_fields": ["transient", "repeat_safe", "retry_owner", "reason", "repeat_safety_evidence"],
+  "trace_fields": [
+    "schema",
+    "requests",
+    "receipts",
+    "cards"
+  ],
+  "card_fields": [
+    "request_id",
+    "format",
+    "fields",
+    "mode"
+  ],
+  "card_formats": [
+    "full",
+    "compact"
+  ],
+  "card_required_fields": {
+    "full": [
+      "schema",
+      "request_id",
+      "parent_request_id",
+      "target",
+      "operation",
+      "arguments_summary",
+      "context_summary",
+      "entrypoint",
+      "atlas_id",
+      "atlas_root",
+      "approval_ref",
+      "state"
+    ],
+    "compact": [
+      "request_id",
+      "parent_request_id",
+      "module",
+      "role",
+      "operation",
+      "entrypoint",
+      "context_ref",
+      "intent",
+      "state"
+    ]
+  },
+  "trace_card_required_fields": [
+    "request_id",
+    "format",
+    "fields"
+  ],
+  "trace_card_optional_fields": [
+    "mode"
+  ],
+  "trace_collection_items": {
+    "requests": "autogenesis.invocation-request/v1",
+    "receipts": "autogenesis.invocation-receipt/v1",
+    "cards": "rendered-card-view"
+  },
+  "rendering_requirements": {
+    "full_cards_when_enabled": [
+      "root",
+      "operation"
+    ],
+    "compact_cards_when_enabled": [
+      "support"
+    ],
+    "debug_support_context": "redacted",
+    "off_disables_cards_only": true,
+    "gates_still_apply": true,
+    "nulls_render_honestly": true,
+    "secret_redaction_required": true
+  },
+  "permitted_additional_keys": {
+    "card_fields_object": [
+      "intent",
+      "arguments_summary",
+      "context_summary",
+      "context_ref",
+      "approval_status",
+      "state",
+      "redactions",
+      "notes",
+      "error"
+    ],
+    "request_arguments_object": "module-defined named arguments are allowed",
+    "receipt_result_object": "module-defined result keys are allowed",
+    "receipt_evidence_object": "module-defined evidence keys are allowed",
+    "trace_envelope_object": [
+      "meta"
+    ]
+  },
+  "inventory_scope": {
+    "module_arguments": "complete authority for all 21 modules; must match each Arguments section"
+  },
+  "retry_requirements": {
+    "owner": "immediate-parent",
+    "request_identity": "request_id is stable across retries",
+    "allowed_when_all": [
+      "observed-transient-failure",
+      "known-repeat-safe"
+    ],
+    "disallowed": [
+      "unknown-partial-replay",
+      "permission-denied",
+      "invalid-input",
+      "missing-approval",
+      "renamed-request-reset",
+      "parent-replay-reset",
+      "third-attempt"
+    ]
+  },
+  "legacy_owned_fields_rejected": [
+    "path_id",
+    "path",
+    "path_module"
+  ],
+  "notes": {
+    "prose_authority": "<skill_root>/references/modules/workflow-discipline/SKILL.md and its module-local references/invocation-contract.md interpret the contract",
+    "json_authority": "This JSON is authoritative only for the listed fields, enums, module inventory, module_arguments inventory, card modes, and retry ceiling",
+    "subject_establishment": "Protected subject changes are explicit parent transitions, never child argument overrides"
+  }
+}

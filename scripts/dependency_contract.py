@@ -14,6 +14,10 @@ from ci_output import emit_error, emit_warning, print_summary, write_github_outp
 ROOT = Path(__file__).resolve().parents[1]
 APM_VERSION = "0.30.0"
 MARKETPLACE = "atlas"
+DIRECT_OKF_CALLERS = (
+    Path("references/modules/workflow-discipline/SKILL.md"),
+    Path("references/modules/validate-okf-conformance/SKILL.md"),
+)
 
 
 @dataclass(frozen=True)
@@ -180,12 +184,9 @@ def validate_lock(root: Path = ROOT) -> list[str]:
 
 
 def validate_direct_okf_usage(root: Path = ROOT) -> list[str]:
-    required = (
-        root / "references/modules/workflow-discipline.md",
-        root / "references/modules/validate-okf-conformance.md",
-    )
     errors = []
-    for path in required:
+    for relative_path in DIRECT_OKF_CALLERS:
+        path = root / relative_path
         try:
             content = path.read_text(encoding="utf-8").lower()
         except OSError as error:

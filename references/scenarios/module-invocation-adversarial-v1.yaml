@@ -1,0 +1,62 @@
+id: module-invocation-adversarial-v1
+kind: skill-discipline
+version: "1"
+work_id: 2026-09-11-skill-module-invocation
+adversarial: true
+description: Parent-routed modules and invocation discipline reject unsafe or misleading behaviour.
+packages:
+  - id: subject
+    root: "<candidate-root>"
+    mode: mount
+project:
+  seed_knowledge: []
+smokes:
+  - id: c1-root-only-and-assets
+    source: "C1: Agent Skills specification and APM native-copy/consumer evidence"
+    cmd: |
+      cd "$PKG_subject" &&
+      test "$(find references/modules -mindepth 2 -maxdepth 2 -name SKILL.md | wc -l | tr -d ' ')" = 21 &&
+      test ! -d references/paths &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}
+  - id: c2-card-is-not-execution
+    source: "C2: Genesis A9, B17 and existing G1 evidence rules"
+    cmd: |
+      cd "$PKG_subject" &&
+      grep -Fq 'A file read never' references/modules/workflow-discipline/SKILL.md &&
+      grep -Fq 'proves execution' references/modules/workflow-discipline/SKILL.md &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}
+  - id: c3-retry-safety-and-budget
+    source: "C3: AWS REL05-BP03 and explicit two-attempt user pin"
+    cmd: |
+      cd "$PKG_subject" &&
+      grep -Fq 'max_attempts = 2' references/modules/workflow-discipline/references/invocation-contract.md &&
+      grep -Fq 'known repeat-safe repetition' references/modules/workflow-discipline/references/invocation-contract.md &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}
+  - id: c4-parent-context-and-approval
+    source: "C4: G0/G2/G4 and protected-context user pin"
+    cmd: |
+      cd "$PKG_subject" &&
+      grep -Fq 'approval_ref' references/modules/workflow-discipline/SKILL.md &&
+      grep -Fq 'Parent-owned context' references/modules/workflow-discipline/SKILL.md &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}
+  - id: c5-cutover-scope
+    source: "C5: repository path-sensitive consumers and coordinated-cutover pin"
+    cmd: |
+      cd "$PKG_subject" &&
+      test ! -d references/paths &&
+      test -f references/scenarios/suite-index.json &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}
+  - id: c6-card-policy
+    source: "C6: activation_card facet and full/compact user pin"
+    cmd: |
+      cd "$PKG_subject" &&
+      grep -Fq '`off`' references/modules/workflow-discipline/SKILL.md &&
+      grep -Fq '`on`' references/modules/workflow-discipline/SKILL.md &&
+      grep -Fq '`debug`' references/modules/workflow-discipline/SKILL.md &&
+      printf '{"ok":true}\n'
+    expect: {ok: true}

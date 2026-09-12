@@ -1,0 +1,64 @@
+id: discuss-activation-adversarial-v3
+kind: skill-discipline
+version: "3"
+work_id: 2026-09-11-skill-module-invocation
+adversarial: true
+description: >
+  Successor to discuss-activation-adversarial-v2 for parent-routed operation
+  discuss. Preserve required context, subject-Atlas ownership, one-operation
+  discipline, prior-node reuse and the zero-implement discussion boundary.
+packages:
+  - id: subject
+    root: "<candidate-root>"
+    mode: mount
+project:
+  seed_knowledge: []
+smokes:
+  - id: discussion-operation-is-module-routed
+    source: B17 activation card + one-operation pin
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; root=(Path(os.environ['PKG_subject'])/'SKILL.md').read_text(); wd=(Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/SKILL.md').read_text(); ok=('references/modules/discuss/SKILL.md' in root and 'requested operation module must be `discuss`' in wd); print(json.dumps({'ok':ok}))"
+    expect:
+      ok: true
+  - id: missing-discuss-fields-are-blocking
+    source: required operation arguments
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/discuss/SKILL.md').read_text(); need=['objective','discussion_root','current_branch','stage','artifact']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true
+  - id: subject-atlas-not-discuss-default
+    source: dual-store drift guard
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/discuss/SKILL.md').read_text(); need=['must not use','Discuss skill default store','subject repository\\'s resolved Atlas','no `--target`']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true
+  - id: discussion-reentry-is-new-operation
+    source: one path at a time
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/discuss/SKILL.md').read_text(); wd=(Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/SKILL.md').read_text(); ok=('Issue a new operation request.' in t and 'only one operation is active' in t and 'discussion -> design -> explicit approval -> implement' in wd); print(json.dumps({'ok':ok}))"
+    expect:
+      ok: true
+  - id: canonical-work-hub-and-pointer-only
+    source: canonical work graph ownership
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/discuss/SKILL.md').read_text(); need=['Canonical work hub is subject `work/<work_id>.md`','`work_role: pointer` only']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true
+  - id: no-user-activated-think-challenge
+    source: user pin Q4
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/discuss/SKILL.md').read_text(); print(json.dumps({'ok':'Do **not** invoke internal `think-challenge` from this operation.' in t and 'user-activated think-challenge' in t}))"
+    expect:
+      ok: true
+  - id: no-product-edits-or-think-grill-ramble
+    source: discuss non-goals + instruction interference
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/discuss/SKILL.md').read_text(); need=['never claim Run complete or edit product files','Do **not** load internal `think-grill` or `think-ramble`']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true
+  - id: design-review-reuses-discussion-root-and-prior-nodes
+    source: design-review enhancement
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/discuss/SKILL.md').read_text(); need=['Reuse `discussion_root`','Prior idea nodes, pins, and protostars for that work are **in scope**','Do not open a blank hub']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true

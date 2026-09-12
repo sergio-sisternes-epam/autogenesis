@@ -1,0 +1,78 @@
+id: activation-card-extend-adversarial-v2
+kind: skill-discipline
+version: "2"
+work_id: 2026-09-11-skill-module-invocation
+adversarial: true
+description: >
+  Successor to activation-card-extend-adversarial-v1 for the request/card/
+  receipt contract. Preserve disabled-card skip behaviour, legal off|on|debug
+  values, full+compact rendering rules, redacted debug context and the rule
+  that visible cards never prove approval or execution.
+packages:
+  - id: subject
+    root: "<candidate-root>"
+    mode: mount
+project:
+  seed_knowledge: []
+smokes:
+  - id: root-declares-legal-card-state
+    source: activation card frontmatter
+    cmd: >
+      grep -q '^activation_card: on$' "$PKG_subject/SKILL.md" &&
+      echo '{"ok":true}'
+    expect:
+      ok: true
+  - id: initialise-defaults-new-skills-to-off
+    source: new-skill default declaration
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/initialise/SKILL.md').read_text(); need=['always emit `activation_card: off`','Only legal values: off | on | debug']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true
+  - id: disabled-skip-does-not-fail-review
+    source: review-package disabled facet behaviour
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/validate-gate-map-and-non-goals/SKILL.md').read_text(); need=['If absent or `off` → `card_check: disabled — skip`','do **not** set needs-work solely for this']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true
+  - id: only-three-legal-values
+    source: combinatorial explosion counter
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/references/invocation-contract.json').read_text(); print(json.dumps({'ok':'\"card_modes\": [' in t and '\"off\"' in t and '\"on\"' in t and '\"debug\"' in t}))"
+    expect:
+      ok: true
+  - id: full-and-compact-cards-when-enabled
+    source: full/compact user pin
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/references/invocation-contract.md').read_text(); need=['full root and operation requests render a','support requests render a compact']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true
+  - id: debug-shows-redacted-context
+    source: inherited context redaction
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/references/invocation-contract.md').read_text(); print(json.dumps({'ok':'redacted inherited context' in t and 'Never show secrets or credentials' in t}))"
+    expect:
+      ok: true
+  - id: requested-card-is-not-execution-or-approval
+    source: gate-map honesty
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; wd=(Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/references/invocation-contract.md').read_text(); ac=(Path(os.environ['PKG_subject'])/'references/modules/patterns/references/activation-card.md').read_text(); ok=('Cards are renderings of a request, not a second protocol and not execution proof.' in wd and 'does not prove authorisation, execution or completion' in ac); print(json.dumps({'ok':ok}))"
+    expect:
+      ok: true
+  - id: completed-receipt-needs-actual-evidence
+    source: Exit discipline parity
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; wd=(Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/SKILL.md').read_text(); ic=(Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/references/invocation-contract.md').read_text(); ok=('a real Atlas write plus green `atlas compile --root <atlas_root>`' in wd and 'Failed, blocked, or rejected receipts carry real attempt history' in ic); print(json.dumps({'ok':ok}))"
+    expect:
+      ok: true
+  - id: card-off-does-not-disable-gates
+    source: latent gate bypass guard
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/SKILL.md').read_text(); print(json.dumps({'ok':'Disabled cards do not disable approval, Atlas, lineage, or other safety gates.' in t}))"
+    expect:
+      ok: true
+  - id: parent-owned-context-and-two-attempt-limit
+    source: protected context + retry ceiling
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; wd=(Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/SKILL.md').read_text(); ic=(Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/references/invocation-contract.md').read_text(); ok=('Parent-owned context' in wd and 'max_attempts = 2' in ic and 'Retries keep the same `request_id`.' in ic); print(json.dumps({'ok':ok}))"
+    expect:
+      ok: true
