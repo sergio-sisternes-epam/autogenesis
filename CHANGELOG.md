@@ -54,6 +54,19 @@ in `SKILL.md`.
 - Update the current package/version surfaces to `v0.5.0`, including install
   commands, bug-report example, and release guidance.
 
+## [0.7.0]
+
+### Changed
+
+- Nest-load catalog `think@atlas` from the parent-routed `think-challenge`,
+  `think-grill`, and `think-ramble` wrappers. Autogenesis no longer vendors
+  forked think procedure. Run overlays remain: parent invocation, think-challenge
+  as a design validation gate with named-theory smokes, subject-Atlas
+  write-home, and no grill/ramble while catalog Discuss is active.
+- Advance the reviewed Autogenesis Atlas snapshot to
+  `110cab3deb3a87695003c6276ad92426e6262521` for the approved nest-load plan,
+  decision, and implementation experience.
+
 ## [0.6.0] - 2026-09-12
 
 ### Changed
@@ -202,7 +215,8 @@ in `SKILL.md`.
 - **Canonical decision:** `wiki-folder-deletion-policy` — no auto-delete on migrate; human-gated archive removal.
 - **Package metadata:** `apm.yml` deps on atlas + okf (not okf-wiki).
 
-[Unreleased]: https://github.com/sergio-sisternes-epam/autogenesis/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/sergio-sisternes-epam/autogenesis/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.7.0
 [0.6.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.6.0
 [0.5.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.5.0
 [0.4.3]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.4.3

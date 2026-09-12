@@ -6,9 +6,11 @@ metadata:
   autogenesis-role: support
 ---
 
-# think-ramble (internal)
+# think-ramble (Autogenesis Run wrapper)
 
-Capture unstructured thinking into the **subject Atlas** via atlas remember.
+Capture unstructured thinking during an Autogenesis Run. Catalog `think@atlas`
+owns the ramble/capture procedure. This module is only the parent-routed Run
+surface and Autogenesis overlays.
 
 ## Arguments
 
@@ -25,11 +27,21 @@ Shared assets resolve from skill_root, not cwd. Do not invoke while catalog Disc
 ## Process
 
 1. Accept the user’s free-form text (even if messy or incomplete).
-2. Hand off to the multi-harness substrate contract applied to the skill named `atlas`, loading its `remember` path:
-   - Target: the subject repository's Atlas root returned by `atlas resolve <atlas_id>`, under `autogenesis/experiences/` (or appropriate type).
-   - Type-correct frontmatter; `relates_to` with `autogenesis/…` paths only for Autogenesis-authored edges.
+2. Apply the multi-harness substrate contract to the **external catalog skill**
+   named `think-ramble` from package `think` / `think@atlas`. Use the harness
+   skill loader. Follow that catalog body for capture.
+   This nested load is not an Autogenesis module request: do not resolve it
+   through the parent registry, do not `read_file` this wrapper again, and
+   do not treat the catalog skill name as a re-entry into this module.
+3. **Autogenesis overlays (Run only), after the catalog body:**
+   - Persistence target is the subject repository Atlas root returned by
+     `atlas resolve <atlas_id>`, under `autogenesis/experiences/` (or the
+     appropriate type). Conversation-only catalog fallback is not legal during a Run.
+   - Type-correct frontmatter; `relates_to` with `autogenesis/…` paths only
+     for Autogenesis-authored edges.
    - `atlas compile` must go green.
-3. Confirm briefly what was captured; offer grill, challenge, or Medium/Gamma next steps.
+4. Confirm briefly what was captured; offer grill, challenge, or Medium/Gamma next steps.
+5. Return results and a receipt to the caller.
 
 ## Rules
 

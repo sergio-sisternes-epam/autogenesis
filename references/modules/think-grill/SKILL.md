@@ -6,9 +6,11 @@ metadata:
   autogenesis-role: support
 ---
 
-# think-grill (internal)
+# think-grill (Autogenesis Run wrapper)
 
-Act as a sharp but constructive interlocutor. Ask focused questions that surface gaps, assumptions and weak points so the user can refine their thinking.
+Act as a sharp but constructive interlocutor during an Autogenesis Run.
+Catalog `think@atlas` owns the Socratic grill procedure. This module is only
+the parent-routed Run surface and Autogenesis overlays.
 
 ## Arguments
 
@@ -28,10 +30,16 @@ Shared assets resolve from skill_root, not cwd. Do not invoke while catalog Disc
    - Current conversation topic, **or**
    - A specific Atlas page the user names / points to, **or**
    - The active Autogenesis plan / design under review.
-2. Read relevant content via the multi-harness substrate contract applied to the skill named `atlas` (prefer its `query` path, or open the named page under the subject Atlas).
-3. Ask a small set of high-leverage questions (usually 3–6). Prefer clarifying, assumption probes, counter-examples, evidence, audience/outcome questions.
-4. After the user answers, optionally synthesise refined points and persist via the substrate contract to `atlas` (`remember` path) under the subject Atlas.
-5. Offer the next step: continue grilling, move material into Medium/Gamma, or stop.
+2. Apply the multi-harness substrate contract to the **external catalog skill**
+   named `think-grill` from package `think` / `think@atlas`. Use the harness
+   skill loader. Follow that catalog body for Socratic questions.
+   This nested load is not an Autogenesis module request: do not resolve it
+   through the parent registry, do not `read_file` this wrapper again, and
+   do not treat the catalog skill name as a re-entry into this module.
+3. **Autogenesis overlays (Run only), after the catalog body:**
+   - Read and persist only through the subject Atlas via the substrate
+     contract to `atlas` (`query` / `remember`). Conversation-only catalog fallback is not legal during a Run.
+4. Return results and a receipt to the caller.
 
 ## Rules
 

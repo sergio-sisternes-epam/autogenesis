@@ -158,14 +158,14 @@ class SourceContractTests(unittest.TestCase):
         ignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
         agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
         self.assertIn("name: autogenesis\n", manifest)
-        self.assertIn("version: 0.6.0\n", manifest)
+        self.assertIn("version: 0.7.0\n", manifest)
         self.assertIn("license: Apache-2.0\n", manifest)
         self.assertIn(
             "repository: https://github.com/sergio-sisternes-epam/autogenesis\n",
             manifest,
         )
         self.assertIn("name: autogenesis\n", skill)
-        self.assertIn("version: 0.6.0\n", skill)
+        self.assertIn("version: 0.7.0\n", skill)
         self.assertTrue((ROOT / "apm.lock.yaml").is_file())
         self.assertIn("apm_modules/", ignore)
         self.assertIn("Commit `apm.lock.yaml`", agents)
@@ -200,10 +200,59 @@ class SourceContractTests(unittest.TestCase):
         self.assertIn("Activate the\ncatalog **discuss** package directly", skill)
         self.assertIn("activate the catalog Discuss package directly", readme)
 
+    def test_think_wrappers_nest_load_catalog_think(self) -> None:
+        manifest = (ROOT / "apm.yml").read_text(encoding="utf-8")
+        lock = (ROOT / "apm.lock.yaml").read_text(encoding="utf-8")
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        challenge = (
+            ROOT / "references/modules/think-challenge/SKILL.md"
+        ).read_text(encoding="utf-8")
+        grill = (
+            ROOT / "references/modules/think-grill/SKILL.md"
+        ).read_text(encoding="utf-8")
+        ramble = (
+            ROOT / "references/modules/think-ramble/SKILL.md"
+        ).read_text(encoding="utf-8")
+        self.assertIn("- name: think\n      marketplace: atlas", manifest)
+        self.assertIn(
+            "resolved_commit: 874613a67018c74ee95f857416fb315d2f80b92b",
+            lock,
+        )
+        self.assertEqual(
+            len(list((ROOT / "references/modules").glob("*/SKILL.md"))),
+            20,
+        )
+        self.assertIn("external catalog skill", challenge)
+        self.assertIn(
+            "named `think-challenge` from package `think`",
+            challenge,
+        )
+        self.assertIn("named `think-grill` from package `think`", grill)
+        self.assertIn("named `think-ramble` from package `think`", ramble)
+        self.assertIn(
+            "do not treat the catalog skill name as a re-entry",
+            challenge,
+        )
+        self.assertIn("must not re-enter the", skill)
+        self.assertIn("named theories and model knowledge", challenge)
+        self.assertIn(
+            "Do not invoke while catalog Discuss is active",
+            grill,
+        )
+        self.assertIn(
+            "Do not invoke while catalog Discuss is active",
+            ramble,
+        )
+        self.assertIn(
+            "Conversation-only catalog fallback is not legal",
+            challenge,
+        )
+        self.assertIn("nest-loads catalog `think@atlas`", skill)
+
     def test_store_constants_are_exact(self) -> None:
         self.assertEqual(
             store_contract.STORE_COMMIT,
-            "161fb87c0420f149cd1efba9e998eab575bce13a",
+            "110cab3deb3a87695003c6276ad92426e6262521",
         )
         self.assertEqual(store_contract.STORE_REF, "main")
         self.assertEqual(store_contract.ATLAS_VERSION, "0.9.0")
@@ -321,7 +370,7 @@ class SourceContractTests(unittest.TestCase):
         indexed_scenarios = (
             scenario_index["current"] + scenario_index["historical"]
         )
-        self.assertEqual(len(indexed_scenarios), 29)
+        self.assertEqual(len(indexed_scenarios), 30)
         self.assertEqual(len(indexed_scenarios), len(set(indexed_scenarios)))
         for scenario in indexed_scenarios:
             self.assertTrue((ROOT / "references/scenarios" / scenario).is_file())
@@ -349,15 +398,15 @@ class SourceContractTests(unittest.TestCase):
                 content = path.read_text(encoding="utf-8")
                 self.assertIn(reference, content)
 
-    def test_actual_root_version_surface_is_v0_6_0(self) -> None:
+    def test_actual_root_version_surface_is_v0_7_0(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         manifest = (ROOT / "apm.yml").read_text(encoding="utf-8")
 
         self.assertRegex(skill, r"(?m)^name: autogenesis$")
-        self.assertRegex(skill, r'(?m)^version: "?0\.6\.0"?$')
+        self.assertRegex(skill, r'(?m)^version: "?0\.7\.0"?$')
         self.assertRegex(skill, r"(?m)^activation_card: on$")
         self.assertIn("name: autogenesis\n", manifest)
-        self.assertIn("version: 0.6.0\n", manifest)
+        self.assertIn("version: 0.7.0\n", manifest)
 
     def test_optional_module_template_is_instruction_only(self) -> None:
         template = (

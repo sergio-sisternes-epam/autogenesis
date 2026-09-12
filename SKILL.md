@@ -1,13 +1,13 @@
 ---
 name: autogenesis
 description: Use this skill to evolve, design, review, or initialise agent skills from durable experience, including module structure, invocation discipline and skill composition even when Autogenesis is not named. Route through parent-controlled operation modules. Discussion does not implement; design stops for explicit approval. Do not use for ordinary application refactoring, automatic wiring, or direct module discovery.
-version: 0.6.0
+version: 0.7.0
 activation_card: on
 ---
 
 # autogenesis
 
-**v0.6.0** (semver). Version history lives in `CHANGELOG.md`.
+**v0.7.0** (semver). Version history lives in `CHANGELOG.md`.
 
 Grows a skillset from durable experience, or designs a new package using full
 Genesis discipline. Derived skills receive the runtime capabilities their
@@ -173,9 +173,9 @@ or escaping entrypoints reject explicitly; there is no catalogue fallback.
 | review-package | operation | Review the target's chosen composition and applicable conformance facets; advisory report | `references/modules/review-package/SKILL.md` |
 | atlas-migrate | operation | Migrate legacy storage through Atlas and preserve knowledge | `references/modules/atlas-migrate/SKILL.md` |
 | workflow-discipline | support | Apply Autogenesis-local Enter, Change, Exit and invocation contracts | `references/modules/workflow-discipline/SKILL.md` |
-| think-challenge | support | Challenge a Run design with grounded counters | `references/modules/think-challenge/SKILL.md` |
-| think-grill | support | Clarify assumptions in a Run, not discussion | `references/modules/think-grill/SKILL.md` |
-| think-ramble | support | Capture Run thoughts in the subject Atlas | `references/modules/think-ramble/SKILL.md` |
+| think-challenge | support | Nest-load catalog think-challenge; Run design-gate overlays | `references/modules/think-challenge/SKILL.md` |
+| think-grill | support | Nest-load catalog think-grill; Run overlays, not discussion | `references/modules/think-grill/SKILL.md` |
+| think-ramble | support | Nest-load catalog think-ramble; capture to the subject Atlas | `references/modules/think-ramble/SKILL.md` |
 | patterns | support | Select B17 or instruction-first draft S8; load its optional module template when authoring | `references/modules/patterns/SKILL.md` |
 | validate-skill-import-links | support | Audit actual external skill calls without requiring an adopter's Atlas | `references/modules/validate-skill-import-links/SKILL.md` |
 | validate-progressive-disclosure | support | Audit the chosen layout; allow simple root-only and instruction-only module skills | `references/modules/validate-progressive-disclosure/SKILL.md` |
@@ -210,7 +210,8 @@ The living verification of this contract is the pair **skill-test-a → skill-te
 
 ## Internal think modules (progressive disclosure)
 
-While an Autogenesis **Run** is active, the three think verbs resolve to internal modules (not the root catalog skills):
+While an Autogenesis **Run** is active, the three think verbs resolve to
+parent-routed wrappers (not a direct user activation of catalog `think-*`):
 
 | Trigger | Module |
 |---------|--------|
@@ -218,7 +219,13 @@ While an Autogenesis **Run** is active, the three think verbs resolve to interna
 | grill / think-grill / probe / clarify | `references/modules/think-grill/SKILL.md` |
 | ramble / think-ramble / brain dump / capture thoughts | `references/modules/think-ramble/SKILL.md` |
 
-Load with `read_file` on the module path. Root-level `think-*` skills remain available for non-Autogenesis use and are never deleted or overwritten by this skill.
+Load with `read_file` on the Autogenesis module path. Each wrapper then
+nest-loads catalog `think@atlas` as the matching **external catalog** skill from
+the pinned package
+through the harness skill loader. That nested load must not re-enter the
+Autogenesis module or the parent registry. Root-level `think-*` skills remain
+available for non-Autogenesis use and are never deleted or overwritten by this
+skill.
 
 ## Discuss package boundary
 
@@ -228,8 +235,11 @@ catalog **discuss** package directly for durable discussion. Discuss has no
 implementation authority: a discussion conclusion that changes a package must start a formal Autogenesis `mode: run` design operation, followed by a persisted, challenged plan and explicit approval before implementation.
 
 While an Autogenesis Run is active, think-challenge is an internal validation
-gate only; it is not user-activable as a discussion verb. Do not invoke
-think-grill or think-ramble while catalog Discuss is active.
+gate only; it is not user-activable as a discussion verb. The wrapper
+nest-loads catalog `think-challenge` and may add named-theory adversarial
+smokes. Do not invoke think-grill or think-ramble while catalog Discuss is
+active. During a Run, think memory uses the subject Atlas; conversation-only
+catalog fallback is not legal.
 
 ## Current evaluations
 
