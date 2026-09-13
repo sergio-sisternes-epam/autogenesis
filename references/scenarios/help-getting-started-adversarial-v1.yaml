@@ -83,7 +83,7 @@ ok = (
   (root/'references/modules/help/references/capability-catalog.md').is_file()
   and (root/'references/modules/getting-started/references/first-journey.md').is_file()
   and 'Do not auto-mount Atlas' in help_skill
-  and 'already resolvable' in enrich
+  and 'atlas resolve <atlas_id>' in enrich
   and 'Do not auto-mount Atlas' in gs
   and 'no Atlas mounted' in gs
 )
@@ -106,8 +106,11 @@ ok = (
   and 'fenced \`text\` block' in help_skill
   and 'fenced \`text\` block' in gs
   and 'inherited parent atlas_id' in gs
+  and 'inherited parent atlas_id' in help_skill
   and 'help_status: pending' in gs
   and 'atlas_id: none' not in gs
+  and 'atlas_status: not-queried' not in help_skill
+  and 'parent-registry **operation** name' in help_skill
   and (root/'references/modules/help/references/topics.md').is_file()
   and 'references/topics.md' in help_skill
 )
@@ -126,6 +129,7 @@ help_skill = (root/'references/modules/help/SKILL.md').read_text()
 readme = (root/'README.md').read_text()
 ok = (
   'Unknown target' in help_skill
+  and 'help_status: complete' in help_skill
   and 'Unqualified' in help_skill
   and 'activation path' not in readme.lower()
   and '## Modules' in readme

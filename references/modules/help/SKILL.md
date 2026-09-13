@@ -55,19 +55,20 @@ target: {skill: autogenesis, module: help, role: operation}
 operation: help
 arguments_summary: target=<name or none>
 entrypoint: <resolved help entrypoint>
-atlas_id: <selected store, pending, or none>
-atlas_root: <resolved root, pending, or none>
+atlas_id: <inherited parent atlas_id or none>
+atlas_root: <inherited parent atlas_root or none>
 approval_ref: null
 state: requested
 intent: <user learning goal, not an operation to run>
 atlas_used: []
-atlas_status: not-queried
+atlas_status: baseline-only
 help_status: pending
 ```
 
-Keep `operation: help` even when explaining `design`, `implement`, or `wire`.
-Never label the card as those operations. A requested card is not approval or
-execution evidence. This operation does not need a `work_id`.
+Render inherited protected Atlas context honestly. Do not select a store on
+this card. Keep `operation: help` even when explaining `design`, `implement`,
+or `wire`. Never label the card as those operations. A requested card is not
+approval or execution evidence. This operation does not need a `work_id`.
 
 ## Procedure
 
@@ -77,21 +78,30 @@ execution evidence. This operation does not need a `work_id`.
    module entrypoint. If the catalog answers, stop; keep `atlas_used: []` and
    set `atlas_status: baseline-only`, `help_status: complete`.
 2. **Named module or topic.** Resolve `target` in this order, then stop if
-   those files answer the question (`atlas_status: baseline-only`):
-   - If it matches a parent-registry module name, read **that** entrypoint
-     only. Cover intent, inputs, prerequisites, examples, outputs, side
-     effects, and boundaries. Do not follow the target's procedure.
+   those files answer the question (`atlas_status: baseline-only`,
+   `atlas_used: []`, `help_status: complete`):
+   - If it matches a parent-registry **operation** name, read **that**
+     entrypoint only. Cover intent, inputs, prerequisites, examples, outputs,
+     side effects, and boundaries. Do not follow the target's procedure.
+     Support, think, `patterns`, and `validate-*` names are unknown unless
+     the live registry marks them `operation`.
    - Else if it matches a name or alias in `references/topics.md`, read that
      topic page only. Do not invent extra modules.
 3. **Unknown target.** Say it is unknown. List valid capability-facing
    modules plus the bundled topic names. Do not invent flags, modules, or
-   behaviour.
+   behaviour. Keep `atlas_used: []`, set `atlas_status: baseline-only` and
+   `help_status: complete`, then refresh the card.
 4. **Insufficient references.** Topic overlap is not enough. If the loaded
    files do not evidence the actual question, read
    `references/enrichment.md` and attempt read-only Atlas retrieval only when
    a store is already resolvable. Do not mount, authenticate, initialise,
-   remember, or install. If retrieval is blocked or fails, give limited help
-   plus the known reason. If it succeeds, cite only pages that contributed.
+   remember, or install. Set status before refresh:
+   - blocked or failed retrieval: `help_status: limited`,
+     `atlas_status: unavailable`, `atlas_used: []`
+   - retrieval ran with no eligible hit: `help_status: limited`,
+     `atlas_status: consulted`, `atlas_used: []`
+   - retrieval contributed eligible pages: `help_status: complete`,
+     `atlas_status: consulted`, `atlas_used` lists those store IDs
 5. **Refresh the card** before the explanation when status, root, or
    `atlas_used` changed. Final cards have no pending placeholders.
    `atlas_used` lists only store IDs whose eligible evidence contributed.

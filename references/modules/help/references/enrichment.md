@@ -10,20 +10,25 @@ stop. Extra Atlas reads are optional, not required.
 
 ## Read-only retrieval
 
-Attempt query only when a subject or Autogenesis Atlas is already resolvable
-without mounting:
+Attempt query only when an `atlas_id` is already known without mounting
+(inherited parent context, or exactly one mesh store name):
 
-1. Prefer parent context `atlas_root` when it contains `SCHEMA.json`.
-2. Else, if `atlas-mesh.json` names exactly one store (or an explicit
-   `atlas_id`) and that checkout already has `SCHEMA.json`, use that root.
-3. If neither is resolvable, do not mount, authenticate, init, or repair.
-   Return limited help and the reason (missing checkout, ambiguous mesh,
-   missing schema, missing tool, denied access, timeout, or unknown).
+1. A checkout that merely contains `SCHEMA.json` is not the Atlas root.
+2. Run `atlas resolve <atlas_id>` read-only. Do not mount, remount,
+   authenticate, init, or repair. Use only the path that command returns.
+3. Verify `<returned-root>/SCHEMA.json`. If resolve fails, returns nothing,
+   or the schema is missing, stop as unavailable.
 
-When a root is resolvable, search or read only pages needed for the question
-(about 1–3). Do not build indexes. Do not remember, compile for write, install
-schema, or follow mutating Atlas paths. Treat historical, draft, retired, or
-unapproved pages as evidence of risk, not current packaged capability.
+If no `atlas_id` is already known, the mesh is ambiguous, or resolve is
+blocked, do not guess a root. Return limited help and the reason (missing
+id, missing checkout, ambiguous mesh, missing schema, missing tool, denied
+access, timeout, or unknown).
+
+When a root is the resolve result, search or read only pages needed for the
+question (about 1–3). Do not build indexes. Do not remember, compile for
+write, install schema, or follow mutating Atlas paths. Treat historical,
+draft, retired, or unapproved pages as evidence of risk, not current
+packaged capability.
 
 ## Provenance
 

@@ -437,9 +437,17 @@ class SourceContractTests(unittest.TestCase):
         self.assertIn("atlas_used:", help_skill)
         self.assertIn("Do not auto-mount Atlas", help_skill)
         self.assertIn("references/topics.md", help_skill)
+        self.assertIn("inherited parent atlas_id", help_skill)
+        self.assertIn("parent-registry **operation** name", help_skill)
+        self.assertNotIn("atlas_status: not-queried", help_skill)
         self.assertIn("inherited parent atlas_id", getting_started)
         self.assertIn("help_status: pending", getting_started)
         self.assertNotIn("atlas_id: none", getting_started)
+        enrich = (
+            ROOT / "references/modules/help/references/enrichment.md"
+        ).read_text(encoding="utf-8")
+        self.assertIn("atlas resolve <atlas_id>", enrich)
+        self.assertIn("Use only the path that command returns", enrich)
         self.assertIn("Do not design, implement, wire", help_skill)
         self.assertIn("Unknown target", help_skill)
         self.assertNotIn("validate-okf-conformance", catalog)
