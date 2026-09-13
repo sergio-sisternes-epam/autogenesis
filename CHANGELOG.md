@@ -7,6 +7,8 @@ in `SKILL.md`.
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-09-13
+
 ### Added
 
 - Add parent-routed `help` and `getting-started` operations: packaged
@@ -15,20 +17,6 @@ in `SKILL.md`.
   and fenced cards that show `intent` plus `atlas_used`. Public `help`
   lists operations; it does not bypass parent routing to load private
   support modules.
-- Align GitHub issue and pull request templates with the family hybrid set,
-  including a security-advisory contact link and Autogenesis-specific PR
-  extras.
-- Add the complete Apache License 2.0 text, Autogenesis copyright notice, and
-  preserved Genesis attribution; document that the separately published
-  Genesis book uses CC BY-NC 4.0 while the repository code uses Apache-2.0.
-- Add a shared skill-native SOLID design authority, prospective application
-  guidance across design, initialise, package review and S8, plus an additive
-  adversarial scenario and structural linkage coverage.
-- Add an optional instruction-only skill-module template without runtime
-  validators, protocol schemas or mandatory resource directories.
-- Add Autogenesis-scoped S8 Parent-routed Skill Module as a draft structural
-  pattern, with applicability/admission guidance in design, initialise and
-  package review. B17 Activation Card remains active; Genesis is unchanged.
 
 ### Changed
 
@@ -38,33 +26,6 @@ in `SKILL.md`.
   (`apm marketplace add ... --name atlas` then `apm install autogenesis@atlas`).
   Maintainer install pins, git-tag commands, dependency commits, and
   required-check names stay in `CONTRIBUTING.md`.
-- Document Atlas catalog consumer install
-  (`apm marketplace add sergio-sisternes-epam/atlas-marketplace --name atlas`
-  then `apm install autogenesis@atlas`). Public github.com consumers do
-  not need a PAT for public catalog and package sources. This
-  repository's consumer CI jobs still require `APM_READ_TOKEN` and fail
-  closed when it is absent.
-- Keep the module discipline instruction-first by removing the proposed generic
-  Python source/trace validator and its dedicated test harness; current scenario
-  checks now use existing repository tests and lightweight shell assertions.
-- Advance the reviewed Autogenesis Atlas snapshot to
-  `161fb87c0420f149cd1efba9e998eab575bce13a` for the approved SOLID design,
-  explicit approval, verified implementation evidence, and closed work hub.
-- Remove the unavailable external evaluator dependency from Autogenesis's live
-  workflow, lineage fields and current acceptance contract. Portable
-  scenarios, repository-native checks, actual evidence and GitHub CI remain.
-- Refine draft S8 to version 0.2 as instruction-first guidance for derived
-  skills. Separate Genesis authoring discipline from generated runtime;
-  make full fusion explicit and generic review conditional on adopted
-  modules, gates and memory integration. Autogenesis's own protocol and
-  release tooling remain local policy.
-- Clarify B17's portable request cue separately from its Autogenesis-specific
-  receipt, retry and memory policy; retain its active status.
-- Breaking cutover to 21 parent-routed modules under
-  `references/modules/<name>/SKILL.md`, with the root skill remaining the only
-  catalog export and module arguments unable to override parent-owned context.
-- Update the current package/version surfaces to `v0.5.0`, including install
-  commands, bug-report example, and release guidance.
 
 ## [0.7.0]
 
@@ -227,7 +188,8 @@ in `SKILL.md`.
 - **Canonical decision:** `wiki-folder-deletion-policy` — no auto-delete on migrate; human-gated archive removal.
 - **Package metadata:** `apm.yml` deps on atlas + okf (not okf-wiki).
 
-[Unreleased]: https://github.com/sergio-sisternes-epam/autogenesis/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/sergio-sisternes-epam/autogenesis/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.8.0
 [0.7.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.7.0
 [0.6.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.6.0
 [0.5.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.5.0

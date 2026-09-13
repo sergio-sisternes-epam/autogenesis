@@ -50,7 +50,7 @@ in `apm.lock.yaml`. The lock is generated state: commit it, but never edit
 it by hand. `apm_modules/` and harness deployment directories are disposable
 and must remain untracked.
 
-Autogenesis v0.7.0 has 22 parent-routed modules and no `discuss` operation.
+Autogenesis v0.8.0 has 22 parent-routed modules and no `discuss` operation.
 Think support modules nest-load catalog `think@atlas`; they do not vendor
 forked think procedure. The root `SKILL.md` owns the version surface and
 module registry. Module
@@ -170,16 +170,16 @@ and target-specific consumer commands stay here.
 Keep these commands on the same version as `apm.yml`:
 
 ```text
-apm install sergio-sisternes-epam/autogenesis#v0.7.0 --target agent-skills
+apm install sergio-sisternes-epam/autogenesis#v0.8.0 --target agent-skills
 ```
 
 ```text
-apm install sergio-sisternes-epam/autogenesis#v0.7.0 --target claude,codex,copilot,cursor,gemini,grok-build,kiro,opencode,windsurf
+apm install sergio-sisternes-epam/autogenesis#v0.8.0 --target claude,codex,copilot,cursor,gemini,grok-build,kiro,opencode,windsurf
 ```
 
 Do not update any global consumer yet. After a release, and only with
 explicit approval, prefer an immutable dependency:
-  `sergio-sisternes-epam/autogenesis#v0.7.0`.
+  `sergio-sisternes-epam/autogenesis#v0.8.0`.
 
 ## Release handoff
 

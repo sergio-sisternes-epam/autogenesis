@@ -1,6 +1,6 @@
 # Bundled help topics
 
-Packaged baseline for Autogenesis **v0.7.0**. These names are **not**
+Packaged baseline for Autogenesis **v0.8.0**. These names are **not**
 parent-registry modules. Resolve `target` here only after it fails to match
 a registry module name. Aliases map to the canonical topic name.
 

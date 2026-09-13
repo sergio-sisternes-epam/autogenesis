@@ -1,6 +1,6 @@
 # Autogenesis first journey
 
-Packaged baseline for Autogenesis **v0.7.0**. Usable with no Atlas mounted.
+Packaged baseline for Autogenesis **v0.8.0**. Usable with no Atlas mounted.
 
 ## Purpose
 
