@@ -51,9 +51,9 @@ EXPECTED_DEPENDENCIES = (
     Dependency(
         "discuss",
         "sergio-sisternes-epam/discuss",
-        "c1c0936d9a0346dce7d877646046c918de335d69",
-        "0.3.10",
-        "c1c0936d9a0346dce7d877646046c918de335d69",
+        "af2d2fa4759c00d4ae77115c0fe710c439f8c958",
+        "0.4.0",
+        "af2d2fa4759c00d4ae77115c0fe710c439f8c958",
     ),
     Dependency(
         "think",

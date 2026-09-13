@@ -7,6 +7,16 @@ in `SKILL.md`.
 
 ## [Unreleased]
 
+### Changed
+
+- Align the APM package description in `apm.yml` with the human-owned
+  README purpose lede. Package version, GitHub visibility, and Genesis
+  credit are unchanged.
+- Refresh the frozen dependency graph so Discuss follows the live catalog
+  resolution `v0.4.0` (`af2d2fa4759c00d4ae77115c0fe710c439f8c958`). Atlas
+  `v0.12.0`, OKF `v0.2.1`, and Think `v0.1.0` stay on their existing lock
+  resolutions.
+
 ## [0.8.0] - 2026-09-13
 
 ### Added

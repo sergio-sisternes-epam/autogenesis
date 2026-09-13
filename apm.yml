@@ -1,6 +1,6 @@
 name: autogenesis
 version: 0.8.0
-description: Grows a skillset from its own experience store. Core design process is genesis; memory via Atlas. Grok-native APM skill.
+description: Autogenesis is an expanded discipline of danielmeppiel/genesis that uses Atlas as long-term memory for the skill, wherever it is used, pairs with skills such as discuss and think and incorporates minor new patterns and disciplines, such as Activation Cards, Modules, or a skill-native SOLID design lens.
 author: Sergio Sisternes
 license: Apache-2.0
 type: skill
