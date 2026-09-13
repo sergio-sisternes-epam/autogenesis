@@ -44,6 +44,7 @@ parent_request_id: <caller or null>
 target: {skill: autogenesis, module: getting-started, role: operation}
 operation: getting-started
 arguments_summary: goal=<optional or none>
+context_summary: subject=<inherited>, mode=<inherited>, work_id=none, approval_ref=null
 entrypoint: <resolved getting-started entrypoint>
 atlas_id: <inherited parent atlas_id or none>
 atlas_root: <inherited parent atlas_root or none>

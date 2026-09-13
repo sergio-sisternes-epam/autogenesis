@@ -24,11 +24,13 @@ blocked, do not guess a root. Return limited help and the reason (missing
 id, missing checkout, ambiguous mesh, missing schema, missing tool, denied
 access, timeout, or unknown).
 
-When a root is the resolve result, search or read only pages needed for the
-question (about 1–3). Do not build indexes. Do not remember, compile for
-write, install schema, or follow mutating Atlas paths. Treat historical,
-draft, retired, or unapproved pages as evidence of risk, not current
-packaged capability.
+When a root is the resolve result, apply the multi-harness substrate
+contract to the external `atlas` skill and load it with the harness skill
+loader. Follow only a read-only query or page-read path against that root.
+Do not follow mount, init, remember, compile-for-write, or install paths.
+Search or read only pages needed for the question (about 1–3). Do not
+build indexes. Treat historical, draft, retired, or unapproved pages as
+evidence of risk, not current packaged capability.
 
 ## Provenance
 

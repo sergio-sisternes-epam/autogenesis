@@ -107,6 +107,8 @@ ok = (
   and 'fenced \`text\` block' in gs
   and 'inherited parent atlas_id' in gs
   and 'inherited parent atlas_id' in help_skill
+  and 'context_summary:' in help_skill
+  and 'context_summary:' in gs
   and 'help_status: pending' in gs
   and 'atlas_id: none' not in gs
   and 'atlas_status: not-queried' not in help_skill

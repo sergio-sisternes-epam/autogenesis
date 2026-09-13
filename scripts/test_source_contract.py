@@ -389,7 +389,7 @@ class SourceContractTests(unittest.TestCase):
         indexed_scenarios = (
             scenario_index["current"] + scenario_index["historical"]
         )
-        self.assertEqual(len(indexed_scenarios), 32)
+        self.assertEqual(len(indexed_scenarios), 33)
         self.assertEqual(len(indexed_scenarios), len(set(indexed_scenarios)))
         for scenario in indexed_scenarios:
             self.assertTrue((ROOT / "references/scenarios" / scenario).is_file())
@@ -438,7 +438,10 @@ class SourceContractTests(unittest.TestCase):
         self.assertIn("Do not auto-mount Atlas", help_skill)
         self.assertIn("references/topics.md", help_skill)
         self.assertIn("inherited parent atlas_id", help_skill)
+        self.assertIn("context_summary:", help_skill)
+        self.assertIn("live parent registry", help_skill)
         self.assertIn("parent-registry **operation** name", help_skill)
+        self.assertIn("context_summary:", getting_started)
         self.assertNotIn("atlas_status: not-queried", help_skill)
         self.assertIn("inherited parent atlas_id", getting_started)
         self.assertIn("help_status: pending", getting_started)
@@ -448,6 +451,9 @@ class SourceContractTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn("atlas resolve <atlas_id>", enrich)
         self.assertIn("Use only the path that command returns", enrich)
+        self.assertIn("external `atlas` skill", enrich)
+        self.assertIn("Never implement from discussion", journey)
+        self.assertIn("initialise -> explicit", journey)
         self.assertIn("Do not design, implement, wire", help_skill)
         self.assertIn("Unknown target", help_skill)
         self.assertNotIn("validate-okf-conformance", catalog)

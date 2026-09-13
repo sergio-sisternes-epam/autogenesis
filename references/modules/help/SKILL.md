@@ -54,6 +54,7 @@ parent_request_id: <caller or null>
 target: {skill: autogenesis, module: help, role: operation}
 operation: help
 arguments_summary: target=<name or none>
+context_summary: subject=<inherited>, mode=<inherited>, work_id=none, approval_ref=null
 entrypoint: <resolved help entrypoint>
 atlas_id: <inherited parent atlas_id or none>
 atlas_root: <inherited parent atlas_root or none>
@@ -72,11 +73,13 @@ approval or execution evidence. This operation does not need a `work_id`.
 
 ## Procedure
 
-1. **Overview (no target).** Read `references/capability-catalog.md` and the
-   parent registry. List each capability-facing module with its one-line
-   purpose. Do not ask a clarifying question just to list. Do not read every
-   module entrypoint. If the catalog answers, stop; keep `atlas_used: []` and
-   set `atlas_status: baseline-only`, `help_status: complete`.
+1. **Overview (no target).** List each capability-facing module from the
+   live parent registry with its one-line purpose. The packaged catalog is
+   supplemental snapshot text, not listing authority; if a registry
+   operation is missing from the snapshot, still list the registry row.
+   Do not ask a clarifying question just to list. Do not read every module
+   entrypoint. After the registry list, keep `atlas_used: []` and set
+   `atlas_status: baseline-only`, `help_status: complete`.
 2. **Named module or topic.** Resolve `target` in this order, then stop if
    those files answer the question (`atlas_status: baseline-only`,
    `atlas_used: []`, `help_status: complete`):

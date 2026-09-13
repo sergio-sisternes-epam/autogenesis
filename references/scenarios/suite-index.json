@@ -10,7 +10,7 @@
     "derived-skill-modules-adversarial-v1.yaml",
     "help-getting-started-adversarial-v1.yaml",
     "explicit-discuss-integration-adversarial-v1.yaml",
-    "module-invocation-adversarial-v1.yaml",
+    "module-invocation-adversarial-v2.yaml",
     "module-invocation-happy-v1.yaml",
     "patterns-as-genesis-extension-adversarial-v2.yaml",
     "patterns-module-adversarial-v2.yaml",
@@ -20,6 +20,7 @@
     "specify-only-adversarial-v2.yaml"
   ],
   "historical": [
+    "module-invocation-adversarial-v1.yaml",
     "catalog-think-integration-adversarial-v1.yaml",
     "activation-card-extend-adversarial-v1.yaml",
     "atlas-migrate-activation-adherence-v1.yaml",
@@ -47,6 +48,7 @@
     "patterns-as-genesis-extension-adversarial-v1.yaml": "patterns-as-genesis-extension-adversarial-v2.yaml",
     "patterns-module-adversarial-v1.yaml": "patterns-module-adversarial-v2.yaml",
     "specify-only-adversarial-v1.yaml": "specify-only-adversarial-v2.yaml",
-    "catalog-think-integration-adversarial-v1.yaml": "catalog-think-integration-adversarial-v2.yaml"
+    "catalog-think-integration-adversarial-v1.yaml": "catalog-think-integration-adversarial-v2.yaml",
+    "module-invocation-adversarial-v1.yaml": "module-invocation-adversarial-v2.yaml"
   }
 }
