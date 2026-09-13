@@ -26,6 +26,9 @@ in `SKILL.md`.
   (`apm marketplace add ... --name atlas` then `apm install autogenesis@atlas`).
   Maintainer install pins, git-tag commands, dependency commits, and
   required-check names stay in `CONTRIBUTING.md`.
+- Advance the reviewed catalog Atlas pin to `v0.12.0`
+  (`40e11c65e243236850c26fc6cd5a04acdd483eb4`). OKF `v0.2.1`, Discuss
+  `v0.3.10`, and Think `v0.1.0` stay on their existing lock resolutions.
 
 ## [0.7.0]
 
