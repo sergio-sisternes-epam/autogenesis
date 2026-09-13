@@ -15,11 +15,11 @@ dependencies:
 - repo_url: sergio-sisternes-epam/discuss
   name: discuss
   host: github.com
-  resolved_commit: c1c0936d9a0346dce7d877646046c918de335d69
-  resolved_ref: c1c0936d9a0346dce7d877646046c918de335d69
-  version: 0.3.10
+  resolved_commit: af2d2fa4759c00d4ae77115c0fe710c439f8c958
+  resolved_ref: af2d2fa4759c00d4ae77115c0fe710c439f8c958
+  version: 0.4.0
   package_type: hybrid
-  content_hash: sha256:3498acb321112fa030e53a70df621894b814f50431b43a98d61939c5e33ac4b4
+  content_hash: sha256:f3d940fcd6e64749c930b9b7ee9b3057653953ff60a7292e5762dff7bf0a1f89
   discovered_via: atlas
   marketplace_plugin_name: discuss
   declared_license: Apache-2.0

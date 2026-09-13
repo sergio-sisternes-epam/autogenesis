@@ -149,7 +149,7 @@ modularization.
 ## Reviewed dependency divergence
 
 Do not remove direct OKF: two Autogenesis modules invoke it directly.
-Catalog Atlas v0.12.0 and Discuss v0.3.10 now resolve nested OKF/Atlas through
+Catalog Atlas v0.12.0 and Discuss v0.4.0 now resolve nested OKF/Atlas through
 the same marketplace pins as this root. There are no reviewed graph
 divergences. Any new divergence requires an explicit dependency review.
 
@@ -159,7 +159,7 @@ Released pins from `apm.lock.yaml`:
 |---|---|---|
 | Atlas | `v0.12.0` | `40e11c65e243236850c26fc6cd5a04acdd483eb4` |
 | OKF | `v0.2.1` | `5246f7b193b58a32ac8a15fc76aedf37c42b042c` |
-| Discuss | `v0.3.10` | `c1c0936d9a0346dce7d877646046c918de335d69` |
+| Discuss | `v0.4.0` | `af2d2fa4759c00d4ae77115c0fe710c439f8c958` |
 | Think | `v0.1.0` | `874613a67018c74ee95f857416fb315d2f80b92b` |
 
 ## Consumer version pins
