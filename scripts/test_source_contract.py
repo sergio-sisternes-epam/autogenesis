@@ -333,13 +333,13 @@ class SourceContractTests(unittest.TestCase):
         self.assertIn('--notes-file "$notes_file"', release)
         self.assertNotIn('release_notes="$(<"$notes_file")"', release)
 
-    def test_private_reads_are_explicitly_credentialed(self) -> None:
+    def test_public_sources_do_not_require_read_token(self) -> None:
         ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
-        self.assertIn("APM_READ_TOKEN", ci)
-        self.assertGreaterEqual(ci.count("Missing private read token"), 3)
-        self.assertIn("GITHUB_APM_PAT_SERGIO_SISTERNES_EPAM", ci)
+        self.assertNotIn("APM_READ_TOKEN", ci)
+        self.assertNotIn("Missing private read token", ci)
+        self.assertNotIn("GITHUB_APM_PAT_SERGIO_SISTERNES_EPAM", ci)
         self.assertGreaterEqual(
-            ci.count('Authorization: Bearer $APM_READ_TOKEN'),
+            ci.count("Authorization: Bearer $GITHUB_TOKEN"),
             3,
         )
         self.assertNotIn("Authorization: " + "*" * 6, ci)
