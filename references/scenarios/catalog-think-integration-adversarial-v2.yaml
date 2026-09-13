@@ -1,0 +1,89 @@
+id: catalog-think-integration-adversarial-v2
+work_id: 2026-09-12-catalog-think-integration
+kind: skill-discipline
+packages:
+  - id: subject
+    root: "<candidate-root>"
+    mode: mount
+adversarial: true
+version: 2
+description: "Reject vendored think forks and recursive catalog name lookup."
+project:
+  seed_knowledge: []
+smokes:
+  - id: think-dependency-pinned
+    source: "PHANTOM DEPENDENCY and P1"
+    cmd: |
+      grep -A8 '^dependencies:' "$PKG_subject/apm.yml" |
+      grep -q 'name: think' &&
+      grep -A12 'name: think' "$PKG_subject/apm.lock.yaml" |
+      grep -q 'resolved_commit: 874613a67018c74ee95f857416fb315d2f80b92b' &&
+      echo '{"ok":true}'
+    expect:
+      ok: true
+  - id: wrappers-nest-load-catalog
+    source: "vendored-drift finding and P3"
+    cmd: |
+      grep -q 'external catalog skill' "$PKG_subject/references/modules/think-challenge/SKILL.md" &&
+      grep -q 'named `think-challenge` from package `think`' "$PKG_subject/references/modules/think-challenge/SKILL.md" &&
+      grep -q 'named `think-grill` from package `think`' "$PKG_subject/references/modules/think-grill/SKILL.md" &&
+      grep -q 'named `think-ramble` from package `think`' "$PKG_subject/references/modules/think-ramble/SKILL.md" &&
+      echo '{"ok":true}'
+    expect:
+      ok: true
+  - id: nested-load-does-not-recurse
+    source: "Run-routing recursion counter and P4"
+    cmd: |
+      grep -q 'do not treat the catalog skill name as a re-entry into this module' "$PKG_subject/references/modules/think-challenge/SKILL.md" &&
+      grep -q 'must not re-enter the' "$PKG_subject/SKILL.md" &&
+      echo '{"ok":true}'
+    expect:
+      ok: true
+  - id: think-challenge-keeps-named-theory-smokes
+    source: "catalog never-invent rule and P5"
+    cmd: |
+      grep -q 'named theories and model knowledge' "$PKG_subject/references/modules/think-challenge/SKILL.md" &&
+      grep -q 'Each smoke names its source' "$PKG_subject/references/modules/think-challenge/SKILL.md" &&
+      echo '{"ok":true}'
+    expect:
+      ok: true
+  - id: grill-ramble-blocked-during-discuss
+    source: "Discuss fence and P5"
+    cmd: |
+      grep -q 'Do not invoke while catalog Discuss is active' "$PKG_subject/references/modules/think-grill/SKILL.md" &&
+      grep -q 'Do not invoke while catalog Discuss is active' "$PKG_subject/references/modules/think-ramble/SKILL.md" &&
+      grep -q 'Do not invoke internal `think-grill` or `think-ramble` while catalog' "$PKG_subject/references/modules/workflow-discipline/SKILL.md" &&
+      echo '{"ok":true}'
+    expect:
+      ok: true
+  - id: challenge-grill-fail-closed-on-write-root
+    source: "subject Atlas before nested query/persist"
+    cmd: |
+      grep -q 'Fail closed before loading if the catalog procedure cannot honor that write root' "$PKG_subject/references/modules/think-challenge/SKILL.md" &&
+      grep -q 'Fail closed before loading if the catalog procedure cannot honor that write root' "$PKG_subject/references/modules/think-grill/SKILL.md" &&
+      echo '{"ok":true}'
+    expect:
+      ok: true
+  - id: ramble-fail-closed-on-write-root
+    source: "subject Atlas write-home before nested persist"
+    cmd: |
+      grep -q 'Fail closed before loading if the catalog procedure cannot honor' "$PKG_subject/references/modules/think-ramble/SKILL.md" &&
+      grep -q 'Conversation-only catalog fallback is not legal during a Run' "$PKG_subject/references/modules/think-ramble/SKILL.md" &&
+      echo '{"ok":true}'
+    expect:
+      ok: true
+  - id: wrappers-forward-arguments
+    source: "wrapper argument-forwarding review"
+    cmd: |
+      grep -q '`design_target` is the claim to challenge' "$PKG_subject/references/modules/think-challenge/SKILL.md" &&
+      grep -q '`topic` is the idea to grill' "$PKG_subject/references/modules/think-grill/SKILL.md" &&
+      grep -q '`thoughts` is the free-form text to capture' "$PKG_subject/references/modules/think-ramble/SKILL.md" &&
+      echo '{"ok":true}'
+    expect:
+      ok: true
+  - id: module-count-stays-22
+    source: "user composition pin and P2"
+    cmd: |
+      python3 -c "from pathlib import Path; import os,json; root=Path(os.environ['PKG_subject']); n=len(list((root/'references/modules').glob('*/SKILL.md'))); print(json.dumps({'ok': n==22}))"
+    expect:
+      ok: true

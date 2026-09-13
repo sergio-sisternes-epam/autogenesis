@@ -1,6 +1,6 @@
 ---
 name: help
-description: Explain Autogenesis modules without executing them. List capability-facing modules, or describe one named module or topic.
+description: Explain Autogenesis modules without executing them. List capability-facing modules, or describe one named module or bundled topic.
 metadata:
   autogenesis-parent: autogenesis
   autogenesis-role: operation
@@ -15,7 +15,8 @@ subject skill. Do not auto-mount Atlas.
 
 - Required: none. Missing `target` is a valid overview request, not a prompt
   for clarification.
-- Optional: `target` (a capability-facing module name or help topic).
+- Optional: `target` (a capability-facing module name, or a bundled topic
+  from `references/topics.md`).
 - Do not override parent-owned subject, mode, operation, work identity, Atlas,
   or approval.
 
@@ -75,13 +76,16 @@ execution evidence. This operation does not need a `work_id`.
    purpose. Do not ask a clarifying question just to list. Do not read every
    module entrypoint. If the catalog answers, stop; keep `atlas_used: []` and
    set `atlas_status: baseline-only`, `help_status: complete`.
-2. **Named module or topic.** Resolve `target` through the parent registry and
-   read **that** entrypoint only. Cover intent, inputs, prerequisites,
-   examples, outputs, side effects, and boundaries from that file plus this
-   baseline. Do not follow the target's procedure. If those references answer
-   the actual question, stop as baseline-only.
+2. **Named module or topic.** Resolve `target` in this order, then stop if
+   those files answer the question (`atlas_status: baseline-only`):
+   - If it matches a parent-registry module name, read **that** entrypoint
+     only. Cover intent, inputs, prerequisites, examples, outputs, side
+     effects, and boundaries. Do not follow the target's procedure.
+   - Else if it matches a name or alias in `references/topics.md`, read that
+     topic page only. Do not invent extra modules.
 3. **Unknown target.** Say it is unknown. List valid capability-facing
-   choices. Do not invent flags, modules, or behaviour.
+   modules plus the bundled topic names. Do not invent flags, modules, or
+   behaviour.
 4. **Insufficient references.** Topic overlap is not enough. If the loaded
    files do not evidence the actual question, read
    `references/enrichment.md` and attempt read-only Atlas retrieval only when

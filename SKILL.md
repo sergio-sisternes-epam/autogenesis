@@ -1,6 +1,6 @@
 ---
 name: autogenesis
-description: Use this skill to evolve, design, review, or initialise agent skills from durable experience, including module structure, invocation discipline and skill composition even when Autogenesis is not named. Route through parent-controlled operation modules. Use getting-started or help when the user asks how Autogenesis itself works or how a named Autogenesis module works. Discussion does not implement; design stops for explicit approval. Do not use for ordinary application refactoring, automatic wiring, direct module discovery, or unrelated help requests.
+description: Use this skill to evolve, design, review, or initialise agent skills from durable experience, including module structure, invocation discipline and skill composition even when Autogenesis is not named. Route through parent-controlled operation modules. Use getting-started or help when the user asks how Autogenesis itself works or how a named Autogenesis module works; help with no target lists public operations. Discussion does not implement; design stops for explicit approval. Do not use for ordinary application refactoring, automatic wiring, bypassing parent-routed help to load private support modules, or unrelated help requests.
 version: 0.7.0
 activation_card: on
 ---

@@ -105,6 +105,11 @@ ok = (
   and 'intent:' in gs and 'atlas_used:' in gs
   and 'fenced \`text\` block' in help_skill
   and 'fenced \`text\` block' in gs
+  and 'inherited parent atlas_id' in gs
+  and 'help_status: pending' in gs
+  and 'atlas_id: none' not in gs
+  and (root/'references/modules/help/references/topics.md').is_file()
+  and 'references/topics.md' in help_skill
 )
 print(json.dumps({'ok': ok}))
 "

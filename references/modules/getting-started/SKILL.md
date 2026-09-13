@@ -45,23 +45,26 @@ target: {skill: autogenesis, module: getting-started, role: operation}
 operation: getting-started
 arguments_summary: goal=<optional or none>
 entrypoint: <resolved getting-started entrypoint>
-atlas_id: none
-atlas_root: none
+atlas_id: <inherited parent atlas_id or none>
+atlas_root: <inherited parent atlas_root or none>
 approval_ref: null
 state: requested
 intent: Learn what Autogenesis does and choose a first useful step
 atlas_used: []
 atlas_status: baseline-only
-help_status: complete
+help_status: pending
 ```
 
-This operation does not need a `work_id`. A requested card is not approval or
-execution evidence.
+Render inherited protected Atlas context honestly. `atlas_used` stays empty
+and `atlas_status` stays `baseline-only` because this operation performs no
+Atlas query. A requested card is not approval or execution evidence. This
+operation does not need a `work_id`.
 
 ## Procedure
 
 1. Read `references/first-journey.md`. That packaged baseline is enough for
-   purpose, prerequisites, and the shortest useful first journey.
+   purpose, prerequisites, and the shortest useful first journey. Then
+   refresh the card with `help_status: complete` before giving the answer.
 2. Answer from it. Distinguish discussion, design, and implement. State the
    approval stop. State that discussion does not implement.
 3. Point to Autogenesis **help** (overview) and **help** for named modules.
@@ -73,8 +76,8 @@ execution evidence.
    full contract), say so and point to help. Do not auto-mount Atlas to pad
    onboarding. Getting-started remains usable with no Atlas mounted.
 
-If this baseline already answers, keep `atlas_used: []` and do not duplicate
-an identical card.
+Keep `atlas_used: []`. After first-journey is loaded, refresh the card only
+when `help_status` changes from pending to complete.
 
 ## Outputs
 

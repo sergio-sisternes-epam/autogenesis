@@ -389,7 +389,7 @@ class SourceContractTests(unittest.TestCase):
         indexed_scenarios = (
             scenario_index["current"] + scenario_index["historical"]
         )
-        self.assertEqual(len(indexed_scenarios), 31)
+        self.assertEqual(len(indexed_scenarios), 32)
         self.assertEqual(len(indexed_scenarios), len(set(indexed_scenarios)))
         for scenario in indexed_scenarios:
             self.assertTrue((ROOT / "references/scenarios" / scenario).is_file())
@@ -430,9 +430,16 @@ class SourceContractTests(unittest.TestCase):
             contract["module_arguments"]["help"]["optional"],
             ["target"],
         )
+        self.assertTrue(
+            (ROOT / "references/modules/help/references/topics.md").is_file()
+        )
         self.assertIn("intent:", help_skill)
         self.assertIn("atlas_used:", help_skill)
         self.assertIn("Do not auto-mount Atlas", help_skill)
+        self.assertIn("references/topics.md", help_skill)
+        self.assertIn("inherited parent atlas_id", getting_started)
+        self.assertIn("help_status: pending", getting_started)
+        self.assertNotIn("atlas_id: none", getting_started)
         self.assertIn("Do not design, implement, wire", help_skill)
         self.assertIn("Unknown target", help_skill)
         self.assertNotIn("validate-okf-conformance", catalog)

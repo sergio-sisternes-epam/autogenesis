@@ -12,8 +12,10 @@ purpose needs, not an Autogenesis framework by default. Design stops for
 explicit approval. Discussion does not implement.
 
 Do not use it for ordinary application refactoring, automatic wiring, or
-direct module discovery. It does not supersede Genesis, auto-implement from
-reflection, or author process memory into the installed skill package.
+bypassing parent-routed help to load private support modules. Public
+module overview is the `help` operation. It does not supersede Genesis,
+auto-implement from reflection, or author process memory into the
+installed skill package.
 
 ## Install
 

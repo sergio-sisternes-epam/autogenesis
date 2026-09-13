@@ -64,6 +64,8 @@ EXPECTED_OPERATION_MODULES = (
     "wire",
     "review-package",
     "atlas-migrate",
+    "help",
+    "getting-started",
 )
 EXPECTED_SUPPORT_MODULES = (
     "workflow-discipline",
