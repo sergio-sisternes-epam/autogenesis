@@ -21,7 +21,7 @@ class ReleaseReadinessTests(unittest.TestCase):
 
     def test_repository_version_surfaces_match(self) -> None:
         version, errors = release_readiness.validate_versions()
-        self.assertEqual(version, "0.7.0")
+        self.assertEqual(version, "0.8.0")
         self.assertEqual(errors, [])
         self.assertFalse(release_readiness.is_prerelease(version))
 
@@ -32,13 +32,13 @@ class ReleaseReadinessTests(unittest.TestCase):
             skill = root / "SKILL.md"
             skill.write_text(
                 skill.read_text(encoding="utf-8").replace(
-                    "version: 0.7.0", "version: 0.7.1", 1
+                    "version: 0.8.0", "version: 0.8.1", 1
                 ),
                 encoding="utf-8",
             )
             version, errors = release_readiness.validate_versions(root)
-        self.assertEqual(version, "0.7.0")
-        self.assertTrue(any("skill frontmatter version 0.7.1" in item for item in errors))
+        self.assertEqual(version, "0.8.0")
+        self.assertTrue(any("skill frontmatter version 0.8.1" in item for item in errors))
 
     def test_changelog_links_are_required(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -47,8 +47,8 @@ class ReleaseReadinessTests(unittest.TestCase):
             changelog = root / "CHANGELOG.md"
             changelog.write_text(
                 changelog.read_text(encoding="utf-8").replace(
-                    "[0.7.0]: https://github.com/sergio-sisternes-epam/"
-                    "autogenesis/releases/tag/v0.7.0\n",
+                    "[0.8.0]: https://github.com/sergio-sisternes-epam/"
+                    "autogenesis/releases/tag/v0.8.0\n",
                     "",
                 ),
                 encoding="utf-8",

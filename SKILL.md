@@ -1,13 +1,13 @@
 ---
 name: autogenesis
 description: Use this skill to evolve, design, review, or initialise agent skills from durable experience, including module structure, invocation discipline and skill composition even when Autogenesis is not named. Route through parent-controlled operation modules. Use getting-started or help when the user asks how Autogenesis itself works or how a named Autogenesis module works; help with no target lists public operations. Discussion does not implement; design stops for explicit approval. Do not use for ordinary application refactoring, automatic wiring, bypassing parent-routed help to load private support modules, or unrelated help requests.
-version: 0.7.0
+version: 0.8.0
 activation_card: on
 ---
 
 # autogenesis
 
-**v0.7.0** (semver). Version history lives in `CHANGELOG.md`.
+**v0.8.0** (semver). Version history lives in `CHANGELOG.md`.
 
 Grows a skillset from durable experience, or designs a new package using full
 Genesis discipline. Derived skills receive the runtime capabilities their

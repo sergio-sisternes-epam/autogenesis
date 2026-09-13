@@ -39,7 +39,7 @@ class DependencyContractTests(unittest.TestCase):
         contributing = (dependency_contract.ROOT / "CONTRIBUTING.md").read_text(
             encoding="utf-8"
         )
-        self.assertIn("579e8090273ce991ea0717abed0775dc03f28de2", contributing)
+        self.assertIn("40e11c65e243236850c26fc6cd5a04acdd483eb4", contributing)
         self.assertIn("c1c0936d9a0346dce7d877646046c918de335d69", contributing)
         self.assertNotIn("9088a99a613d9ccc53ec2a15341714139291633f", contributing)
         self.assertNotIn("expected and reviewed, not suppressed", contributing)

@@ -7,6 +7,8 @@ in `SKILL.md`.
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-09-13
+
 ### Added
 
 - Add parent-routed `help` and `getting-started` operations: packaged
@@ -58,13 +60,9 @@ in `SKILL.md`.
   make full fusion explicit and generic review conditional on adopted
   modules, gates and memory integration. Autogenesis's own protocol and
   release tooling remain local policy.
-- Clarify B17's portable request cue separately from its Autogenesis-specific
-  receipt, retry and memory policy; retain its active status.
-- Breaking cutover to 21 parent-routed modules under
-  `references/modules/<name>/SKILL.md`, with the root skill remaining the only
-  catalog export and module arguments unable to override parent-owned context.
-- Update the current package/version surfaces to `v0.5.0`, including install
-  commands, bug-report example, and release guidance.
+- Advance the reviewed catalog Atlas pin to `v0.12.0`
+  (`40e11c65e243236850c26fc6cd5a04acdd483eb4`). OKF `v0.2.1`, Discuss
+  `v0.3.10`, and Think `v0.1.0` stay on their existing lock resolutions.
 
 ## [0.7.0]
 
@@ -227,7 +225,8 @@ in `SKILL.md`.
 - **Canonical decision:** `wiki-folder-deletion-policy` — no auto-delete on migrate; human-gated archive removal.
 - **Package metadata:** `apm.yml` deps on atlas + okf (not okf-wiki).
 
-[Unreleased]: https://github.com/sergio-sisternes-epam/autogenesis/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/sergio-sisternes-epam/autogenesis/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.8.0
 [0.7.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.7.0
 [0.6.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.6.0
 [0.5.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.5.0

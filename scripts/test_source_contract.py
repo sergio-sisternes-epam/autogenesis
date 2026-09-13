@@ -158,14 +158,14 @@ class SourceContractTests(unittest.TestCase):
         ignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
         agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
         self.assertIn("name: autogenesis\n", manifest)
-        self.assertIn("version: 0.7.0\n", manifest)
+        self.assertIn("version: 0.8.0\n", manifest)
         self.assertIn("license: Apache-2.0\n", manifest)
         self.assertIn(
             "repository: https://github.com/sergio-sisternes-epam/autogenesis\n",
             manifest,
         )
         self.assertIn("name: autogenesis\n", skill)
-        self.assertIn("version: 0.7.0\n", skill)
+        self.assertIn("version: 0.8.0\n", skill)
         self.assertTrue((ROOT / "apm.lock.yaml").is_file())
         self.assertIn("apm_modules/", ignore)
         self.assertIn("Commit `apm.lock.yaml`", agents)
@@ -389,7 +389,7 @@ class SourceContractTests(unittest.TestCase):
         indexed_scenarios = (
             scenario_index["current"] + scenario_index["historical"]
         )
-        self.assertEqual(len(indexed_scenarios), 33)
+        self.assertEqual(len(indexed_scenarios), 35)
         self.assertEqual(len(indexed_scenarios), len(set(indexed_scenarios)))
         for scenario in indexed_scenarios:
             self.assertTrue((ROOT / "references/scenarios" / scenario).is_file())
@@ -490,15 +490,15 @@ class SourceContractTests(unittest.TestCase):
                 content = path.read_text(encoding="utf-8")
                 self.assertIn(reference, content)
 
-    def test_actual_root_version_surface_is_v0_7_0(self) -> None:
+    def test_actual_root_version_surface_is_v0_8_0(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         manifest = (ROOT / "apm.yml").read_text(encoding="utf-8")
 
         self.assertRegex(skill, r"(?m)^name: autogenesis$")
-        self.assertRegex(skill, r'(?m)^version: "?0\.7\.0"?$')
+        self.assertRegex(skill, r'(?m)^version: "?0\.8\.0"?$')
         self.assertRegex(skill, r"(?m)^activation_card: on$")
         self.assertIn("name: autogenesis\n", manifest)
-        self.assertIn("version: 0.7.0\n", manifest)
+        self.assertIn("version: 0.8.0\n", manifest)
 
     def test_optional_module_template_is_instruction_only(self) -> None:
         template = (
