@@ -9,6 +9,11 @@ in `SKILL.md`.
 
 ### Changed
 
+- Drop `APM_READ_TOKEN` from Autogenesis CI now that Atlas-family GitHub
+  sources are public. Marketplace add and consumer install run
+  unauthenticated; missing-token fail-closed steps are gone. Public
+  consumers still need no PAT. Package version, GitHub visibility, and
+  Genesis credit are unchanged.
 - Align the APM package description in `apm.yml` with the human-owned
   README purpose lede. Package version, GitHub visibility, and Genesis
   credit are unchanged.
