@@ -86,7 +86,7 @@ Rules:
 source/trace checker can validate exact operation argument names without
 inventing execution logic.
 
-The JSON inventory covers all 20 migrated modules. Each entrypoint declares
+The JSON inventory covers all 22 modules. Each entrypoint declares
 the matching required/optional keys. The core operation and discipline inputs
 are summarised here:
 
@@ -97,6 +97,8 @@ are summarised here:
 | `implement` | `plan_ref` | none |
 | `atlas-migrate` | `storage_evidence` | `wiki_source` |
 | `workflow-discipline` | `request`, `phase` | `evidence`, `receipt`, `trace`, `notes` |
+| `help` | none | `target` |
+| `getting-started` | none | `goal` |
 
 Reject keys absent from that module's declared inventory. There are no implicit
 argument aliases. In particular, research does not accept a subject override
@@ -129,6 +131,11 @@ full card showing the request cue:
 - `state: requested`
 
 Null or unresolved values must be shown honestly.
+
+`help` and `getting-started` additionally render learning `intent`,
+`atlas_used`, `atlas_status`, and `help_status` on the same fenced `text`
+card. `atlas_used` lists only stores whose evidence contributed. Those fields
+are provenance, not permission to mount or write.
 
 ### Compact support cards
 

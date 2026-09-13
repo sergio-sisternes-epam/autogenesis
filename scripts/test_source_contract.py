@@ -220,7 +220,7 @@ class SourceContractTests(unittest.TestCase):
         )
         self.assertEqual(
             len(list((ROOT / "references/modules").glob("*/SKILL.md"))),
-            20,
+            22,
         )
         self.assertIn("external catalog skill", challenge)
         self.assertIn(
@@ -373,8 +373,8 @@ class SourceContractTests(unittest.TestCase):
             root_skill,
         )
 
-        self.assertEqual(len(module_entrypoints), 20)
-        self.assertEqual(len(registry_rows), 20)
+        self.assertEqual(len(module_entrypoints), 22)
+        self.assertEqual(len(registry_rows), 22)
         self.assertEqual(
             len(registry_rows),
             len({module for module, _ in registry_rows}),
@@ -389,10 +389,83 @@ class SourceContractTests(unittest.TestCase):
         indexed_scenarios = (
             scenario_index["current"] + scenario_index["historical"]
         )
-        self.assertEqual(len(indexed_scenarios), 30)
+        self.assertEqual(len(indexed_scenarios), 33)
         self.assertEqual(len(indexed_scenarios), len(set(indexed_scenarios)))
         for scenario in indexed_scenarios:
             self.assertTrue((ROOT / "references/scenarios" / scenario).is_file())
+
+    def test_help_and_getting_started_are_explanatory_operations(self) -> None:
+        contract = json.loads(
+            (
+                ROOT
+                / "references/modules/workflow-discipline/references"
+                / "invocation-contract.json"
+            ).read_text(encoding="utf-8")
+        )
+        help_skill = (ROOT / "references/modules/help/SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        getting_started = (
+            ROOT / "references/modules/getting-started/SKILL.md"
+        ).read_text(encoding="utf-8")
+        catalog = (
+            ROOT / "references/modules/help/references/capability-catalog.md"
+        ).read_text(encoding="utf-8")
+        journey = (
+            ROOT
+            / "references/modules/getting-started/references/first-journey.md"
+        ).read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        notice = (ROOT / "NOTICE").read_text(encoding="utf-8")
+
+        self.assertEqual(contract["modules"]["help"], "operation")
+        self.assertEqual(contract["modules"]["getting-started"], "operation")
+        self.assertEqual(len(contract["modules"]), 22)
+        self.assertEqual(
+            set(contract["modules"]),
+            set(contract["module_arguments"]),
+        )
+        self.assertEqual(contract["module_arguments"]["help"]["required"], [])
+        self.assertEqual(
+            contract["module_arguments"]["help"]["optional"],
+            ["target"],
+        )
+        self.assertTrue(
+            (ROOT / "references/modules/help/references/topics.md").is_file()
+        )
+        self.assertIn("intent:", help_skill)
+        self.assertIn("atlas_used:", help_skill)
+        self.assertIn("Do not auto-mount Atlas", help_skill)
+        self.assertIn("references/topics.md", help_skill)
+        self.assertIn("inherited parent atlas_id", help_skill)
+        self.assertIn("context_summary:", help_skill)
+        self.assertIn("live parent registry", help_skill)
+        self.assertIn("parent-registry **operation** name", help_skill)
+        self.assertIn("context_summary:", getting_started)
+        self.assertNotIn("atlas_status: not-queried", help_skill)
+        self.assertIn("inherited parent atlas_id", getting_started)
+        self.assertIn("help_status: pending", getting_started)
+        self.assertNotIn("atlas_id: none", getting_started)
+        enrich = (
+            ROOT / "references/modules/help/references/enrichment.md"
+        ).read_text(encoding="utf-8")
+        self.assertIn("atlas resolve <atlas_id>", enrich)
+        self.assertIn("Use only the path that command returns", enrich)
+        self.assertIn("external `atlas` skill", enrich)
+        self.assertIn("Never implement from discussion", journey)
+        self.assertIn("initialise -> explicit", journey)
+        self.assertIn("Do not design, implement, wire", help_skill)
+        self.assertIn("Unknown target", help_skill)
+        self.assertNotIn("validate-okf-conformance", catalog)
+        self.assertIn("| getting-started |", catalog)
+        self.assertIn("Never implement from discussion", journey)
+        self.assertIn("| help |", readme)
+        self.assertIn("| getting-started |", readme)
+        self.assertIn("## Modules", readme)
+        self.assertNotIn("activation path", readme.lower())
+        self.assertNotIn("visualise", help_skill.lower())
+        self.assertNotIn("visualise", getting_started.lower())
+        self.assertIn("https://github.com/danielmeppiel/genesis", notice)
 
     def test_shared_skill_design_principles_are_linked(self) -> None:
         authority = ROOT / "references/skill-design-principles.md"

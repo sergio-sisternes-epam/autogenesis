@@ -9,6 +9,12 @@ in `SKILL.md`.
 
 ### Added
 
+- Add parent-routed `help` and `getting-started` operations: packaged
+  baseline first (including bundled help topics), optional read-only Atlas
+  enrichment when a store is already resolvable, explain-without-execute,
+  and fenced cards that show `intent` plus `atlas_used`. Public `help`
+  lists operations; it does not bypass parent routing to load private
+  support modules.
 - Align GitHub issue and pull request templates with the family hybrid set,
   including a security-advisory contact link and Autogenesis-specific PR
   extras.

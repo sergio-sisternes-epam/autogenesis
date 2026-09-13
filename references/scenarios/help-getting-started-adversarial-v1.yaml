@@ -1,0 +1,144 @@
+id: help-getting-started-adversarial-v1
+kind: skill-discipline
+version: "1"
+work_id: 2026-09-12-help-getting-started
+adversarial: true
+description: >
+  Help and getting-started explain Autogenesis without executing design or
+  implement, list operations not validate-* support, keep a bundled baseline,
+  and never hijack unrelated help.
+packages:
+  - id: subject
+    root: "<candidate-root>"
+    mode: mount
+project:
+  seed_knowledge: []
+smokes:
+  - id: modules-exist-and-are-operations
+    source: "P2 parent-routed operations"
+    cmd: |
+      grep -q '^name: help$' "$PKG_subject/references/modules/help/SKILL.md" &&
+      grep -q 'autogenesis-role: operation' "$PKG_subject/references/modules/help/SKILL.md" &&
+      grep -q '^name: getting-started$' "$PKG_subject/references/modules/getting-started/SKILL.md" &&
+      grep -q 'autogenesis-role: operation' "$PKG_subject/references/modules/getting-started/SKILL.md" &&
+      grep -q '| help | operation |' "$PKG_subject/SKILL.md" &&
+      grep -q '| getting-started | operation |' "$PKG_subject/SKILL.md" &&
+      echo '{"ok":true}'
+    expect:
+      ok: true
+  - id: overview-lists-operations-not-validate-support
+    source: "no-target help lists capability-facing modules"
+    cmd: |
+      python3 -c "
+import json, os, re
+from pathlib import Path
+root = Path(os.environ['PKG_subject'])
+catalog = (root/'references/modules/help/references/capability-catalog.md').read_text()
+help_skill = (root/'references/modules/help/SKILL.md').read_text()
+ok = (
+  '| design |' in catalog and '| help |' in catalog and '| getting-started |' in catalog
+  and 'validate-okf-conformance' not in catalog
+  and 'think-grill' not in catalog
+  and 'Do not list \`validate-*\`' in help_skill
+  and 'Missing \`target\` is a valid overview request' in help_skill
+)
+print(json.dumps({'ok': ok}))
+"
+    expect:
+      ok: true
+  - id: explain-does-not-execute
+    source: "H3 help is not design/implement/wire"
+    cmd: |
+      python3 -c "
+import json, os
+from pathlib import Path
+root = Path(os.environ['PKG_subject'])
+help_skill = (root/'references/modules/help/SKILL.md').read_text()
+gs = (root/'references/modules/getting-started/SKILL.md').read_text()
+journey = (root/'references/modules/getting-started/references/first-journey.md').read_text()
+ok = (
+  'Do not design, implement, wire' in help_skill
+  and 'Do not follow the target' in help_skill
+  and 'Never implement from discussion' in journey
+  and 'discussion -> design -> explicit approval' in journey
+  and 'Do not design, implement' in gs
+  and 'visualise' not in help_skill.lower()
+  and 'visualise' not in gs.lower()
+)
+print(json.dumps({'ok': ok}))
+"
+    expect:
+      ok: true
+  - id: baseline-without-atlas-mount
+    source: "P1 bundled baseline; no auto-mount"
+    cmd: |
+      python3 -c "
+import json, os
+from pathlib import Path
+root = Path(os.environ['PKG_subject'])
+help_skill = (root/'references/modules/help/SKILL.md').read_text()
+enrich = (root/'references/modules/help/references/enrichment.md').read_text()
+gs = (root/'references/modules/getting-started/SKILL.md').read_text()
+ok = (
+  (root/'references/modules/help/references/capability-catalog.md').is_file()
+  and (root/'references/modules/getting-started/references/first-journey.md').is_file()
+  and 'Do not auto-mount Atlas' in help_skill
+  and 'atlas resolve <atlas_id>' in enrich
+  and 'Do not auto-mount Atlas' in gs
+  and 'no Atlas mounted' in gs
+)
+print(json.dumps({'ok': ok}))
+"
+    expect:
+      ok: true
+  - id: cards-show-intent-and-atlas-used
+    source: "P10 truthful help cards"
+    cmd: |
+      python3 -c "
+import json, os
+from pathlib import Path
+root = Path(os.environ['PKG_subject'])
+help_skill = (root/'references/modules/help/SKILL.md').read_text()
+gs = (root/'references/modules/getting-started/SKILL.md').read_text()
+ok = (
+  'intent:' in help_skill and 'atlas_used:' in help_skill
+  and 'intent:' in gs and 'atlas_used:' in gs
+  and 'fenced \`text\` block' in help_skill
+  and 'fenced \`text\` block' in gs
+  and 'inherited parent atlas_id' in gs
+  and 'inherited parent atlas_id' in help_skill
+  and 'context_summary:' in help_skill
+  and 'context_summary:' in gs
+  and 'help_status: pending' in gs
+  and 'atlas_id: none' not in gs
+  and 'atlas_status: not-queried' not in help_skill
+  and 'parent-registry **operation** name' in help_skill
+  and (root/'references/modules/help/references/topics.md').is_file()
+  and 'references/topics.md' in help_skill
+)
+print(json.dumps({'ok': ok}))
+"
+    expect:
+      ok: true
+  - id: unknown-target-and-no-hijack
+    source: "H2 unknown target; unqualified help"
+    cmd: |
+      python3 -c "
+import json, os
+from pathlib import Path
+root = Path(os.environ['PKG_subject'])
+help_skill = (root/'references/modules/help/SKILL.md').read_text()
+readme = (root/'README.md').read_text()
+ok = (
+  'Unknown target' in help_skill
+  and 'help_status: complete' in help_skill
+  and 'Unqualified' in help_skill
+  and 'activation path' not in readme.lower()
+  and '## Modules' in readme
+  and '| help |' in readme
+  and '| getting-started |' in readme
+)
+print(json.dumps({'ok': ok}))
+"
+    expect:
+      ok: true

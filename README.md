@@ -12,8 +12,10 @@ purpose needs, not an Autogenesis framework by default. Design stops for
 explicit approval. Discussion does not implement.
 
 Do not use it for ordinary application refactoring, automatic wiring, or
-direct module discovery. It does not supersede Genesis, auto-implement from
-reflection, or author process memory into the installed skill package.
+bypassing parent-routed help to load private support modules. Public
+module overview is the `help` operation. It does not supersede Genesis,
+auto-implement from reflection, or author process memory into the
+installed skill package.
 
 ## Install
 
@@ -47,6 +49,8 @@ Procedures and invocation rules live in `SKILL.md`.
 | aware-runtime | Maintain governed runtime awareness |
 | wire | Record approved wiring with version provenance |
 | atlas-migrate | Migrate legacy Atlas storage and preserve knowledge |
+| help | Explain Autogenesis modules without executing them |
+| getting-started | First-use purpose, prerequisites, and shortest useful journey |
 
 The table lists the public operations. Support, validation, and think
 helpers remain in `SKILL.md` and `references/modules/`.

@@ -21,7 +21,7 @@ and `references/` are authoritative package source. Do not introduce a
 - `scripts/`: deterministic local and CI release checks.
 - `.github/`: pinned CI/release automation and contribution templates.
 
-Autogenesis v0.7.0 has 20 parent-routed modules and no `discuss` operation.
+Autogenesis v0.7.0 has 22 parent-routed modules and no `discuss` operation.
 Think support modules nest-load catalog `think@atlas`; they do not vendor
 forked think procedure. The root `SKILL.md` owns the version surface and
 module registry; module
@@ -29,7 +29,7 @@ arguments cannot override parent-owned subject, mode, operation, work
 identity, Atlas, or approval. The removed path surface has no aliases.
 
 `references/modules/patterns/references/parent-routed-skill-module.md` is the
-Autogenesis-scoped S8 draft pattern, not a 22nd module. Keep B17 active, Genesis
+Autogenesis-scoped S8 draft pattern, not an additional registry module. Keep B17 active, Genesis
 read-only, and draft application/admission distinct from implementation approval.
 
 S8 is instruction-first for derived skills. Do not turn this repository's

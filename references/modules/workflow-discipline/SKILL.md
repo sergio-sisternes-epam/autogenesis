@@ -48,7 +48,7 @@ emit the matching receipt.
 
 ## Authority and packaging
 
-- One root package, one parent router, 20 ordinary modules. No separate module
+- One root package, one parent router, 22 ordinary modules. No separate module
   packages, aliases, forwarding stubs, or invocation engine.
 - Normal references resolve from this module root. Shared package resources
   resolve from `<skill_root>`. Siblings resolve through the active parent
@@ -57,7 +57,7 @@ emit the matching receipt.
   unchanged. Autogenesis records only its own requests, cards, and receipts
   honestly around those loads.
 - Checker-facing argument inventory lives in
-  `references/invocation-contract.json` and covers all 20 modules. Keep it aligned
+  `references/invocation-contract.json` and covers all 22 modules. Keep it aligned
   with each entrypoint's Arguments section; never infer extra allowed keys.
 
 ## Enter (blocking)
@@ -92,7 +92,13 @@ proves execution.
    discussion is activated by loading the catalog **discuss** package
    directly; it is not an Autogenesis operation. The requested operation is
    still explicit in the canonical request once selected.
-5. **Card modes do not disable gates.**
+5. **Explanatory operations.** `help` and `getting-started` explain Autogenesis.
+   They must not design, implement, wire, migrate, or write the subject skill.
+   They do not auto-mount Atlas. Help with no target lists capability-facing
+   operations from the parent registry; it does not require clarification just
+   to list, and it does not list `validate-*` support unless the registry already
+   marks those rows `operation`.
+6. **Card modes do not disable gates.**
    - `activation_card` absent or `off`: card rendering is disabled.
    - `on`: full root and operation cards, plus compact support cards, are
      required.
@@ -100,7 +106,7 @@ proves execution.
      shown.
    - Disabled cards do not disable approval, Atlas, lineage, or other safety
      gates.
-6. **Behavioural hint on design.** When behaviour changes or is newly defined,
+7. **Behavioural hint on design.** When behaviour changes or is newly defined,
    the design request arguments and visible arguments summary carry
    `behavioural_contract: specify | deferred:<reason>`, not an extra envelope field.
 
