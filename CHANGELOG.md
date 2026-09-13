@@ -7,6 +7,12 @@ in `SKILL.md`.
 
 ## [Unreleased]
 
+### Changed
+
+- Align the APM package description in `apm.yml` with the human-owned
+  README purpose lede. Version, marketplace pin, visibility, and Genesis
+  credit are unchanged.
+
 ## [0.8.0] - 2026-09-13
 
 ### Added
