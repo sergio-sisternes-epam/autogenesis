@@ -5,7 +5,7 @@ dependencies:
   name: atlas
   host: github.com
   resolved_commit: 40e11c65e243236850c26fc6cd5a04acdd483eb4
-  resolved_ref: 40e11c65e243236850c26fc6cd5a04acdd483eb4
+  resolved_ref: v0.12.0
   version: 0.12.0
   package_type: hybrid
   content_hash: sha256:c6f574a9746301ff2167f0a90bdb4dd8ef56113357073d6ac226d9dea943dc8c
@@ -15,11 +15,11 @@ dependencies:
 - repo_url: sergio-sisternes-epam/discuss
   name: discuss
   host: github.com
-  resolved_commit: af2d2fa4759c00d4ae77115c0fe710c439f8c958
-  resolved_ref: af2d2fa4759c00d4ae77115c0fe710c439f8c958
-  version: 0.4.0
+  resolved_commit: 480fc5fc9f0b1c280cd2301dccbf76ff63ddbc4e
+  resolved_ref: v0.5.0
+  version: 0.5.0
   package_type: hybrid
-  content_hash: sha256:f3d940fcd6e64749c930b9b7ee9b3057653953ff60a7292e5762dff7bf0a1f89
+  content_hash: sha256:fcc8a19481911806de7b754d5a539bd2504e170a9ab114eff326570984c00b06
   discovered_via: atlas
   marketplace_plugin_name: discuss
   declared_license: Apache-2.0
@@ -27,7 +27,7 @@ dependencies:
   name: okf
   host: github.com
   resolved_commit: 5246f7b193b58a32ac8a15fc76aedf37c42b042c
-  resolved_ref: 5246f7b193b58a32ac8a15fc76aedf37c42b042c
+  resolved_ref: v0.2.1
   version: 0.2.1
   package_type: hybrid
   content_hash: sha256:48d5e79752e6a448975da0fef2981938f7c6149810e30aca805a77cf123a10d8
@@ -38,7 +38,7 @@ dependencies:
   name: think
   host: github.com
   resolved_commit: 874613a67018c74ee95f857416fb315d2f80b92b
-  resolved_ref: 874613a67018c74ee95f857416fb315d2f80b92b
+  resolved_ref: v0.1.0
   version: 0.1.0
   package_type: apm_package
   content_hash: sha256:ebeffcdcbe7a1e62bf877b4f5954dc890cff3e5b371723f83130b5d984e1f455

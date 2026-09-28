@@ -4,7 +4,7 @@ version: "4"
 work_id: 2026-09-11-skill-module-invocation
 adversarial: false
 description: >
-  Successor to atlas-migrate-activation-adherence-v3 for the v0.8.0 package
+  Successor to atlas-migrate-activation-adherence-v3 for the v0.8.1 package
   identity. Preserve storage-first activation, explicit atlas_id resolution,
   fail-closed subject Atlas handling, claim conversion, relationship review and
   discipline rewrite under references/modules/atlas-migrate/SKILL.md.
@@ -79,8 +79,8 @@ smokes:
     expect:
       ok: true
   - id: skill-version-documents-migration
-    source: v0.8.0 release contract
+    source: v0.8.1 release contract
     cmd: |
-      python3 -c "import json,os,re; from pathlib import Path; p=Path(os.environ['PKG_subject']); skill=re.search(r'^version: ([0-9.]+)$',(p/'SKILL.md').read_text(),re.M).group(1); apm=re.search(r'^version: ([0-9.]+)$',(p/'apm.yml').read_text(),re.M).group(1); print(json.dumps({'ok':skill==apm=='0.8.0'}))"
+      python3 -c "import json,os,re; from pathlib import Path; p=Path(os.environ['PKG_subject']); skill=re.search(r'^version: ([0-9.]+)$',(p/'SKILL.md').read_text(),re.M).group(1); apm=re.search(r'^version: ([0-9.]+)$',(p/'apm.yml').read_text(),re.M).group(1); print(json.dumps({'ok':skill==apm=='0.8.1'}))"
     expect:
       ok: true

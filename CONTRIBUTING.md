@@ -49,7 +49,7 @@ in `apm.lock.yaml`. The lock is generated state: commit it, but never edit
 it by hand. `apm_modules/` and harness deployment directories are disposable
 and must remain untracked.
 
-Autogenesis v0.8.0 has 22 parent-routed modules and no `discuss` operation.
+Autogenesis v0.8.1 has 22 parent-routed modules and no `discuss` operation.
 Think support modules nest-load catalog `think@atlas`; they do not vendor
 forked think procedure. The root `SKILL.md` owns the version surface and
 module registry. Module
@@ -147,7 +147,7 @@ modularization.
 ## Reviewed dependency divergence
 
 Do not remove direct OKF: two Autogenesis modules invoke it directly.
-Catalog Atlas v0.12.0 and Discuss v0.4.0 now resolve nested OKF/Atlas through
+Catalog Atlas v0.12.0 and Discuss v0.5.0 now resolve nested OKF/Atlas through
 the same marketplace pins as this root. There are no reviewed graph
 divergences. Any new divergence requires an explicit dependency review.
 
@@ -157,7 +157,7 @@ Released pins from `apm.lock.yaml`:
 |---|---|---|
 | Atlas | `v0.12.0` | `40e11c65e243236850c26fc6cd5a04acdd483eb4` |
 | OKF | `v0.2.1` | `5246f7b193b58a32ac8a15fc76aedf37c42b042c` |
-| Discuss | `v0.4.0` | `af2d2fa4759c00d4ae77115c0fe710c439f8c958` |
+| Discuss | `v0.5.0` | `480fc5fc9f0b1c280cd2301dccbf76ff63ddbc4e` |
 | Think | `v0.1.0` | `874613a67018c74ee95f857416fb315d2f80b92b` |
 
 ## Consumer version pins
@@ -168,16 +168,16 @@ and target-specific consumer commands stay here.
 Keep these commands on the same version as `apm.yml`:
 
 ```text
-apm install sergio-sisternes-epam/autogenesis#v0.8.0 --target agent-skills
+apm install sergio-sisternes-epam/autogenesis#v0.8.1 --target agent-skills
 ```
 
 ```text
-apm install sergio-sisternes-epam/autogenesis#v0.8.0 --target claude,codex,copilot,cursor,gemini,grok-build,kiro,opencode,windsurf
+apm install sergio-sisternes-epam/autogenesis#v0.8.1 --target claude,codex,copilot,cursor,gemini,grok-build,kiro,opencode,windsurf
 ```
 
 Do not update any global consumer yet. After a release, and only with
 explicit approval, prefer an immutable dependency:
-  `sergio-sisternes-epam/autogenesis#v0.8.0`.
+  `sergio-sisternes-epam/autogenesis#v0.8.1`.
 
 ## Release handoff
 

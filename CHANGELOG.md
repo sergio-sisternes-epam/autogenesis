@@ -7,6 +7,8 @@ in `SKILL.md`.
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-09-28
+
 ### Changed
 
 - Drop `APM_READ_TOKEN` from Autogenesis CI now that Atlas-family GitHub
@@ -18,7 +20,7 @@ in `SKILL.md`.
   README purpose lede. Package version, GitHub visibility, and Genesis
   credit are unchanged.
 - Refresh the frozen dependency graph so Discuss follows the live catalog
-  resolution `v0.4.0` (`af2d2fa4759c00d4ae77115c0fe710c439f8c958`). Atlas
+  resolution `v0.5.0` (`480fc5fc9f0b1c280cd2301dccbf76ff63ddbc4e`). Atlas
   `v0.12.0`, OKF `v0.2.1`, and Think `v0.1.0` stay on their existing lock
   resolutions.
 
@@ -240,7 +242,8 @@ in `SKILL.md`.
 - **Canonical decision:** `wiki-folder-deletion-policy` — no auto-delete on migrate; human-gated archive removal.
 - **Package metadata:** `apm.yml` deps on atlas + okf (not okf-wiki).
 
-[Unreleased]: https://github.com/sergio-sisternes-epam/autogenesis/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/sergio-sisternes-epam/autogenesis/compare/v0.8.1...HEAD
+[0.8.1]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.8.1
 [0.8.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.8.0
 [0.7.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.7.0
 [0.6.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.6.0
