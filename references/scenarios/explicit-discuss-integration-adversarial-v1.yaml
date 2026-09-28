@@ -28,7 +28,7 @@ smokes:
       grep -A8 '^dependencies:' "$PKG_subject/apm.yml" |
       grep -q 'name: discuss' &&
       grep -A12 'name: discuss' "$PKG_subject/apm.lock.yaml" |
-      grep -q 'resolved_commit: af2d2fa4759c00d4ae77115c0fe710c439f8c958' &&
+      grep -q 'resolved_commit: 480fc5fc9f0b1c280cd2301dccbf76ff63ddbc4e' &&
       echo '{"ok":true}'
     expect:
       ok: true

@@ -20,7 +20,7 @@ class DependencyContractTests(unittest.TestCase):
             )
             self.assertRegex(dependency.version, r"^[0-9]+\.[0-9]+\.[0-9]+$")
             self.assertRegex(dependency.commit, r"^[0-9a-f]{40}$")
-            self.assertEqual(dependency.ref, dependency.commit)
+            self.assertRegex(dependency.ref, r"^v[0-9]+\.[0-9]+\.[0-9]+$")
 
     def test_lock_commit_drift_is_rejected(self) -> None:
         content = (dependency_contract.ROOT / "apm.lock.yaml").read_text(
@@ -40,7 +40,7 @@ class DependencyContractTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn("40e11c65e243236850c26fc6cd5a04acdd483eb4", contributing)
-        self.assertIn("af2d2fa4759c00d4ae77115c0fe710c439f8c958", contributing)
+        self.assertIn("480fc5fc9f0b1c280cd2301dccbf76ff63ddbc4e", contributing)
         self.assertNotIn("9088a99a613d9ccc53ec2a15341714139291633f", contributing)
         self.assertNotIn("expected and reviewed, not suppressed", contributing)
 
