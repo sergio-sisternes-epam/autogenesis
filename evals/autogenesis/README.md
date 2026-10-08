@@ -137,22 +137,29 @@ own grader check; Autogenesis does not grade it.
 ## Validity
 
 Model-free checks only (V1-V3 in `references/waza-authoring.md`), each with
-`WAZA_NO_UPDATE_CHECK=1`. Results are filled in after the operator runs them.
+`WAZA_NO_UPDATE_CHECK=1`. This record is validity evidence, **not behavioural
+evidence**: no model call was made and no `waza run` was used.
 
 ```text
 validity:
-  waza: TBD                      # must report 0.38.9 (774df00)
-  env: WAZA_NO_UPDATE_CHECK=1
+  checked_by: operator, for Autogenesis, 2026-10-08 (BST)
+  waza: 0.38.9                   # `waza --version` reported "waza version 0.38.9"
+  env: WAZA_NO_UPDATE_CHECK=1; rootless container, networking disabled
+  subject: clean export of the commit that added this suite (suite_version 1)
   check:        # V1: waza check . --format json
-    exit_code: TBD
-    summary: TBD
+    exit_code: 0
+    summary: eval found at evals/autogenesis/eval.yaml; eval schema valid
+    skill_findings:              # properties of the skill, not of the suite
+      - SKILL.md 3762 tokens vs Waza's 500-token budget (compliance Medium, ready: false)
+      - unknown frontmatter fields activation_card, version; no license; no metadata.version
+      - 20 external links reported dead only because networking was disabled
   spec_verify:  # V2: waza spec verify --skill . --eval evals/autogenesis/eval.yaml --format json
-    exit_code: TBD
-    coverage: TBD                # no --fail --threshold: the description has no USE FOR / DO NOT USE FOR labels
-  grader_fixtures:  # V3: waza grade evals/autogenesis/eval.yaml --task <id> --results evals/autogenesis/fixtures/<id>/<variant>.results.json --workspace evals/autogenesis/fixtures/<id>/<variant>/
-    checked: 7 deterministic tasks; reference passed TBD/7, negative failed TBD/7
-    left_to_runner: plan-has-genesis-artifacts
-  output_log: TBD
+    exit_code: 0                 # warn mode, no --fail --threshold
+    coverage: 1 requirement (whole description; no USE FOR / DO NOT USE FOR labels), 0 covered deterministically
+  grader_fixtures:  # V3: waza grade evals/autogenesis/eval.yaml --task <id> --results evals/autogenesis/fixtures/<id>/<variant>.results.json --workspace evals/autogenesis/fixtures/<id>/<variant>
+    exit_codes: 0 for every grade call
+    checked: 7 deterministic tasks; reference passed 7/7, negative failed 7/7
+    left_to_runner: plan-has-genesis-artifacts   # has a prompt judge grader
 run_status: not-run-by-autogenesis
 ```
 
@@ -163,6 +170,9 @@ run_status: not-run-by-autogenesis
   `skill-change-should-trigger`.
 - Left to the runner (has a `prompt` grader): `plan-has-genesis-artifacts`.
 - Run V3 from the repository root so the `diff` snapshots resolve.
+- The V1 and V2 skill findings are not suite failures. Adding `USE FOR:` /
+  `DO NOT USE FOR:` labels to the description is a separate, unapproved
+  dispatch change.
 
 ## Coverage
 

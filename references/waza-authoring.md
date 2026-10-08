@@ -122,6 +122,13 @@ WAZA_NO_UPDATE_CHECK=1 waza --version     # must report 0.38.9
 | V2 | `WAZA_NO_UPDATE_CHECK=1 waza spec verify --skill <skill-path> --eval <eval.yaml> --format json` | Deterministic coverage mapping. Add `--fail --threshold 1` only when the description has `USE FOR:` / `DO NOT USE FOR:` requirements. Never pass the semantic flag or a judge-model flag |
 | V3 | `WAZA_NO_UPDATE_CHECK=1 waza grade <eval.yaml> --task <id> --results <fixture>.results.json --workspace <fixture-dir>` | Only for tasks whose graders, including suite-level `graders:`, are all deterministic; always pass `--task` |
 
+Run V1-V3 with networking disabled where possible, for example in a
+container started with no network. `waza check` also probes external links in
+the skill over the network; with no network those links are reported dead,
+which is a skill-link finding and not a suite-validity failure. `waza check`
+also warns when the skill directory name differs from the skill `name`, so run
+it from a directory named after the skill.
+
 V3 rules:
 
 - Deterministic graders are `file`, `diff`, `text`, `json_schema`,
