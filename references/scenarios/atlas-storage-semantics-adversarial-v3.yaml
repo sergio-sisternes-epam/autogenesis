@@ -4,7 +4,7 @@ version: "3"
 work_id: 2026-09-11-skill-module-invocation
 adversarial: true
 description: >
-  Successor to atlas-storage-semantics-adversarial-v2 for the v0.8.1 package
+  Successor to atlas-storage-semantics-adversarial-v2 for the v0.9.0 package
   identity. Reject legacy skill-
   local Atlas storage and preserve repository-local .atlas write-home,
   fail-closed resolution, unchanged external Atlas path names, compile gates
@@ -78,6 +78,6 @@ smokes:
   - id: release-surfaces-match-current-version
     source: release identity gate
     cmd: |
-      python3 -c "import json,os,re; from pathlib import Path; p=Path(os.environ['PKG_subject']); skill=re.search(r'^version: ([0-9.]+)$',(p/'SKILL.md').read_text(),re.M).group(1); apm=re.search(r'^version: ([0-9.]+)$',(p/'apm.yml').read_text(),re.M).group(1); print(json.dumps({'ok':skill==apm=='0.8.1' and '## [0.8.1]' in (p/'CHANGELOG.md').read_text()}))"
+      python3 -c "import json,os,re; from pathlib import Path; p=Path(os.environ['PKG_subject']); skill=re.search(r'^version: ([0-9.]+)$',(p/'SKILL.md').read_text(),re.M).group(1); apm=re.search(r'^version: ([0-9.]+)$',(p/'apm.yml').read_text(),re.M).group(1); print(json.dumps({'ok':skill==apm=='0.9.0' and '## [0.9.0]' in (p/'CHANGELOG.md').read_text()}))"
     expect:
       ok: true

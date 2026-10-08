@@ -4,7 +4,7 @@ description: Initialise or validate Autogenesis invocation discipline, gate owne
 metadata:
   autogenesis-parent: autogenesis
   autogenesis-role: support
-  autogenesis-revision: "2026-09-11"
+  autogenesis-revision: "2026-10-08"
 ---
 
 # workflow-discipline
@@ -81,10 +81,9 @@ proves execution.
    - Discussion has zero implement authority and no product-file writes.
    - The only legal progression to changes is `discussion -> design -> explicit
      approval -> implement`.
-   - Discussion may invoke agent-spec `specify` only for exploration or review
-     of candidate behaviours. It may not materialise a finished
-     `## Behavioural contract (agent-spec)` section or claim that the contract
-     is complete.
+   - Discussion may explore candidate behaviours, but it may not materialise a
+     finished `## Behavioural evaluation (Waza)` section or claim that
+     behavioural evaluation is complete; only design drafts it.
    - Do not invoke internal `think-grill` or `think-ramble` while catalog
      Discuss is active. Those wrappers nest-load catalog think skills; the
      Discuss fence applies before that nested load.
@@ -108,7 +107,10 @@ proves execution.
      gates.
 7. **Behavioural hint on design.** When behaviour changes or is newly defined,
    the design request arguments and visible arguments summary carry
-   `behavioural_contract: specify | deferred:<reason>`, not an extra envelope field.
+   `behavioural_contract: waza | deferred:<reason>`, not an extra envelope field.
+   The removed value `specify` is rejected with a diagnostic explaining the new
+   contract (legacy cutover rule, no alias): the agent-spec gate is retired;
+   use `waza` with authored Waza task drafts or `deferred:<reason>`.
 
 ## Change (blocking)
 
@@ -135,16 +137,21 @@ Before drafting a plan, classify the work and state it in the plan:
 Ambiguous work defaults to `new-surface`. Missing or wrong depth is a G3
 failure.
 
-### Behavioural contract and evaluation
+### Behavioural evaluation (Waza)
 
 When behaviour is in scope:
 
-- agent-spec `specify` is the sole legal producer of behavioural Gherkin.
-- Autogenesis must never author or edit `.feature` files directly.
-- The plan must contain `## Behavioural contract (agent-spec)` with either
-  produced contract IDs or an explicit one-line deferral reason.
+- Load `<skill_root>/references/waza-authoring.md` before drafting or
+  authoring behavioural evaluation.
+- The plan must contain `## Behavioural evaluation (Waza)` with task drafts
+  (id, tier `gate`/`quality`/`trigger`, prompt, fixtures, graders, `source`
+  counter, coverage of `USE FOR` / `DO NOT USE FOR` phrases) or
+  `deferred: <one-line reason>`. Gate **G-BEHAVIOUR** checks this; it
+  replaces the removed G-BDD gate.
 - The plan must contain `## Evaluation plan` with deterministic-first checks;
   agent narrative is secondary only.
+- The agent-spec/Gherkin gate is retired: Autogenesis no longer authors
+  `.feature` files, and nothing requires them (retired, no alias).
 - Design approval does not waive these requirements.
 
 ### Hard boundaries during Change
@@ -219,6 +226,23 @@ module-specific behaviour:
   smoke set require a new design.
 - Autogenesis does not require a separate evaluator package or service.
   Record actual command/output evidence or a precise deferral in lineage.
+- Autogenesis designs and authors Waza suites at `<subject>/evals/<skill>/`
+  (`<subject>/.apm/evals/<skill>/` for an APM package with a root `SKILL.md`)
+  and never runs suite tasks against an agent or makes a model call for
+  evaluation. An authored suite is not behavioural evidence.
+- The only Waza it executes is the closed model-free allowlist V1-V3 in
+  `<skill_root>/references/waza-authoring.md`, each call with
+  `WAZA_NO_UPDATE_CHECK=1` and Waza 0.38.9. Record the `waza_suite` block with
+  its `validity` sub-block (command, Waza version, exit code, coverage,
+  grader-fixture counts, `left_to_runner`) and
+  `run_status: not-run-by-autogenesis`. The validity block is not behavioural
+  evidence. Missing Waza 0.38.9 yields `validity: deferred: waza 0.38.9
+  unavailable` plus repository-native structural checks.
+- Running belongs to the subject owner or its CI; the intended runner is a
+  separate on-demand evaluator bot outside Autogenesis. Supplied results may
+  be cited only in the `supplied_results` block defined by the guide, with
+  provenance; a stale result backs no claim and a supplied red gate result
+  means the behaviour is not claimed to work.
 
 ## Exit (blocking)
 

@@ -1,6 +1,6 @@
 # Optional Atlas enrichment
 
-Packaged baseline for Autogenesis **v0.8.1**. Read this only when bundled
+Packaged baseline for Autogenesis **v0.9.0**. Read this only when bundled
 references do not answer the actual question.
 
 ## Rule

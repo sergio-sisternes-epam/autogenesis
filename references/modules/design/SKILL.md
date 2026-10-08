@@ -11,7 +11,9 @@ metadata:
 ## Arguments
 
 - Required: `objective` (the requested skill change).
-- Optional: `change_evidence`, `behavioural_contract` (specify or explicit deferral).
+- Optional: `change_evidence`, `behavioural_contract` (`waza` or explicit
+  `deferred:<reason>`; the removed value `specify` is rejected with a
+  diagnostic).
 - Subject, mode, operation, work identity, Atlas and approval are parent-owned
   context, not arguments. Follow
   `<skill_root>/references/modules/workflow-discipline/SKILL.md` and its
@@ -113,15 +115,16 @@ This operation **stops for approval**. Request **implement** only after explicit
    Filename contract: `<subject>/references/scenarios/<capability>-adversarial-vN.yaml` (new file + bump; keep prior).
    Implement may later **add** smokes; it must not **drop** approved ones without a new design.
 
-6b. **agent-spec BDD / behavioural gate (when behaviour is in scope)**
-   For any design that changes or defines skill/agent behaviour (new-skill, new-surface affecting runtime, or explicit behavioural contract):
-   - **Sole producer rule:** agent-spec path `specify` is the **only** legal writer of behavioural Gherkin. Autogenesis must never author, paste, or edit `.feature` files directly. Ownership sentence: “agent-spec owns writing and evolving all behavioural Gherkin specifications. Autogenesis supplies the design packet and consumes the resulting contract section + `b-` IDs (or an explicit deferral).”
-   - Invoke agent-spec path `specify` (substrate contract) with target = current plan work_id or subject/path, **or** record an explicit `deferred: <one-line reason>`.
-   - Plan must include a `## Behavioural contract (agent-spec)` section that either lists the `b-` IDs produced by `specify` or contains the deferred reason.
-   - `@forbidden` / `@critical` scenarios that protect the change must be named (via the specify output or deferred note).
-   - Load skill `agent-spec` (substrate) when calling specify or validating layout/coverage.
-   - Activation card for this design Run must carry the hint `behavioural_contract: specify | deferred:<reason>` when behaviour is in scope.
-   Missing section, missing hint, or direct authoring of Gherkin → **Change incomplete**; do not claim design complete.
+6b. **Behavioural evaluation (Waza) drafts (when behaviour is in scope)**
+   For any design that changes or defines skill/agent behaviour (new-skill, new-surface affecting runtime, or explicit behavioural evaluation):
+   - Load `<skill_root>/references/waza-authoring.md` and follow it.
+   - Plan must include a `## Behavioural evaluation (Waza)` section with task drafts (id, tier `gate` / `quality` / `trigger`, tempting prompt, fixtures, graders, `source` counter, coverage of `USE FOR` / `DO NOT USE FOR` phrases) **or** `deferred: <one-line reason>`.
+   - Every gate task draft names its reference fixture (known-good, must pass) and negative control (known-bad, must fail).
+   - Behavioural counters from step 6 may also be drafted as gate tasks tagged `adversarial`, `<capability>-adversarial-vN` and the smoke id.
+   - Derived skills get no suite by default; recommend the Waza format only, and add `evals/` files to a derived skill only with explicit approval in its plan.
+   - Activation card for this design Run must carry the hint `behavioural_contract: waza | deferred:<reason>` when behaviour is in scope. The removed value `specify` is rejected with a diagnostic explaining the new contract (legacy cutover rule, no alias).
+   - Design drafts tasks; it never runs them and makes no model call for evaluation.
+   Missing section or missing hint → **Change incomplete**; do not claim design complete.
 
 6c. **Deterministic-first evaluation plan (when behaviour is in scope)**
    Behavioural claims that can be checked by machine must not rely only on LLM/agent narrative.
@@ -129,20 +132,20 @@ This operation **stops for approval**. Request **implement** only after explicit
    - **Deterministic smokes (primary):** file/dir presence or absence,
      JSON/front-matter keys, receipts, exit codes, fail-closed artefacts,
      forbidden roots, network/process checks as applicable. Map each in-scope
-     `b-` ID (or contract family) to an executable command or existing
+     behaviour (or Waza gate task) to an executable command or existing
      repository check. Do not require a separate evaluator.
-   - **Agent evaluations (secondary, optional):** trajectory / “did the agent ask” / soft adherence — never the sole evidence for a contract that admits a deterministic check.
+   - **Agent evaluations (secondary):** authored Waza `quality` tasks for the subject owner to run; never run by Autogenesis and never the sole evidence for a behaviour that admits a deterministic check.
    Anti-pattern: **soft-only evaluation** (behavioural claim validated only by prose).
    Missing Evaluation plan on in-scope behavioural work → **Change incomplete**.
 
 7. **Present pinned plan for approval**
-   Plan location, pins, C1–C5 + Genesis check, Catalogue Review (or n/a), behavioural contract (or deferred), evaluation plan (or n/a), exact scope, non-goals, adversarial draft, explicit wait-for-approval statement and invocation receipt.
+   Plan location, pins, C1–C5 + Genesis check, Catalogue Review (or n/a), behavioural evaluation (Waza) drafts (or deferred), evaluation plan (or n/a), exact scope, non-goals, adversarial draft, explicit wait-for-approval statement and invocation receipt.
    The presented plan **must** visibly contain the `## Genesis Artifacts` section.
    Without approval = plan only / blocked.
 
 ## Change gates
 
-G3 (change-class + genesis depth by class), G7 (stop-for-approval), **G-BDD** (agent-spec behavioural contract section present or explicit deferral when behaviour is in scope), **G-EVAL** (deterministic-first evaluation plan when behaviour is in scope). No G4/G5 implement work.
+G3 (change-class + genesis depth by class), G7 (stop-for-approval), **G-BEHAVIOUR** (`## Behavioural evaluation (Waza)` drafts or explicit deferral when behaviour is in scope; replaces the retired G-BDD gate), **G-EVAL** (deterministic-first evaluation plan when behaviour is in scope). No G4/G5 implement work.
 Consistency note: workflow-discipline remains the sole source of Enter/Change/Exit rules; this operation only specialises the design procedure.
 
 ## Exit

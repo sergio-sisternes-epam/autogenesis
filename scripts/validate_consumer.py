@@ -198,6 +198,28 @@ def validate_skill_root(
     return matches[0]
 
 
+def shipped_suite_paths(skill_root: Path) -> list[str]:
+    """Return eval-suite paths that must never ship in an installed skill."""
+    found = []
+    for path in sorted(skill_root.rglob("*")):
+        relative = path.relative_to(skill_root).as_posix()
+        if path.is_dir() and path.name in ("evals", ".apm"):
+            found.append(f"{relative}/")
+        elif path.is_file() and path.name == "eval.yaml":
+            found.append(relative)
+    return found
+
+
+def validate_no_shipped_suite(skill_root: Path) -> None:
+    found = shipped_suite_paths(skill_root)
+    if found:
+        raise RuntimeError(
+            f"{skill_root}: installed skill ships eval-suite content "
+            f"{found}; keep the suite under .apm/evals/ so APM does not "
+            "deploy it"
+        )
+
+
 def deployment_blocks(content: str) -> list[str]:
     match = re.search(
         r"(?ms)^deployments:\s*\n(?P<body>.*?)(?=^[A-Za-z0-9_]+:\s|\Z)",
@@ -679,7 +701,8 @@ def validate_deployment(
     lock = consumer / "apm.lock.yaml"
     if source is None or not lock.is_file():
         for skills_root in expected_skill_roots(consumer, target):
-            validate_skill_root(skills_root, contract)
+            skill_file = validate_skill_root(skills_root, contract)
+            validate_no_shipped_suite(skill_file.parent)
         return
 
     content = lock.read_text(encoding="utf-8")
@@ -687,6 +710,7 @@ def validate_deployment(
     errors: list[str] = []
     for skills_root in expected_skill_roots(consumer, target):
         skill_root = validate_owned_skill_root(consumer, skills_root, contract, owned_hashes)
+        validate_no_shipped_suite(skill_root)
         errors.extend(
             validate_owned_files(
                 consumer,

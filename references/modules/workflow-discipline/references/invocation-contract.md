@@ -100,6 +100,11 @@ are summarised here:
 | `help` | none | `target` |
 | `getting-started` | none | `goal` |
 
+`behavioural_contract` (design and initialise) accepts only `waza` or
+`deferred:<reason>`. The removed value `specify` is rejected with a diagnostic
+that explains the new contract (authored Waza task drafts or an explicit
+deferral); it is never mapped to `waza` silently.
+
 Reject keys absent from that module's declared inventory. There are no implicit
 argument aliases. In particular, research does not accept a subject override
 and OKF validation does not accept an atlas_id override. A scope or store hint

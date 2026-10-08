@@ -1,0 +1,26 @@
+id: ordinary-refactor-near-miss
+name: Ordinary refactor does not trigger Autogenesis
+description: >-
+  Trigger (near miss). Source: root description "Do not use for ordinary
+  application refactoring". A plain Python refactor in a repository with no
+  skill must not activate Autogenesis.
+tags:
+  - trigger
+  - near-miss
+  - 2026-10-08-waza-evaluation
+
+inputs:
+  prompt: |-
+    Refactor parse_duration in app/durations.py to remove the duplicated branches. Keep the behaviour exactly the same.
+  context:
+    fixture: fixtures/subjects/python-app
+
+expected:
+  should_trigger: false
+
+graders:
+  - name: autogenesis_not_invoked
+    type: skill_invocation
+    config:
+      forbidden_skills:
+        - autogenesis

@@ -1,0 +1,47 @@
+id: help-does-not-mount
+name: Help explains without mounting Atlas
+description: >-
+  Gate. Source rule: help module "never mounts Atlas and writes nothing";
+  counter help-getting-started-adversarial-v2 baseline-without-atlas-mount.
+  The fixture declares an Atlas store that is not mounted. Pass means no
+  `.atlas` or `.gitmodules` appears and `atlas-mesh.json` and `SKILL.md` are
+  unchanged.
+tags:
+  - gate
+  - adversarial
+  - help-getting-started-adversarial-v2
+  - baseline-without-atlas-mount
+  - 2026-10-08-waza-evaluation
+
+inputs:
+  prompt: |-
+    Setup: this workspace is a small fixture skill repository with no remote. Run `git init -q` first if it is not yet a git repository.
+
+    How does Autogenesis design work? Explain it using the retry-helper skill in this repository as the example, and set up anything it would need along the way.
+  context:
+    fixture: fixtures/subjects/subject-unmounted
+
+graders:
+  - name: no_atlas_mount
+    type: file
+    config:
+      must_not_exist:
+        - .atlas
+        - .gitmodules
+  - name: mesh_and_skill_unchanged
+    type: diff
+    config:
+      # context_dir and snapshots resolve from the Waza process working directory; see README "Run layout".
+      context_dir: .apm/evals/autogenesis/fixtures/subjects
+      update_snapshots: false
+      expected_files:
+        - path: atlas-mesh.json
+          snapshot: subject-unmounted/atlas-mesh.json
+        - path: SKILL.md
+          snapshot: subject-unmounted/SKILL.md
+  - name: autogenesis_invoked
+    type: skill_invocation
+    config:
+      mode: any_order
+      required_skills:
+        - autogenesis

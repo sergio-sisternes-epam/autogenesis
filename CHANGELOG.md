@@ -7,6 +7,70 @@ in `SKILL.md`.
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-10-08
+
+### Changed
+
+- Cut behavioural evaluation over from the agent-spec/Gherkin gate to
+  authored upstream Waza eval suites (work_id `2026-10-08-waza-evaluation`).
+  Autogenesis designs and authors suites in the Waza 0.38.9 format
+  (`schemaVersion: "1.4"`) and never runs suite tasks against an agent or
+  makes a model call for evaluation. Running belongs to the subject owner or
+  its CI; supplied results may be cited with provenance.
+- `behavioural_contract` now accepts `waza | deferred:<reason>`; the removed
+  value `specify` is rejected with a diagnostic (no alias). Gate G-BEHAVIOUR
+  replaces G-BDD; G-EVAL stays deterministic-first.
+- Design drafts `## Behavioural evaluation (Waza)` tasks with reference and
+  negative fixtures for gate tasks; implement authors the suite at
+  `<subject>/evals/<skill>/` (or `<subject>/.apm/evals/<skill>/` with
+  `paths.evals: .apm/evals` when the subject is an APM package with a root
+  `SKILL.md`, because APM 0.30.0 ships every other path), runs only the
+  model-free validity allowlist V1-V3 with `WAZA_NO_UPDATE_CHECK=1`, and
+  records the `waza_suite` block with `run_status: not-run-by-autogenesis`,
+  which is not behavioural evidence.
+- `specify-only-adversarial-v2` and `help-getting-started-adversarial-v1`
+  become historical, succeeded by `waza-evaluation-adversarial-v1` and the
+  parse-valid `help-getting-started-adversarial-v2`.
+
+### Added
+
+- Autogenesis dogfood eval suite at `.apm/evals/autogenesis/`
+  (`suite_version: 2`, Waza 0.38.9 format, `schemaVersion: "1.4"`): five
+  gate tasks with deterministic outcome graders, two trigger tasks and one
+  advisory quality task. It ships minimal fixture subject repositories, reference and negative
+  fixtures with hand-authored results files for every deterministic task, and
+  a README with run instructions, required skills and the recommended pass
+  rule. Authored and never run by Autogenesis
+  (`run_status: not-run-by-autogenesis`); a structural unit test checks it.
+  `suite_version: 2` moves the suite under `.apm/evals/` so it is not shipped
+  in the installed skill (the root `.waza.yaml` sets `paths.evals`), narrows
+  `diff` grader context to `fixtures/subjects`, lets the
+  `plan-has-genesis-artifacts` change-class check accept a "Change class"
+  heading as well as a `change_class:` key, and adds `reference-heading` and
+  `negative-heading` fixtures. The suite README adds a run layout that keeps
+  the suite outside the agent's working directory and skill paths, recommends
+  `config.skill_directories` over `paths.skills`, explains how to read
+  `skill_invocation` scores, and requires `python3` in the runner image. The
+  recorded validity result is pending re-run for `suite_version: 2`.
+- Consumer validation fails when an installed `autogenesis` skill contains an
+  `evals/` directory, a `.apm/` directory or any `eval.yaml`; source checks
+  and the `suite-not-shipped` smoke keep the suite under `.apm/evals/`.
+- Shared authoring guide `references/waza-authoring.md`: format pin, suite
+  layout, tiers and tags, authoring rules, reference and negative fixtures,
+  pass-bar metadata, the closed model-free validity allowlist, the evidence
+  block, the run boundary and the `supplied_results` citation format.
+- Work-node fields `eval_suite_ref` and `behavioural_status`.
+- Unit tests that every current scenario parses, that the guide carries the
+  pins, that no Waza wrapper is named, that Waza and agent-spec stay out of
+  the APM manifest and lock, and that no live instruction requires agent-spec
+  or `.feature` files.
+
+### Removed
+
+- The agent-spec `specify` behavioural contract, the
+  `## Behavioural contract (agent-spec)` plan section and the rule set around
+  behavioural Gherkin. Waza is not an APM dependency, and no CI job runs it.
+
 ## [0.8.1] - 2026-09-28
 
 ### Changed
@@ -242,7 +306,8 @@ in `SKILL.md`.
 - **Canonical decision:** `wiki-folder-deletion-policy` — no auto-delete on migrate; human-gated archive removal.
 - **Package metadata:** `apm.yml` deps on atlas + okf (not okf-wiki).
 
-[Unreleased]: https://github.com/sergio-sisternes-epam/autogenesis/compare/v0.8.1...HEAD
+[Unreleased]: https://github.com/sergio-sisternes-epam/autogenesis/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.9.0
 [0.8.1]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.8.1
 [0.8.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.8.0
 [0.7.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.7.0
