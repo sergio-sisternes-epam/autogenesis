@@ -88,6 +88,7 @@ Recommended layout:
             (no apm_modules/); the installed autogenesis has no suite (checked in CI)
 /run        Waza working directory; holds only a copy of the suite's fixtures/subjects/
             at .apm/evals/autogenesis/fixtures/subjects/ (for diff snapshots) and no SKILL.md
+            at its top level
 $TMPDIR     scratch directory for task workspaces, outside /suite, /skills and /run
 ```
 
@@ -196,8 +197,11 @@ hand-authored in Waza's results format (schemaVersion 1.4, one run each, with
 `final_output` and `skill_invocations`). They are not the output of a run.
 They omit transcripts and tool events because no grader in this suite reads
 them. Each negative records the run as passed so the graders, not the claim,
-must catch it. `plan-has-genesis-artifacts` also has fixtures for the
-runner's own grader check; Autogenesis does not grade it. Its `reference/`
+must catch it. `plan-has-genesis-artifacts` has four variants (`reference`,
+`reference-heading`, `negative`, `negative-heading`); its deterministic `file`
+grader is checked offline against all four on a throwaway copy of the task
+with the prompt judge removed, and the prompt judge is left to the runner.
+Its `reference/`
 records the class as a frontmatter `change_class:` key, `reference-heading/`
 as a `## Change class` heading, `negative/` has neither Genesis Artifacts nor
 a class, and `negative-heading/` fails only the class check. A source unit
@@ -214,11 +218,11 @@ validity:
   checked_by: operator, for Autogenesis, 2026-10-08 (BST)
   waza: 0.38.9                   # `waza --version` reported "waza version 0.38.9"
   env: WAZA_NO_UPDATE_CHECK=1; rootless container, networking disabled
-  subject: pending re-run for suite_version 2 (suite_version 1 was checked on a clean export of commit 71b7a1c)
+  subject: clean export of commit 1858aed (suite_version 2: suite under .apm/evals/, narrowed diff context, change-class heading support, heading fixtures)
   check:        # V1: waza check . --format json
     exit_code: 0
-    summary: eval found at evals/autogenesis/eval.yaml; eval schema valid
-    skill_findings:              # properties of the skill, not of the suite
+    summary: eval found at .apm/evals/autogenesis/eval.yaml through paths.evals; eval schema valid
+    skill_findings:              # properties of the skill, not of the suite; unchanged from the suite_version 1 record
       - SKILL.md 3762 tokens vs the project budget of 4000 from the root .waza.yaml (not exceeded)
       - token status warning: above Waza's default 500-token warning threshold, which the project does not change
       - compliance Medium: Waza wants USE FOR / DO NOT USE FOR trigger and anti-trigger labels
@@ -227,13 +231,18 @@ validity:
       - 20 external links reported dead only because networking was disabled
       - 79 files under references/ not linked from SKILL.md (expected for parent-routed modules)
       - advisory warnings on module count and complexity
-  spec_verify:  # V2: waza spec verify --skill . --eval evals/autogenesis/eval.yaml --format json
+  spec_verify:  # V2: waza spec verify --skill . --eval .apm/evals/autogenesis/eval.yaml --format json
     exit_code: 0                 # warn mode, no --fail --threshold
-    coverage: 1 requirement (whole description; no USE FOR / DO NOT USE FOR labels), 0 covered deterministically
+    coverage: 1 requirement (whole description; no USE FOR / DO NOT USE FOR labels), 0 covered deterministically (unchanged)
   grader_fixtures:  # V3: waza grade .apm/evals/autogenesis/eval.yaml --task <id> --results .apm/evals/autogenesis/fixtures/<id>/<variant>.results.json --workspace .apm/evals/autogenesis/fixtures/<id>/<variant>
     exit_codes: 0 for every grade call
     checked: 7 deterministic tasks; reference passed 7/7, negative failed 7/7
-    left_to_runner: plan-has-genesis-artifacts   # has a prompt judge grader
+    plan-has-genesis-artifacts:  # file grader only, via waza grade on a throwaway copy of the task with the prompt judge removed
+      reference: passed
+      reference-heading: passed
+      negative: failed
+      negative-heading: failed   # score 0.75; only the change-class check failed
+      committed_task: unchanged; its prompt judge needs a model and is left to the runner
 run_status: not-run-by-autogenesis
 ```
 
@@ -242,7 +251,11 @@ run_status: not-run-by-autogenesis
   `plan-only-in-resolved-atlas`, `help-does-not-mount`,
   `discussion-has-no-implement-authority`, `ordinary-refactor-near-miss`,
   `skill-change-should-trigger`.
-- Left to the runner (has a `prompt` grader): `plan-has-genesis-artifacts`.
+- Grader-checked by Autogenesis for its deterministic `file` grader only, on
+  a throwaway copy of the task with the `prompt` judge removed:
+  `plan-has-genesis-artifacts`. The committed task is unchanged.
+- Left to the runner (needs a model): the `prompt` judge of
+  `plan-has-genesis-artifacts`.
 - Run V3 from the repository root so the `diff` snapshots resolve.
 - The V1 and V2 skill findings are not suite failures. Adding `USE FOR:` /
   `DO NOT USE FOR:` labels to the description is a separate, unapproved

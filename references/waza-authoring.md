@@ -30,7 +30,7 @@ and are never read at skill runtime:
   eval.yaml        # skill, schemaVersion: "1.4", config, metrics, task globs
   tasks/*.yaml     # one task per file
   fixtures/        # tiny subject repos, reference and negative outcomes
-  .waza.yaml       # optional; set paths.skills when skills land in a dot-folder
+  .waza.yaml       # optional; for example paths.evals for a suite under .apm/
   README.md        # how to run, recommended pass rule, required skills,
                    # which tasks were grader-checked and which are left to the runner
 ```
@@ -39,9 +39,10 @@ and are never read at skill runtime:
   goes at `<subject>/.apm/evals/<skill>/` instead, with `paths.evals:
   .apm/evals` in the subject's `.waza.yaml`, because APM 0.30.0 copies every
   other path into the installed skill.
-- `.waza.yaml` must set `paths.skills` whenever the candidate skill or its
-  required skills are installed under a dot-folder (for example `.agents/`),
-  because dot-folders are skipped otherwise.
+- The runner points Waza at installed skills with `config.skill_directories`
+  in a local copy of `eval.yaml`, and starts Waza from a working directory with
+  no `SKILL.md` and none of the suite's answer fixtures, because Waza adds its
+  working directory to the agent's skill directories.
 - The README states how the runner installs the candidate skill and every
   required skill, so any runner can run the suite without asking Autogenesis.
 

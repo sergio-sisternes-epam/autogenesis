@@ -304,14 +304,14 @@ smokes:
       print(json.dumps({'ok': ok}))
       "
     expect: {ok: true}
-  - id: dot-folder-skills-configured
-    source: "Supplied run: dot-folders skipped unless paths.skills is set"
+  - id: installed-skills-via-skill-directories
+    source: "Supplied run: recursive skill paths shadow real skills; working directory is a skill directory"
     cmd: |
       python3 -c "
       import json, os, re
       from pathlib import Path
       g = ' '.join((Path(os.environ['PKG_subject'])/'references/waza-authoring.md').read_text().split())
-      ok = bool(re.search(r'\.waza\.yaml\W+must set\W+paths\.skills\W+whenever', g)) and 'dot-folder' in g
+      ok = bool(re.search(r'config\.skill_directories\W+in a local copy of\W+eval\.yaml', g)) and 'adds its working directory to the agent' in g and 'must set \x60paths.skills\x60' not in g
       print(json.dumps({'ok': ok}))
       "
     expect: {ok: true}
