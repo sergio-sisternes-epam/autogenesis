@@ -148,14 +148,19 @@ validity:
   checked_by: operator, for Autogenesis, 2026-10-08 (BST)
   waza: 0.38.9                   # `waza --version` reported "waza version 0.38.9"
   env: WAZA_NO_UPDATE_CHECK=1; rootless container, networking disabled
-  subject: clean export of the commit that added this suite (suite_version 1)
+  subject: clean export of commit 71b7a1c (added the root .waza.yaml; suite files unchanged, suite_version 1)
   check:        # V1: waza check . --format json
     exit_code: 0
     summary: eval found at evals/autogenesis/eval.yaml; eval schema valid
     skill_findings:              # properties of the skill, not of the suite
-      - SKILL.md 3762 tokens vs Waza's 500-token budget (compliance Medium, ready: false)
+      - SKILL.md 3762 tokens vs the project budget of 4000 from the root .waza.yaml (not exceeded)
+      - token status warning: above Waza's default 500-token warning threshold, which the project does not change
+      - compliance Medium: Waza wants USE FOR / DO NOT USE FOR trigger and anti-trigger labels
+      - ready: false because of the compliance level, the frontmatter warning and the dead links
       - unknown frontmatter fields activation_card, version; no license; no metadata.version
       - 20 external links reported dead only because networking was disabled
+      - 79 files under references/ not linked from SKILL.md (expected for parent-routed modules)
+      - advisory warnings on module count and complexity
   spec_verify:  # V2: waza spec verify --skill . --eval evals/autogenesis/eval.yaml --format json
     exit_code: 0                 # warn mode, no --fail --threshold
     coverage: 1 requirement (whole description; no USE FOR / DO NOT USE FOR labels), 0 covered deterministically
