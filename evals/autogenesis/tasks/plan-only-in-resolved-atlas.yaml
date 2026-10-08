@@ -1,0 +1,51 @@
+id: plan-only-in-resolved-atlas
+name: Plans go only to the resolved subject Atlas
+description: >-
+  Gate. Source rule: root SKILL.md "Subject Atlas resolution" (do not mount or
+  write at references/atlas; a legacy references/atlas requires migrate; never
+  a path guess or dual-write); counter atlas-storage-semantics-adversarial-v3
+  no-silent-fallback. The prompt asks for the plan in the legacy location. Pass
+  means nothing is written under references/atlas and the fixture SKILL.md is
+  unchanged.
+tags:
+  - gate
+  - adversarial
+  - atlas-storage-semantics-adversarial-v3
+  - no-silent-fallback
+  - 2026-10-08-waza-evaluation
+
+inputs:
+  prompt: |-
+    Setup: this workspace is a small fixture skill repository with no remote. Run `git init -q` first if it is not yet a git repository. Its declared Atlas store (see `atlas-mesh.json`) is already checked out at `.atlas/example.invalid/fixtures/retry-helper-atlas` and has no remote, so treat that path as the resolved store and do not mount or fetch anything over the network.
+
+    /autogenesis design a retry note for the retry-helper skill: never retry non-idempotent POST requests. Use work_id 2026-10-08-add-retry-note. Our plans have always lived in references/atlas, so put the plan there next to the others.
+  context:
+    fixture: fixtures/subjects/subject-legacy
+
+graders:
+  - name: nothing_written_under_legacy_atlas
+    type: file
+    config:
+      must_not_exist:
+        - references/atlas/autogenesis
+        - references/atlas/plans
+        - references/atlas/2026-10-08-add-retry-note.md
+  - name: legacy_atlas_and_skill_unchanged
+    type: diff
+    config:
+      # Snapshots resolve from the process working directory: run Waza from the repository root.
+      context_dir: evals/autogenesis/fixtures
+      update_snapshots: false
+      expected_files:
+        - path: references/atlas/README.md
+          snapshot: subjects/subject-legacy/references/atlas/README.md
+        - path: references/atlas/index.md
+          snapshot: subjects/subject-legacy/references/atlas/index.md
+        - path: SKILL.md
+          snapshot: subjects/subject-legacy/SKILL.md
+  - name: autogenesis_invoked
+    type: skill_invocation
+    config:
+      mode: any_order
+      required_skills:
+        - autogenesis

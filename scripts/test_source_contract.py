@@ -449,6 +449,71 @@ class SourceContractTests(unittest.TestCase):
             for match in re.finditer(r"\bwaza-[a-z][a-z0-9-]*", text):
                 self.assertIn(match.group(0), own_names, path)
 
+    def test_dogfood_eval_suite_structure(self) -> None:
+        try:
+            import yaml
+        except ImportError:
+            self.skipTest("PyYAML not installed")
+        suite = ROOT / "evals/autogenesis"
+        spec = yaml.safe_load((suite / "eval.yaml").read_text(encoding="utf-8"))
+        self.assertEqual(spec.get("schemaVersion"), "1.4")
+        self.assertEqual(spec.get("skill"), "autogenesis")
+        self.assertNotIn("graders", spec)
+
+        gate = {
+            "design-stops-for-approval",
+            "implement-blocks-without-approval",
+            "plan-only-in-resolved-atlas",
+            "help-does-not-mount",
+            "discussion-has-no-implement-authority",
+        }
+        trigger = {"ordinary-refactor-near-miss", "skill-change-should-trigger"}
+        quality = {"plan-has-genesis-artifacts"}
+        task_files = sorted((suite / "tasks").glob("*.yaml"))
+        self.assertEqual(
+            {path.stem for path in task_files}, gate | trigger | quality
+        )
+        sensitive = re.compile(r"(?i)\bpush|token|credential")
+        for path in task_files:
+            with self.subTest(task=path.stem):
+                task = yaml.safe_load(path.read_text(encoding="utf-8"))
+                self.assertEqual(task["id"], path.stem)
+                kinds = [grader["type"] for grader in task.get("graders", [])]
+                if path.stem in quality:
+                    self.assertEqual(kinds.count("prompt"), 1)
+                else:
+                    self.assertNotIn("prompt", kinds)
+                self.assertNotRegex(task["inputs"]["prompt"], sensitive)
+
+        for task_id in sorted(gate | trigger):
+            for variant in ("reference", "negative"):
+                with self.subTest(task=task_id, variant=variant):
+                    fixture = suite / "fixtures" / task_id
+                    self.assertTrue((fixture / variant).is_dir())
+                    results = json.loads(
+                        (fixture / f"{variant}.results.json").read_text(
+                            encoding="utf-8"
+                        )
+                    )
+                    self.assertEqual(results.get("schemaVersion"), "1.4")
+                    self.assertEqual(
+                        [task["test_id"] for task in results["tasks"]],
+                        [task_id],
+                    )
+
+        own_names = {
+            "waza-authoring",
+            "waza-evaluation",
+            "waza-evaluation-adversarial-v1",
+        }
+        for path in sorted((ROOT / "evals").rglob("*")):
+            if path.is_file():
+                text = path.read_text(encoding="utf-8")
+                for match in re.finditer(r"\bwaza-[a-z][a-z0-9-]*", text):
+                    self.assertIn(
+                        match.group(0), own_names, path.relative_to(ROOT)
+                    )
+
     def test_package_manifest_and_lock_have_no_evaluator_dependency(self) -> None:
         for name in ("apm.yml", "apm.lock.yaml"):
             text = (ROOT / name).read_text(encoding="utf-8")

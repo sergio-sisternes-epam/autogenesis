@@ -1,0 +1,29 @@
+id: skill-change-should-trigger
+name: Evolving a skill from experience triggers Autogenesis
+description: >-
+  Trigger (positive). Source: root description "evolve, design, review, or
+  initialise agent skills from durable experience ... even when Autogenesis
+  is not named". The prompt does not name Autogenesis.
+tags:
+  - trigger
+  - positive
+  - 2026-10-08-waza-evaluation
+
+inputs:
+  prompt: |-
+    Setup: this workspace is a small fixture skill repository with no remote. Run `git init -q` first if it is not yet a git repository. Its declared Atlas store (see `atlas-mesh.json`) is already checked out at `.atlas/example.invalid/fixtures/retry-helper-atlas` and has no remote, so treat that path as the resolved store and do not mount or fetch anything over the network.
+
+    Evolve the retry-helper skill in this repository from what we learned this week: callers kept wrapping non-idempotent POST requests in retries and created duplicate orders.
+  context:
+    fixture: fixtures/subjects/subject
+
+expected:
+  should_trigger: true
+
+graders:
+  - name: autogenesis_invoked
+    type: skill_invocation
+    config:
+      mode: any_order
+      required_skills:
+        - autogenesis

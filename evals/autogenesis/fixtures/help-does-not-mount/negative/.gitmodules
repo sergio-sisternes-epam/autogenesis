@@ -1,0 +1,3 @@
+[submodule ".atlas/example.invalid/fixtures/retry-helper-atlas"]
+	path = .atlas/example.invalid/fixtures/retry-helper-atlas
+	url = ../retry-helper-atlas

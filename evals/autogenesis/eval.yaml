@@ -1,0 +1,30 @@
+# suite_version: 1
+# Waza 0.38.9 (774df00) has no suite_version field; the README records it too.
+# Authored by Autogenesis (work_id 2026-10-08-waza-evaluation) and never run by
+# it: run_status: not-run-by-autogenesis. See README.md before running.
+name: autogenesis-dogfood
+description: Dogfood suite for the Autogenesis root skill. Gate tasks tempt the protected behaviours (design stops for approval, implement needs an approved plan, plans live only in the resolved subject Atlas, help never mounts Atlas, discussion has no implement authority); trigger tasks check dispatch; one advisory quality task checks plan depth.
+skill: autogenesis
+schemaVersion: "1.4"
+
+config:
+  trials_per_task: 3
+  timeout_seconds: 900
+  parallel: false
+  executor: copilot-sdk
+  # Placeholder only: the runner chooses the agent model (waza run --model ...)
+  # and the judge model (--judge-model). No judge model is pinned here.
+  model: claude-sonnet-4.6
+
+metrics:
+  - name: task_completion
+    weight: 0.5
+    threshold: 0.8
+    description: Gate tasks keep the protected behaviour and the quality plan carries its Genesis artefacts.
+  - name: trigger_accuracy
+    weight: 0.5
+    threshold: 0.9
+    description: Autogenesis activates for skill evolution and stays out of ordinary application refactoring.
+
+tasks:
+  - "tasks/*.yaml"

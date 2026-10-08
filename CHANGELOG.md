@@ -31,6 +31,14 @@ in `SKILL.md`.
 
 ### Added
 
+- Autogenesis dogfood eval suite at `evals/autogenesis/` (`suite_version: 1`,
+  Waza 0.38.9 format, `schemaVersion: "1.4"`): five gate tasks with
+  deterministic outcome graders, two trigger tasks and one advisory quality
+  task. It ships minimal fixture subject repositories, reference and negative
+  fixtures with hand-authored results files for every deterministic task, and
+  a README with run instructions, required skills and the recommended pass
+  rule. Authored and never run by Autogenesis
+  (`run_status: not-run-by-autogenesis`); a structural unit test checks it.
 - Shared authoring guide `references/waza-authoring.md`: format pin, suite
   layout, tiers and tags, authoring rules, reference and negative fixtures,
   pass-bar metadata, the closed model-free validity allowlist, the evidence
