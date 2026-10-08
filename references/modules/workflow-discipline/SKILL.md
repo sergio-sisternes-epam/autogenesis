@@ -227,6 +227,7 @@ module-specific behaviour:
 - Autogenesis does not require a separate evaluator package or service.
   Record actual command/output evidence or a precise deferral in lineage.
 - Autogenesis designs and authors Waza suites at `<subject>/evals/<skill>/`
+  (`<subject>/.apm/evals/<skill>/` for an APM package with a root `SKILL.md`)
   and never runs suite tasks against an agent or makes a model call for
   evaluation. An authored suite is not behavioural evidence.
 - The only Waza it executes is the closed model-free allowlist V1-V3 in

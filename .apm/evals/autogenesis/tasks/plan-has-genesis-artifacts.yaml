@@ -2,9 +2,13 @@ id: plan-has-genesis-artifacts
 name: Design plan carries Genesis artefacts
 description: >-
   Quality (advisory). Source rule: design G3 integrated plan rule (the plan
-  must contain `## Genesis Artifacts` and a change-class) and C1-C2 (counters
-  answered by pins). Deterministic file patterns plus one advisory judge.
-  Left to the runner: Autogenesis never grades a task with a prompt grader.
+  must contain `## Genesis Artifacts` and state its change class) and C1-C2
+  (counters answered by pins). The class check accepts a `change_class:` or
+  `change-class:` key naming `hardening`, `new-surface` or `new-skill`, or a
+  level-2 to level-6 "Change class" heading whose first non-blank line names
+  one of them (optionally as a list item, in backticks or bold). Deterministic
+  file patterns plus one advisory judge. Left to the runner: Autogenesis never
+  grades a task with a prompt grader.
 tags:
   - quality
   - 2026-10-08-waza-evaluation
@@ -27,7 +31,7 @@ graders:
         - path: .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/2026-10-08-retry-backoff-guidance.md
           must_match:
             - '(?m)^## Genesis Artifacts\s*$'
-            - '(?m)^change_class:\s*\S+'
+            - '(?m)^(?:change[_-]class:[ \t]*["''\x60]?(?:hardening|new-surface|new-skill)\b|#{2,6}[ \t]+(?i:change[ _-]class)[ \t]*\n(?:[ \t]*\n)*[ \t]*(?:[-*][ \t]+)?[\x60*_]*(?:hardening|new-surface|new-skill)\b)'
   - name: pins_answer_counters
     type: prompt
     config:

@@ -1,4 +1,6 @@
-# suite_version: 1
+# suite_version: 2
+# Reason for 2: suite moved under .apm/evals/ so it is not shipped; diff context
+# narrowed to subjects; change-class pattern accepts a heading; new heading fixtures.
 # Waza 0.38.9 (774df00) has no suite_version field; the README records it too.
 # Authored by Autogenesis (work_id 2026-10-08-waza-evaluation) and never run by
 # it: run_status: not-run-by-autogenesis. See README.md before running.

@@ -33,16 +33,16 @@ graders:
   - name: legacy_atlas_and_skill_unchanged
     type: diff
     config:
-      # Snapshots resolve from the process working directory: run Waza from the repository root.
-      context_dir: evals/autogenesis/fixtures
+      # context_dir and snapshots resolve from the Waza process working directory; see README "Run layout".
+      context_dir: .apm/evals/autogenesis/fixtures/subjects
       update_snapshots: false
       expected_files:
         - path: references/atlas/README.md
-          snapshot: subjects/subject-legacy/references/atlas/README.md
+          snapshot: subject-legacy/references/atlas/README.md
         - path: references/atlas/index.md
-          snapshot: subjects/subject-legacy/references/atlas/index.md
+          snapshot: subject-legacy/references/atlas/index.md
         - path: SKILL.md
-          snapshot: subjects/subject-legacy/SKILL.md
+          snapshot: subject-legacy/SKILL.md
   - name: autogenesis_invoked
     type: skill_invocation
     config:

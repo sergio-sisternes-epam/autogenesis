@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import tempfile
 import unittest
@@ -407,6 +408,64 @@ version: {contract.version}
                 validate_consumer.validate_deployment(
                     consumer, target, package_root, str(package_root)
                 )
+
+    def test_clean_deployment_ships_no_eval_suite(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            package_root = self.create_package_root(workspace)
+            consumer = workspace / "consumer"
+            consumer.mkdir()
+            target = "agent-skills"
+            self.deploy(package_root, consumer, target)
+            self.write_lock(package_root, consumer, target, str(package_root))
+
+            validate_consumer.validate_deployment(
+                consumer, target, package_root, str(package_root)
+            )
+            skill_root = (
+                validate_consumer.expected_skill_roots(consumer, target)[0]
+                / package_root.name
+            )
+            self.assertEqual(validate_consumer.shipped_suite_paths(skill_root), [])
+
+    def test_shipped_eval_suite_is_rejected(self) -> None:
+        cases = {
+            "evals": (Path("evals/autogenesis/README.md"), ["evals/"]),
+            ".apm": (
+                Path(".apm/evals/autogenesis/README.md"),
+                [".apm/", ".apm/evals/"],
+            ),
+            "eval.yaml": (
+                Path("references/modules/design/nested/eval.yaml"),
+                ["references/modules/design/nested/eval.yaml"],
+            ),
+        }
+        for case, (relative, expected) in cases.items():
+            with self.subTest(case=case), tempfile.TemporaryDirectory() as directory:
+                workspace = Path(directory)
+                package_root = self.create_package_root(workspace)
+                shipped = package_root / relative
+                shipped.parent.mkdir(parents=True, exist_ok=True)
+                shipped.write_text("suite\n", encoding="utf-8")
+                consumer = workspace / "consumer"
+                consumer.mkdir()
+                target = "agent-skills"
+                self.deploy(package_root, consumer, target)
+                self.write_lock(package_root, consumer, target, str(package_root))
+
+                with self.assertRaisesRegex(
+                    RuntimeError,
+                    "ships eval-suite content " + re.escape(str(expected)),
+                ):
+                    validate_consumer.validate_deployment(
+                        consumer, target, package_root, str(package_root)
+                    )
+                (consumer / "apm.lock.yaml").unlink()
+                with self.assertRaisesRegex(
+                    RuntimeError,
+                    "ships eval-suite content " + re.escape(str(expected)),
+                ):
+                    validate_consumer.validate_deployment(consumer, target, package_root)
 
     def test_deployment_field_treats_yaml_null_as_missing(self) -> None:
         block = """- kind: project-relative

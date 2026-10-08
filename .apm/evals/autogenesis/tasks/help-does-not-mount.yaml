@@ -31,14 +31,14 @@ graders:
   - name: mesh_and_skill_unchanged
     type: diff
     config:
-      # Snapshots resolve from the process working directory: run Waza from the repository root.
-      context_dir: evals/autogenesis/fixtures
+      # context_dir and snapshots resolve from the Waza process working directory; see README "Run layout".
+      context_dir: .apm/evals/autogenesis/fixtures/subjects
       update_snapshots: false
       expected_files:
         - path: atlas-mesh.json
-          snapshot: subjects/subject-unmounted/atlas-mesh.json
+          snapshot: subject-unmounted/atlas-mesh.json
         - path: SKILL.md
-          snapshot: subjects/subject-unmounted/SKILL.md
+          snapshot: subject-unmounted/SKILL.md
   - name: autogenesis_invoked
     type: skill_invocation
     config:

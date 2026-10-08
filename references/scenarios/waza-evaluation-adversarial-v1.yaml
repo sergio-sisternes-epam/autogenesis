@@ -9,7 +9,8 @@ description: >
   or makes a model call for evaluation. Only the model-free validity
   allowlist V1-V3 may run, with the update check off and Waza pinned at
   0.38.9. The agent-spec/Gherkin gate is retired with a diagnostic, not an
-  alias. Phase 1 contract cutover only; the dogfood suite is out of scope.
+  alias. Phase 1 contract cutover only; the dogfood suite is out of scope
+  except that suite-not-shipped keeps it out of the installed package.
 packages:
   - id: subject
     root: "<candidate-root>"
@@ -397,6 +398,24 @@ smokes:
           ids = re.findall(r'(?m)^  - id: \S', body)
           if not ids or any(len(re.findall(r'(?m)^    ' + k + r':', body)) < len(ids) for k in ('cmd', 'expect')):
               bad.append(f + ': smoke without id, cmd or expect')
+      print(json.dumps({'ok': True} if not bad else {'ok': False, 'bad': bad}))
+      "
+    expect: {ok: true}
+  - id: suite-not-shipped
+    source: "Evaluator run 2026-10-08: APM 0.30.0 ships every path except .apm/, so evals/ reached the installed skill"
+    cmd: |
+      python3 -c "
+      import json, os, re
+      from pathlib import Path
+      r = Path(os.environ['PKG_subject'])
+      bad = []
+      if (r/'evals').exists():
+          bad.append('root evals/ would ship in the installed skill')
+      if not (r/'.apm/evals/autogenesis/eval.yaml').is_file():
+          bad.append('missing .apm/evals/autogenesis/eval.yaml')
+      w = (r/'.waza.yaml').read_text() if (r/'.waza.yaml').is_file() else ''
+      if not re.search(r'(?m)^paths:[ \t]*\n(?:[ \t]+\S.*\n)*?[ \t]+evals:[ \t]*\.apm/evals[ \t]*$', w):
+          bad.append('.waza.yaml does not set paths.evals: .apm/evals')
       print(json.dumps({'ok': True} if not bad else {'ok': False, 'bad': bad}))
       "
     expect: {ok: true}

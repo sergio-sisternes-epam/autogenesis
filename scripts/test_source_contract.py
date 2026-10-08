@@ -454,7 +454,7 @@ class SourceContractTests(unittest.TestCase):
             import yaml
         except ImportError:
             self.skipTest("PyYAML not installed")
-        suite = ROOT / "evals/autogenesis"
+        suite = ROOT / ".apm/evals/autogenesis"
         spec = yaml.safe_load((suite / "eval.yaml").read_text(encoding="utf-8"))
         self.assertEqual(spec.get("schemaVersion"), "1.4")
         self.assertEqual(spec.get("skill"), "autogenesis")
@@ -506,13 +506,61 @@ class SourceContractTests(unittest.TestCase):
             "waza-evaluation",
             "waza-evaluation-adversarial-v1",
         }
-        for path in sorted((ROOT / "evals").rglob("*")):
+        for path in sorted((ROOT / ".apm/evals").rglob("*")):
             if path.is_file():
                 text = path.read_text(encoding="utf-8")
                 for match in re.finditer(r"\bwaza-[a-z][a-z0-9-]*", text):
                     self.assertIn(
                         match.group(0), own_names, path.relative_to(ROOT)
                     )
+
+    def test_dogfood_suite_is_kept_out_of_the_shipped_package(self) -> None:
+        # APM ships every package path except .apm/ into the installed skill.
+        self.assertFalse((ROOT / "evals").exists())
+        self.assertTrue((ROOT / ".apm/evals/autogenesis/eval.yaml").is_file())
+        config = (ROOT / ".waza.yaml").read_text(encoding="utf-8")
+        self.assertRegex(
+            config,
+            r"(?m)^paths:[ \t]*\n(?:[ \t]+\S.*\n)*?[ \t]+evals:[ \t]*\.apm/evals[ \t]*$",
+        )
+
+    def test_plan_change_class_patterns_tell_fixtures_apart(self) -> None:
+        suite = ROOT / ".apm/evals/autogenesis"
+        lines = (
+            suite / "tasks/plan-has-genesis-artifacts.yaml"
+        ).read_text(encoding="utf-8").splitlines()
+        start = next(
+            index for index, line in enumerate(lines)
+            if line.strip() == "must_match:"
+        )
+        patterns = []
+        for line in lines[start + 1:]:
+            match = re.fullmatch(r"\s*- '(.*)'", line)
+            if not match:
+                break
+            patterns.append(match.group(1).replace("''", "'"))
+        self.assertEqual(len(patterns), 2)
+        artifacts, change_class = patterns
+        self.assertIn("Genesis Artifacts", artifacts)
+        plan = Path(
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/plans/2026-10-08-retry-backoff-guidance.md"
+        )
+        expected = {
+            "reference": (True, True),
+            "reference-heading": (True, True),
+            "negative": (False, False),
+            "negative-heading": (True, False),
+        }
+        for variant, (has_artifacts, has_class) in expected.items():
+            with self.subTest(variant=variant):
+                fixture = suite / "fixtures/plan-has-genesis-artifacts" / variant
+                text = (fixture / plan).read_text(encoding="utf-8")
+                self.assertEqual(bool(re.search(artifacts, text)), has_artifacts)
+                self.assertEqual(bool(re.search(change_class, text)), has_class)
+                self.assertTrue(
+                    (fixture.parent / f"{variant}.results.json").is_file()
+                )
 
     def test_package_manifest_and_lock_have_no_evaluator_dependency(self) -> None:
         for name in ("apm.yml", "apm.lock.yaml"):

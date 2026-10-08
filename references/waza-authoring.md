@@ -35,6 +35,10 @@ and are never read at skill runtime:
                    # which tasks were grader-checked and which are left to the runner
 ```
 
+- When the subject ships as an APM package with a root `SKILL.md`, the suite
+  goes at `<subject>/.apm/evals/<skill>/` instead, with `paths.evals:
+  .apm/evals` in the subject's `.waza.yaml`, because APM 0.30.0 copies every
+  other path into the installed skill.
 - `.waza.yaml` must set `paths.skills` whenever the candidate skill or its
   required skills are installed under a dot-folder (for example `.agents/`),
   because dot-folders are skipped otherwise.
@@ -69,6 +73,10 @@ in the plan as coverage.
   the chat reply.
 - `diff` graders set `update_snapshots: false` and resolve snapshots through
   `config.context_dir` (for example `context_dir: evals/fixtures`).
+- `skill_invocation` scores are the F1 of precision and recall over the
+  required skills, so companion skills lower them; the README tells runners
+  to take verdicts from `passed` and to read `details.recall` and
+  `details.actual_skills`, not the aggregate score.
 - A `prompt` (judge) grader embeds the original input between explicit
   `BEGIN ORIGINAL INPUT` / `END ORIGINAL INPUT` markers, so the judge can
   assess fidelity. Judge graders are **advisory**; `judge_model` is left to

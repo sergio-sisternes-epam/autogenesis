@@ -5,6 +5,11 @@
 # modest headroom while staying below the hard limit (approved 2026-10-08).
 # Setting tokens.limits replaces Waza's built-in limits wholesale, so the
 # other values restate the built-in defaults unchanged.
+# The dogfood suite lives under .apm/evals/ because APM 0.30.0 ships every
+# package path except .apm/ into the installed skill; Waza finds the suite at
+# .apm/evals/autogenesis/eval.yaml through paths.evals.
+paths:
+  evals: .apm/evals
 tokens:
   limits:
     defaults:

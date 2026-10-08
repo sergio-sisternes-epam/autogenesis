@@ -22,23 +22,39 @@ in `SKILL.md`.
   replaces G-BDD; G-EVAL stays deterministic-first.
 - Design drafts `## Behavioural evaluation (Waza)` tasks with reference and
   negative fixtures for gate tasks; implement authors the suite at
-  `<subject>/evals/<skill>/`, runs only the model-free validity allowlist
-  V1-V3 with `WAZA_NO_UPDATE_CHECK=1`, and records the `waza_suite` block with
-  `run_status: not-run-by-autogenesis`, which is not behavioural evidence.
+  `<subject>/evals/<skill>/` (or `<subject>/.apm/evals/<skill>/` with
+  `paths.evals: .apm/evals` when the subject is an APM package with a root
+  `SKILL.md`, because APM 0.30.0 ships every other path), runs only the
+  model-free validity allowlist V1-V3 with `WAZA_NO_UPDATE_CHECK=1`, and
+  records the `waza_suite` block with `run_status: not-run-by-autogenesis`,
+  which is not behavioural evidence.
 - `specify-only-adversarial-v2` and `help-getting-started-adversarial-v1`
   become historical, succeeded by `waza-evaluation-adversarial-v1` and the
   parse-valid `help-getting-started-adversarial-v2`.
 
 ### Added
 
-- Autogenesis dogfood eval suite at `evals/autogenesis/` (`suite_version: 1`,
-  Waza 0.38.9 format, `schemaVersion: "1.4"`): five gate tasks with
-  deterministic outcome graders, two trigger tasks and one advisory quality
-  task. It ships minimal fixture subject repositories, reference and negative
+- Autogenesis dogfood eval suite at `.apm/evals/autogenesis/`
+  (`suite_version: 2`, Waza 0.38.9 format, `schemaVersion: "1.4"`): five
+  gate tasks with deterministic outcome graders, two trigger tasks and one
+  advisory quality task. It ships minimal fixture subject repositories, reference and negative
   fixtures with hand-authored results files for every deterministic task, and
   a README with run instructions, required skills and the recommended pass
   rule. Authored and never run by Autogenesis
   (`run_status: not-run-by-autogenesis`); a structural unit test checks it.
+  `suite_version: 2` moves the suite under `.apm/evals/` so it is not shipped
+  in the installed skill (the root `.waza.yaml` sets `paths.evals`), narrows
+  `diff` grader context to `fixtures/subjects`, lets the
+  `plan-has-genesis-artifacts` change-class check accept a "Change class"
+  heading as well as a `change_class:` key, and adds `reference-heading` and
+  `negative-heading` fixtures. The suite README adds a run layout that keeps
+  the suite outside the agent's working directory and skill paths, recommends
+  `config.skill_directories` over `paths.skills`, explains how to read
+  `skill_invocation` scores, and requires `python3` in the runner image. The
+  recorded validity result is pending re-run for `suite_version: 2`.
+- Consumer validation fails when an installed `autogenesis` skill contains an
+  `evals/` directory, a `.apm/` directory or any `eval.yaml`; source checks
+  and the `suite-not-shipped` smoke keep the suite under `.apm/evals/`.
 - Shared authoring guide `references/waza-authoring.md`: format pin, suite
   layout, tiers and tags, authoring rules, reference and negative fixtures,
   pass-bar metadata, the closed model-free validity allowlist, the evidence

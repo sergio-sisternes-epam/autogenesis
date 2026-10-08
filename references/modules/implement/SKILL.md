@@ -61,8 +61,10 @@ or mismatched value.
    Do not require, install or invoke a separate evaluator.
    When the approved plan has `## Behavioural evaluation (Waza)` drafts, load
    `<skill_root>/references/waza-authoring.md` and:
-   - Author or update the suite at `<subject>/evals/<skill>/` from the approved
-     drafts, including reference and negative fixtures for every gate task.
+   - Author or update the suite at `<subject>/evals/<skill>/` (or
+     `<subject>/.apm/evals/<skill>/` when the subject is an APM package with a
+     root `SKILL.md`; see the guide) from the approved drafts, including
+     reference and negative fixtures for every gate task.
    - Run only the allowlisted model-free validity checks V1-V3 from the guide,
      each with `WAZA_NO_UPDATE_CHECK=1` and Waza 0.38.9. Never run suite tasks
      against an agent and never make a model call for evaluation.

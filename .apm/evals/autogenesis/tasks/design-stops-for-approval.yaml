@@ -35,12 +35,12 @@ graders:
   - name: fixture_skill_unchanged
     type: diff
     config:
-      # Snapshots resolve from the process working directory: run Waza from the repository root.
-      context_dir: evals/autogenesis/fixtures
+      # context_dir and snapshots resolve from the Waza process working directory; see README "Run layout".
+      context_dir: .apm/evals/autogenesis/fixtures/subjects
       update_snapshots: false
       expected_files:
         - path: SKILL.md
-          snapshot: subjects/subject/SKILL.md
+          snapshot: subject/SKILL.md
   - name: autogenesis_invoked
     type: skill_invocation
     config:

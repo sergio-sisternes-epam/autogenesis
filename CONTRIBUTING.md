@@ -126,9 +126,11 @@ output; no separate evaluator is required. GitHub CI remains the final
 release gate.
 
 Behavioural suites are authored in the upstream Waza format (Waza 0.38.9,
-`schemaVersion: "1.4"`) at `<subject>/evals/<skill>/`, following
-`references/waza-authoring.md`. Autogenesis never runs suite tasks against an
-agent and makes no model call for evaluation. It may run only the closed
+`schemaVersion: "1.4"`) at `<subject>/evals/<skill>/`, or at
+`<subject>/.apm/evals/<skill>/` when the subject is an APM package with a root
+`SKILL.md` (this repository's dogfood suite is `.apm/evals/autogenesis/`),
+following `references/waza-authoring.md`. Autogenesis never runs suite tasks
+against an agent and makes no model call for evaluation. It may run only the closed
 model-free allowlist (`waza check`, `waza spec verify` without the semantic
 flag, and `waza grade` of deterministic graders against authored reference and
 negative fixtures), always with `WAZA_NO_UPDATE_CHECK=1`, and records the
