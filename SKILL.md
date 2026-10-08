@@ -1,13 +1,13 @@
 ---
 name: autogenesis
 description: Use this skill to evolve, design, review, or initialise agent skills from durable experience, including module structure, invocation discipline and skill composition even when Autogenesis is not named. Route through parent-controlled operation modules. Use getting-started or help when the user asks how Autogenesis itself works or how a named Autogenesis module works; help with no target lists public operations. Discussion does not implement; design stops for explicit approval. Do not use for ordinary application refactoring, automatic wiring, bypassing parent-routed help to load private support modules, or unrelated help requests.
-version: 0.8.1
+version: 0.9.0
 activation_card: on
 ---
 
 # autogenesis
 
-**v0.8.1** (semver). Version history lives in `CHANGELOG.md`.
+**v0.9.0** (semver). Version history lives in `CHANGELOG.md`.
 
 Grows a skillset from durable experience, or designs a new package using full
 Genesis discipline. Derived skills receive the runtime capabilities their
@@ -28,7 +28,9 @@ change-class = hardening | new-surface | new-skill (see workflow-discipline)
 
 **Design depth:** load `references/modules/workflow-discipline/SKILL.md` —
 classify before packet; `new-surface` requires mini-genesis; behavior changes
-require portable scenarios and actual evaluation evidence.
+require portable scenarios and actual evaluation evidence, plus authored Waza
+task drafts (adversarial counters may also become Waza gate tasks tagged
+`adversarial`) or an explicit deferral.
 
 ## Authoring versus derived skills
 
@@ -51,10 +53,19 @@ and structural compliance are not.
 
 ## Evaluation boundary
 
-Autogenesis owns portable scenario specifications, runs applicable checks
-through tools available in the subject repository, and records actual evidence
-or an explicit deferral. It does not require a separate evaluator package or
-service. GitHub CI remains this repository's final release gate.
+Autogenesis owns portable scenario specifications, runs applicable
+deterministic checks through tools available in the subject repository, and
+records actual evidence or an explicit deferral.
+
+Autogenesis designs and authors behavioural suites in the upstream Waza format
+and never runs them against an agent. It may run model-free Waza validity
+checks on suites it wrote. Running belongs to the subject owner. Supplied
+results may be cited with provenance. No evaluator dependency: it does not
+require a separate evaluator package or service, and Waza is a format target,
+not an APM dependency. Authoring rules, the validity-check allowlist and the
+supplied-results format live in
+[`references/waza-authoring.md`](references/waza-authoring.md). GitHub CI
+remains this repository's final release gate.
 
 
 ## Experience source
@@ -210,7 +221,9 @@ The living verification of this contract is the pair **skill-test-a → skill-te
   named-theory counter becomes a subject-skill scenario
   (`*-adversarial-vN.yaml`) that is red if shipped behaviour does the warned
   thing. Design emits a full draft; implement fills and runs applicable checks
-  at Exit. Historical decision names remain provenance, not live dependencies.
+  at Exit. Behavioural counters may also become Waza gate tasks tagged
+  `adversarial` in the authored suite. Historical decision names remain
+  provenance, not live dependencies.
 - **Behaviour challenge (reflect-challenge):** attacks behaviours; optional; not plan approval.
 
 ## Internal think modules (progressive disclosure)
@@ -260,6 +273,7 @@ outcome/tool evidence. External skills retain their own schemas and paths.
 - `references/run-record-template.md`
 - `references/activation-plan-template.md`
 - `references/challenge-success-criteria.md`
+- `references/waza-authoring.md` (shared Waza suite authoring guide)
 
 ## Non-goals
 

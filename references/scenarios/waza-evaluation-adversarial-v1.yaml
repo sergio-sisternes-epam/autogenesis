@@ -1,0 +1,402 @@
+id: waza-evaluation-adversarial-v1
+kind: skill-discipline
+version: "1"
+work_id: 2026-10-08-waza-evaluation
+adversarial: true
+description: >
+  Successor to specify-only-adversarial-v2. Autogenesis designs and authors
+  plain upstream Waza eval suites and never runs suite tasks against an agent
+  or makes a model call for evaluation. Only the model-free validity
+  allowlist V1-V3 may run, with the update check off and Waza pinned at
+  0.38.9. The agent-spec/Gherkin gate is retired with a diagnostic, not an
+  alias. Phase 1 contract cutover only; the dogfood suite is out of scope.
+packages:
+  - id: subject
+    root: "<candidate-root>"
+    mode: mount
+project:
+  seed_knowledge: []
+smokes:
+  - id: autogenesis-never-runs-suite-tasks
+    source: "Sergio 2026-10-08 01:06 BST: design, not run"
+    cmd: |
+      python3 -c "
+      import json, os, re
+      from pathlib import Path
+      r = Path(os.environ['PKG_subject'])
+      live = [r/'SKILL.md'] + sorted(p for p in (r/'references').rglob('*.md') if 'scenarios' not in p.relative_to(r/'references').parts)
+      forbid = re.compile(r'(?i)\b(never|not|no|forbid|forbids|forbidden|out of scope)\b')
+      bad = []
+      for p in live:
+          for n, line in enumerate(p.read_text().splitlines(), 1):
+              if re.search(r'\bwaza\s+run\b', line) and not forbid.search(line):
+                  bad.append(p.relative_to(r).as_posix() + ':' + str(n))
+      print(json.dumps({'ok': True} if not bad else {'ok': False, 'bad': bad}))
+      "
+    expect: {ok: true}
+  - id: no-model-calling-waza-commands
+    source: "Sergio 2026-10-08 01:10 BST: no model calls, no --semantic; N6 closed allowlist"
+    cmd: |
+      python3 -c "
+      import json, os, re
+      from pathlib import Path
+      r = Path(os.environ['PKG_subject'])
+      live = [r/'SKILL.md'] + sorted(p for p in (r/'references').rglob('*.md') if 'scenarios' not in p.relative_to(r/'references').parts)
+      forbid = re.compile(r'(?i)\b(never|not|no|forbid|forbids|forbidden|out of scope)\b')
+      sub = re.compile(r'\bwaza\s+(--version|[a-z][a-z-]*)(?:\s+([a-z][a-z-]*))?')
+      grade_cmd = re.compile(r'\bwaza\s+grade\s+[<A-Za-z0-9_./-]')
+      bad = []
+      for p in live:
+          for n, line in enumerate(p.read_text().splitlines(), 1):
+              where = p.relative_to(r).as_posix() + ':' + str(n)
+              forbidden_line = bool(forbid.search(line))
+              for m in sub.finditer(line):
+                  name, nxt = m.group(1), m.group(2)
+                  allowed = name in ('check', 'grade', '--version') or (name == 'spec' and nxt == 'verify')
+                  if not allowed and not forbidden_line:
+                      bad.append(where + ' waza ' + name)
+              if re.search(r'--semantic|--judge-model', line) and not forbidden_line:
+                  bad.append(where + ' model flag')
+              if grade_cmd.search(line) and '--task' not in line and not forbidden_line:
+                  bad.append(where + ' grade without --task')
+      g = ' '.join((r/'references/waza-authoring.md').read_text().split())
+      if not ('left_to_runner' in g and 'any \x60prompt\x60 grader is never graded by Autogenesis' in g):
+          bad.append('guide: prompt-grader tasks not left to the runner')
+      print(json.dumps({'ok': True} if not bad else {'ok': False, 'bad': bad}))
+      "
+    expect: {ok: true}
+  - id: waza-update-check-off
+    source: "Sergio 2026-10-08 01:10 BST: update check off; N7"
+    cmd: |
+      python3 -c "
+      import json, os, re
+      from pathlib import Path
+      r = Path(os.environ['PKG_subject'])
+      live = [r/'SKILL.md'] + sorted(p for p in (r/'references').rglob('*.md') if 'scenarios' not in p.relative_to(r/'references').parts)
+      cmd = re.compile(r'\bwaza\s+(?:check\s+[<A-Za-z0-9_./-]|spec\s+verify\s+-|grade\s+[<A-Za-z0-9_./-]|--version)')
+      seen, bad = 0, []
+      for p in live:
+          for n, line in enumerate(p.read_text().splitlines(), 1):
+              if cmd.search(line):
+                  seen += 1
+                  if 'WAZA_NO_UPDATE_CHECK=1' not in line:
+                      bad.append(p.relative_to(r).as_posix() + ':' + str(n))
+      ok = seen >= 4 and not bad
+      print(json.dumps({'ok': True} if ok else {'ok': False, 'seen': seen, 'bad': bad}))
+      "
+    expect: {ok: true}
+  - id: validity-is-not-behavioural-evidence
+    source: "Revision 3 brief; N2"
+    cmd: |
+      python3 -c "
+      import json, os
+      from pathlib import Path
+      r = Path(os.environ['PKG_subject'])
+      need = ['validity', 'Waza version', 'exit code', 'coverage', 'left_to_runner', 'not behavioural evidence', 'not-run-by-autogenesis']
+      bad = []
+      for rel in ('references/modules/workflow-discipline/SKILL.md', 'references/modules/implement/SKILL.md'):
+          t = ' '.join((r/rel).read_text().split())
+          bad += [rel + ': ' + x for x in need if x not in t]
+      print(json.dumps({'ok': True} if not bad else {'ok': False, 'bad': bad}))
+      "
+    expect: {ok: true}
+  - id: no-model-calls-for-evaluation
+    source: "Sergio pin 1; frugal stance"
+    cmd: |
+      python3 -c "
+      import json, os, re
+      from pathlib import Path
+      r = Path(os.environ['PKG_subject'])
+      pat = re.compile(r'(?i)copilot-requests|COPILOT_GITHUB_TOKEN|\bwaza\b')
+      bad = [p.relative_to(r).as_posix() for p in sorted((r/'.github').rglob('*')) if p.is_file() and pat.search(p.read_text(errors='replace'))]
+      print(json.dumps({'ok': True} if not bad else {'ok': False, 'bad': bad}))
+      "
+    expect: {ok: true}
+  - id: upstream-waza-only
+    source: "Sergio 2026-10-08: only waza; C1 Construct precedent"
+    cmd: |
+      python3 -c "
+      import json, os, re
+      from pathlib import Path
+      r = Path(os.environ['PKG_subject'])
+      own = {'waza-authoring', 'waza-evaluation', 'waza-evaluation-adversarial-v1'}
+      files = [r/'SKILL.md', r/'apm.yml', r/'apm.lock.yaml', r/'AGENTS.md', r/'CONTRIBUTING.md', r/'README.md', r/'CHANGELOG.md']
+      files += sorted(p for p in (r/'references').rglob('*') if p.is_file())
+      files += sorted(p for p in (r/'.github').rglob('*') if p.is_file())
+      suite = r/'references/scenarios/waza-evaluation-adversarial-v1.yaml'
+      ids = sorted(set(re.findall(r'(?m)^  - id: ([a-z0-9-]+)', suite.read_text())), key=len, reverse=True)
+      wrapper = re.compile(r'\bwaza-[a-z][a-z0-9-]*')
+      bad = []
+      for p in files:
+          text = p.read_text(errors='replace')
+          for i in ids:
+              text = re.sub(r'(?<![a-z0-9-])' + re.escape(i) + r'(?![a-z0-9-])', ' ', text)
+          for m in wrapper.finditer(text):
+              if m.group(0) not in own:
+                  bad.append(p.relative_to(r).as_posix() + ': ' + m.group(0))
+      print(json.dumps({'ok': True} if not bad else {'ok': False, 'bad': bad}))
+      "
+    expect: {ok: true}
+  - id: waza-not-an-apm-dependency
+    source: "Format target, not package"
+    cmd: |
+      python3 -c "
+      import json, os, re
+      from pathlib import Path
+      r = Path(os.environ['PKG_subject'])
+      bad = [n for n in ('apm.yml', 'apm.lock.yaml') if re.search(r'(?i)waza|agent-spec', (r/n).read_text())]
+      print(json.dumps({'ok': True} if not bad else {'ok': False, 'bad': bad}))
+      "
+    expect: {ok: true}
+  - id: waza-format-version-pinned
+    source: "N4 schema drift"
+    cmd: |
+      python3 -c "
+      import json, os
+      from pathlib import Path
+      g = (Path(os.environ['PKG_subject'])/'references/waza-authoring.md').read_text()
+      need = ['0.38.9', '774df00', 'schemaVersion', '1.4', 'versioned design change', 'never an APM']
+      bad = [x for x in need if x not in ' '.join(g.split())]
+      print(json.dumps({'ok': True} if not bad else {'ok': False, 'bad': bad}))
+      "
+    expect: {ok: true}
+  - id: authored-suite-is-not-evidence
+    source: "N2 exit-claim-equals-action"
+    cmd: |
+      python3 -c "
+      import json, os, re
+      from pathlib import Path
+      r = Path(os.environ['PKG_subject'])
+      bad = []
+      for rel in ('references/modules/workflow-discipline/SKILL.md', 'references/modules/implement/SKILL.md'):
+          t = ' '.join((r/rel).read_text().split())
+          if not re.search(r'[Aa]uthored suite[^.]*not behavioural evidence', t) or 'run_status: not-run-by-autogenesis' not in t:
+              bad.append(rel)
+      print(json.dumps({'ok': True} if not bad else {'ok': False, 'bad': bad}))
+      "
+    expect: {ok: true}
+  - id: no-autogenesis-run-evidence-fields
+    source: "Sergio: remove run-evidence block"
+    cmd: |
+      python3 -c "
+      import json, os, re
+      from pathlib import Path
+      r = Path(os.environ['PKG_subject'])
+      live = [r/'SKILL.md'] + sorted(p for p in (r/'references').rglob('*.md') if 'scenarios' not in p.relative_to(r/'references').parts)
+      field = re.compile(r'^\s*(?:-\s+)?(trials|pass_k|k_n|ci|confidence_interval|result_sha\w*|result_hash\w*|sha256)\s*:')
+      bad = []
+      for p in live:
+          inside = False
+          for n, line in enumerate(p.read_text().splitlines(), 1):
+              if line.strip().startswith('supplied_results:'):
+                  inside = True
+              elif line.strip().startswith('\x60\x60\x60'):
+                  inside = False
+              if field.search(line) and not inside:
+                  bad.append(p.relative_to(r).as_posix() + ':' + str(n))
+      print(json.dumps({'ok': True} if not bad else {'ok': False, 'bad': bad}))
+      "
+    expect: {ok: true}
+  - id: supplied-results-carry-provenance
+    source: "N3 evidence provenance"
+    cmd: |
+      python3 -c "
+      import json, os
+      from pathlib import Path
+      r = Path(os.environ['PKG_subject'])
+      g = (r/'references/waza-authoring.md').read_text()
+      block = g[g.index('supplied_results:'):]
+      block = block[:block.index(chr(96)*3)]
+      need = ['supplied_by:', 'run_at: <timestamp with zone>', 'suite: evals/<skill>/ @ <commit>, suite_version <n>', 'matches_authored: yes | no (stale)', 'summary: <as reported, quoted not recomputed>', 'location:', 'sha256:', 'label: supplied; not produced, re-run or re-graded by Autogenesis']
+      bad = [x for x in need if x not in block]
+      for rel in ('references/modules/workflow-discipline/SKILL.md', 'references/modules/implement/SKILL.md'):
+          if 'supplied_results' not in (r/rel).read_text():
+              bad.append(rel)
+      print(json.dumps({'ok': True} if not bad else {'ok': False, 'bad': bad}))
+      "
+    expect: {ok: true}
+  - id: gate-tasks-have-grader-controls
+    source: "N1 Anthropic reference solutions; TDD red-green"
+    cmd: |
+      python3 -c "
+      import json, os
+      from pathlib import Path
+      r = Path(os.environ['PKG_subject'])
+      g = ' '.join((r/'references/waza-authoring.md').read_text().split())
+      i = ' '.join((r/'references/modules/implement/SKILL.md').read_text().split())
+      need = ['Every gate task ships two hand-authored final states', 'reference.results.json', 'negative.results.json', 'must pass', 'must fail', 'not the output of a run', 'reference that fails or a negative that passes makes the suite', 'left_to_runner', 'waza grade']
+      bad = [x for x in need if x not in g]
+      if 'failing reference or a passing negative makes the suite invalid' not in i:
+          bad.append('implement')
+      print(json.dumps({'ok': True} if not bad else {'ok': False, 'bad': bad}))
+      "
+    expect: {ok: true}
+  - id: pass-bar-is-metadata-only
+    source: "Revised C2"
+    cmd: |
+      python3 -c "
+      import json, os, re
+      from pathlib import Path
+      r = Path(os.environ['PKG_subject'])
+      g = ' '.join((r/'references/waza-authoring.md').read_text().split())
+      bad = [x for x in ('trials_per_task: 3', 'Recommended pass rule', 'never enforces it') if x not in g]
+      live = [r/'SKILL.md'] + sorted(p for p in (r/'references').rglob('*.md') if 'scenarios' not in p.relative_to(r/'references').parts)
+      for p in live:
+          for n, line in enumerate(p.read_text().splitlines(), 1):
+              if re.search(r'(?i)pass rule|pass-bar|trials_per_task', line) and re.search(r'(?i)\benforc', line) and not re.search(r'(?i)\b(never|not)\b', line):
+                  bad.append(p.relative_to(r).as_posix() + ':' + str(n))
+      print(json.dumps({'ok': True} if not bad else {'ok': False, 'bad': bad}))
+      "
+    expect: {ok: true}
+  - id: text-smokes-not-dropped
+    source: "C3 keep deterministic layer; additive successor policy"
+    cmd: |
+      python3 -c "
+      import json, os
+      from pathlib import Path
+      r = Path(os.environ['PKG_subject'])
+      i = json.loads((r/'references/scenarios/suite-index.json').read_text())
+      base = ['activation-card-extend-adversarial-v2.yaml', 'atlas-migrate-activation-adherence-v4.yaml', 'atlas-storage-semantics-adversarial-v3.yaml', 'autogenesis-adversarial-v4.yaml', 'catalogue-review-gate-adversarial-v2.yaml', 'catalog-think-integration-adversarial-v2.yaml', 'derived-skill-modules-adversarial-v1.yaml', 'help-getting-started-adversarial-v1.yaml', 'explicit-discuss-integration-adversarial-v1.yaml', 'module-invocation-adversarial-v2.yaml', 'module-invocation-happy-v1.yaml', 'patterns-as-genesis-extension-adversarial-v2.yaml', 'patterns-module-adversarial-v2.yaml', 'skill-module-pattern-adversarial-v1.yaml', 'skill-module-pattern-happy-v1.yaml', 'solid-skill-design-adversarial-v1.yaml', 'specify-only-adversarial-v2.yaml']
+      bad = []
+      for f in base:
+          seen, cur = set(), f
+          while cur not in i['current'] and cur in i['successors'] and cur not in seen:
+              seen.add(cur)
+              cur = i['successors'][cur]
+          if cur not in i['current'] or not (r/'references/scenarios'/f).is_file():
+              bad.append(f)
+      print(json.dumps({'ok': True} if not bad else {'ok': False, 'bad': bad}))
+      "
+    expect: {ok: true}
+  - id: grader-change-bumps-suite-version
+    source: "C4 Goodhart's law; versioned rubric"
+    cmd: |
+      python3 -c "
+      import json, os
+      from pathlib import Path
+      g = ' '.join((Path(os.environ['PKG_subject'])/'references/waza-authoring.md').read_text().split())
+      need = ['Goodhart guard', 'grader, threshold, prompt or fixture change bumps', 'suite_version', 'recorded reason', 'never bundled silently']
+      bad = [x for x in need if x not in g]
+      print(json.dumps({'ok': True} if not bad else {'ok': False, 'bad': bad}))
+      "
+    expect: {ok: true}
+  - id: judge-gets-original-input
+    source: "Supplied run: a judge without the source cannot judge meaning"
+    cmd: |
+      python3 -c "
+      import json, os
+      from pathlib import Path
+      g = ' '.join((Path(os.environ['PKG_subject'])/'references/waza-authoring.md').read_text().split())
+      need = ['embeds the original input', 'BEGIN ORIGINAL INPUT', 'END ORIGINAL INPUT', 'Judge graders are **advisory**']
+      bad = [x for x in need if x not in g]
+      print(json.dumps({'ok': True} if not bad else {'ok': False, 'bad': bad}))
+      "
+    expect: {ok: true}
+  - id: artefact-checks-read-files
+    source: "Supplied run: text graders read only the chat reply"
+    cmd: |
+      python3 -c "
+      import json, os, re
+      from pathlib import Path
+      g = ' '.join((Path(os.environ['PKG_subject'])/'references/waza-authoring.md').read_text().split())
+      ok = bool(re.search(r'Check produced content with \W*file\W+graders', g)) and 'Text graders read only the chat reply' in g
+      print(json.dumps({'ok': ok}))
+      "
+    expect: {ok: true}
+  - id: dot-folder-skills-configured
+    source: "Supplied run: dot-folders skipped unless paths.skills is set"
+    cmd: |
+      python3 -c "
+      import json, os, re
+      from pathlib import Path
+      g = ' '.join((Path(os.environ['PKG_subject'])/'references/waza-authoring.md').read_text().split())
+      ok = bool(re.search(r'\.waza\.yaml\W+must set\W+paths\.skills\W+whenever', g)) and 'dot-folder' in g
+      print(json.dumps({'ok': ok}))
+      "
+    expect: {ok: true}
+  - id: suites-safe-to-run
+    source: "Revised C8: agent under test can read its environment"
+    cmd: |
+      python3 -c "
+      import json, os
+      from pathlib import Path
+      g = ' '.join((Path(os.environ['PKG_subject'])/'references/waza-authoring.md').read_text().split())
+      need = ['Suites are safe to run', 'local-only remotes', 'no prompt asks for a push, a token or any credential']
+      bad = [x for x in need if x not in g]
+      print(json.dumps({'ok': True} if not bad else {'ok': False, 'bad': bad}))
+      "
+    expect: {ok: true}
+  - id: derived-skills-get-no-default-suite
+    source: "Authoring vs derived boundary (root SKILL.md)"
+    cmd: |
+      python3 -c "
+      import json, os, re
+      from pathlib import Path
+      r = Path(os.environ['PKG_subject'])
+      bad = []
+      g = ' '.join((r/'references/waza-authoring.md').read_text().split())
+      if 'Derived skills get **no suite by default**' not in g or 'only with explicit approval' not in g:
+          bad.append('guide')
+      for rel in ('references/modules/design/SKILL.md', 'references/modules/initialise/SKILL.md'):
+          t = ' '.join((r/rel).read_text().split())
+          if not re.search(r'evals/\W*[^.]*derived skill only with explicit approval in its plan', t):
+              bad.append(rel)
+      print(json.dumps({'ok': True} if not bad else {'ok': False, 'bad': bad}))
+      "
+    expect: {ok: true}
+  - id: gherkin-gate-retired-cleanly
+    source: "Legacy cutover rule: reject removed values, no alias"
+    cmd: |
+      python3 -c "
+      import json, os, re
+      from pathlib import Path
+      r = Path(os.environ['PKG_subject'])
+      bad = []
+      for rel in ('references/modules/workflow-discipline/SKILL.md', 'references/modules/design/SKILL.md', 'references/modules/initialise/SKILL.md', 'references/modules/workflow-discipline/references/invocation-contract.md'):
+          t = ' '.join((r/rel).read_text().split())
+          if 'behavioural_contract: specify' in t or 'rejected with a diagnostic' not in t:
+              bad.append(rel + ': specify not rejected')
+          if 'invocation-contract' not in rel and 'behavioural_contract: waza | deferred:<reason>' not in t:
+              bad.append(rel + ': missing waza hint')
+      live = [r/'SKILL.md'] + sorted((r/'references/modules').glob('*/SKILL.md'))
+      for p in live:
+          for n, line in enumerate(p.read_text().splitlines(), 1):
+              if re.search(r'(?i)agent-spec|gherkin|\.feature|G-BDD', line) and not re.search(r'(?i)\b(retired|removed)\b', line):
+                  bad.append(p.relative_to(r).as_posix() + ':' + str(n))
+      print(json.dumps({'ok': True} if not bad else {'ok': False, 'bad': bad}))
+      "
+    expect: {ok: true}
+  - id: scenarios-parse
+    source: "Inventory 2026-10-08: two scenario files are not valid YAML"
+    cmd: |
+      python3 -c "
+      import json, os, re
+      from pathlib import Path
+      r = Path(os.environ['PKG_subject'])/'references/scenarios'
+      i = json.loads((r/'suite-index.json').read_text())
+      key = re.compile(r'^\s*(?:-\s+)?[A-Za-z_][A-Za-z0-9_-]*:(?:\s|\Z)')
+      bad = []
+      for f in i['current']:
+          lines = (r/f).read_text().splitlines()
+          if not any(l.startswith('id: ') for l in lines) or 'smokes:' not in lines or '\t' in '\n'.join(lines):
+              bad.append(f + ': shape')
+              continue
+          block = None
+          for n, l in enumerate(lines, 1):
+              ind = len(l) - len(l.lstrip(' '))
+              if block is not None and l.strip():
+                  if ind > block:
+                      continue
+                  if not key.match(l):
+                      bad.append(f + ':' + str(n) + ': under-indented block scalar line')
+                  block = None
+              m = re.match(r'^(\s*)(?:-\s+)?[A-Za-z_]+:\s*[|>][-+]?\s*\Z', l)
+              if m:
+                  block = len(m.group(1))
+          body = '\n'.join(lines[lines.index('smokes:') + 1:])
+          ids = re.findall(r'(?m)^  - id: \S', body)
+          if not ids or any(len(re.findall(r'(?m)^    ' + k + r':', body)) < len(ids) for k in ('cmd', 'expect')):
+              bad.append(f + ': smoke without id, cmd or expect')
+      print(json.dumps({'ok': True} if not bad else {'ok': False, 'bad': bad}))
+      "
+    expect: {ok: true}

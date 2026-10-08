@@ -12,7 +12,8 @@ metadata:
 
 - Required: `objective` (the new skill's purpose).
 - Optional: `proposed_name`, `activation_card` (off, on or debug),
-  `behavioural_contract` (specify or explicit deferral).
+  `behavioural_contract` (`waza` or explicit `deferred:<reason>`; the removed
+  value `specify` is rejected with a diagnostic).
 - The parent owns confirmed subject, mode, operation, work identity, storage
   and approval. A proposed name is not authority to switch subject.
 - Follow `<skill_root>/references/modules/workflow-discipline/SKILL.md` and
@@ -101,26 +102,31 @@ This operation **stops for approval**. Request **implement** only after explicit
    confirmed runtime scope; do not blindly scaffold extra modules or apply a
    draft before design approval. Admission remains separate from approval.
 
-6b. **Behavioural contract (agent-spec)**
-   A new skill is behavioural work. The plan must contain
-   `## Behavioural contract (agent-spec)` with produced `b-` IDs or an explicit
-   deferral. Agent-spec remains the sole writer of behavioural Gherkin;
-   Autogenesis supplies the design packet and consumes the returned contract.
-   Name applicable `@forbidden` or `@critical` scenarios. The operation request
-   must carry `arguments.behavioural_contract: specify | deferred:<reason>`.
+6b. **Behavioural evaluation (Waza) drafts**
+   A new skill is behavioural work. Load
+   `<skill_root>/references/waza-authoring.md`. The plan must contain
+   `## Behavioural evaluation (Waza)` with task drafts (id, tier, prompt,
+   fixtures, graders, `source` counter, coverage) or
+   `deferred: <one-line reason>`. Gate task drafts name their reference and
+   negative fixtures. These drafts describe how the new skill could be
+   evaluated; `evals/` files are added to the derived skill only with explicit
+   approval in its plan, and Autogenesis never runs them. The operation
+   request must carry `arguments.behavioural_contract: waza | deferred:<reason>`;
+   the removed value `specify` is rejected with a diagnostic explaining the new
+   contract (legacy cutover rule, no alias).
 
 6c. **Deterministic-first evaluation plan**
    The plan must contain `## Evaluation plan`. Map every machine-checkable
-   behavioural claim or `b-` family to an executable command or existing
-   repository check. Agent evaluations are optional secondary evidence and
-   cannot replace deterministic checks.
+   behavioural claim to an executable command or existing repository check.
+   Agent evaluations are authored Waza `quality` tasks for the owner to run;
+   they are secondary and cannot replace deterministic checks.
 
 7. **Challenge-success criteria (C1–C5 + Genesis check)**
-   C1 non-trivial counter · C2 high-severity pinned or rejected with rationale · C3 visible pins · C4 scope intact · C5 no implementation in this operation · **change-class: new-skill** · **Genesis Artifacts section present and complete** · **behavioural contract present or explicitly deferred** · **evaluation plan complete**.
+   C1 non-trivial counter · C2 high-severity pinned or rejected with rationale · C3 visible pins · C4 scope intact · C5 no implementation in this operation · **change-class: new-skill** · **Genesis Artifacts section present and complete** · **behavioural evaluation (Waza) drafts present or explicitly deferred** · **evaluation plan complete**.
 
 8. **Present pinned plan for approval**
    Plan location, pins, C1–C5 + Genesis check, change-class, behavioural
-   contract, evaluation plan, exact scope, non-goals, explicit
+   evaluation (Waza) drafts, evaluation plan, exact scope, non-goals, explicit
    wait-for-approval statement and invocation receipt.
    The presented plan **must** visibly contain the `## Genesis Artifacts` section.
    Without approval = plan only / blocked.
@@ -128,8 +134,8 @@ This operation **stops for approval**. Request **implement** only after explicit
 ## Change gates
 
 G3 (change-class: new-skill + mandatory Genesis Artifacts section), G7
-(stop-for-approval), **G-BDD** (agent-spec behavioural contract or explicit
-deferral), **G-EVAL** (deterministic-first evaluation plan). No G4/G5 implement
+(stop-for-approval), **G-BEHAVIOUR** (Waza drafts or explicit deferral;
+replaces the retired G-BDD gate), **G-EVAL** (deterministic-first evaluation plan). No G4/G5 implement
 work.
 Consistency note: workflow-discipline remains the sole source of Enter/Change/Exit rules; this operation only specialises the initialise procedure.
 

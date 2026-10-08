@@ -1,6 +1,6 @@
 # Autogenesis capability catalog
 
-Packaged baseline for Autogenesis **v0.8.1**. Usable with no Atlas mounted.
+Packaged baseline for Autogenesis **v0.9.0**. Usable with no Atlas mounted.
 Live listing authority is the parent registry in the loaded root `SKILL.md`.
 This snapshot is version-qualified packaged help, not a second router.
 

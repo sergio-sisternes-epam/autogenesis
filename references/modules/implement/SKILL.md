@@ -59,6 +59,27 @@ or mismatched value.
    - For a check that cannot run, record an exact deferral reason; never infer
      success from a scenario file or prose.
    Do not require, install or invoke a separate evaluator.
+   When the approved plan has `## Behavioural evaluation (Waza)` drafts, load
+   `<skill_root>/references/waza-authoring.md` and:
+   - Author or update the suite at `<subject>/evals/<skill>/` from the approved
+     drafts, including reference and negative fixtures for every gate task.
+   - Run only the allowlisted model-free validity checks V1-V3 from the guide,
+     each with `WAZA_NO_UPDATE_CHECK=1` and Waza 0.38.9. Never run suite tasks
+     against an agent and never make a model call for evaluation.
+   - Record the `waza_suite` block with its `validity` sub-block (command, Waza
+     version, exit code, coverage, grader-fixture counts, `left_to_runner`)
+     and `run_status: not-run-by-autogenesis`. The authored suite and the
+     validity block are not behavioural evidence.
+   - A failing reference or a passing negative makes the suite invalid and
+     keeps implementation incomplete until the grader or fixture is fixed and
+     `suite_version` is bumped with a reason.
+   - Without Waza 0.38.9, record `validity: deferred: waza 0.38.9 unavailable`
+     plus repository-native structural checks; do not install another version
+     or fall back to a model.
+   - Running belongs to the subject owner. Cite owner-supplied results only in
+     the guide's `supplied_results` block, with provenance; a stale result
+     backs no claim, and a supplied red gate result is recorded without
+     claiming the behaviour works.
 
 6b. **Adversarial scenarios (behaviour-changing implement):**
    Materialise the approved design draft as
@@ -69,15 +90,19 @@ or mismatched value.
    checks. Waive a red smoke **only if that counter is out of this change’s
    scope**; the reason must **name the counter**. New behavior or an approved
    smoke-set change requires a **new file + version bump**; keep the previous
-   file as history.
+   file as history. Behavioural counters also become Waza gate tasks tagged
+   `adversarial`, `<capability>-adversarial-vN` and the smoke id in the
+   authored suite.
 7. **Exit:** Apply the multi-harness substrate contract to the skills named
    `atlas` and `okf` through
    `<skill_root>/references/modules/workflow-discipline/SKILL.md#exit-blocking`.
    Load the Atlas path module `remember` (or `work`) via substrate contract and follow it exactly; require green `atlas compile`.
    The remember experience **must** contain a structured `## Changed files` section listing every product file created or edited in this Run. Missing list → `incomplete: G8`.
 8. **Update the subject work node:** set status `done` | `deferred` | `waived`;
-   link the implement experience, plan path, scenario reference and actual
-   evaluation evidence when present. Do not mirror it to a second Atlas.
+   link the implement experience, plan path, scenario reference, actual
+   evaluation evidence, `eval_suite_ref` and `behavioural_status`
+   (`authored-not-run` | `owner-results-cited` | `deferred`) when present. Do
+   not mirror it to a second Atlas.
 9. Emit the canonical invocation receipt with actual work/context, loaded
    entrypoints, substrate, Atlas and compile evidence. Select current suites
    from `<skill_root>/references/scenarios/suite-index.json`; historical suites
@@ -93,8 +118,13 @@ Enter · Change (**G4**, **G5**) · Exit (**G6**, **G8** via Atlas).
 Frontmatter must include: `work_id`, `implements` (same id), `closes` (ids
 closed), and `plan_path`. Optional: `external_ref` (opaque tracker link/key).
 Record evaluation status and evidence in the body rather than binding lineage
-to a particular evaluator.
+to a particular evaluator: the deterministic block, the `waza_suite` block
+with `eval_suite_ref`, `behavioural_status` and
+`run_status: not-run-by-autogenesis`, and, only when an owner supplied
+results, the optional `supplied_results` citation.
 
 ## Outputs
 
-Changed files · version identity · remember/ingest (or defer) · receipt
+Changed files · version identity · `eval_suite_ref` and `behavioural_status`
+(with `evidence.waza_suite`, plus `evidence.supplied_results` only when
+cited) · remember/ingest (or defer) · receipt

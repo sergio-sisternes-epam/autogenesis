@@ -158,14 +158,14 @@ class SourceContractTests(unittest.TestCase):
         ignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
         agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
         self.assertIn("name: autogenesis\n", manifest)
-        self.assertIn("version: 0.8.1\n", manifest)
+        self.assertIn("version: 0.9.0\n", manifest)
         self.assertIn("license: Apache-2.0\n", manifest)
         self.assertIn(
             "repository: https://github.com/sergio-sisternes-epam/autogenesis\n",
             manifest,
         )
         self.assertIn("name: autogenesis\n", skill)
-        self.assertIn("version: 0.8.1\n", skill)
+        self.assertIn("version: 0.9.0\n", skill)
         self.assertTrue((ROOT / "apm.lock.yaml").is_file())
         self.assertIn("apm_modules/", ignore)
         self.assertIn("Commit `apm.lock.yaml`", agents)
@@ -389,10 +389,87 @@ class SourceContractTests(unittest.TestCase):
         indexed_scenarios = (
             scenario_index["current"] + scenario_index["historical"]
         )
-        self.assertEqual(len(indexed_scenarios), 35)
+        self.assertEqual(len(indexed_scenarios), 37)
         self.assertEqual(len(indexed_scenarios), len(set(indexed_scenarios)))
         for scenario in indexed_scenarios:
             self.assertTrue((ROOT / "references/scenarios" / scenario).is_file())
+
+    def test_current_scenarios_parse_with_required_smoke_shape(self) -> None:
+        try:
+            import yaml
+        except ImportError:
+            self.skipTest("PyYAML not installed")
+        scenario_root = ROOT / "references/scenarios"
+        index = json.loads(
+            (scenario_root / "suite-index.json").read_text(encoding="utf-8")
+        )
+        # Historical suites are byte-preserved and exempt from parse checks.
+        for scenario in index["current"]:
+            with self.subTest(scenario=scenario):
+                document = yaml.safe_load(
+                    (scenario_root / scenario).read_text(encoding="utf-8")
+                )
+                self.assertIsInstance(document, dict)
+                self.assertTrue(document.get("id"))
+                smokes = document.get("smokes")
+                self.assertIsInstance(smokes, list)
+                self.assertTrue(smokes)
+                for smoke in smokes:
+                    for key in ("id", "cmd", "expect"):
+                        self.assertIn(key, smoke)
+
+    def test_waza_authoring_guide_pins_format_and_boundary(self) -> None:
+        guide = (ROOT / "references/waza-authoring.md").read_text(
+            encoding="utf-8"
+        )
+        for required in (
+            "0.38.9",
+            "774df00",
+            "schemaVersion",
+            "WAZA_NO_UPDATE_CHECK=1",
+            "left_to_runner",
+            "not-run-by-autogenesis",
+        ):
+            self.assertIn(required, guide)
+
+        # The mandated guide, plan and suite names share the prefix; any
+        # other hyphenated Waza name would identify a wrapper.
+        own_names = {
+            "waza-authoring",
+            "waza-evaluation",
+            "waza-evaluation-adversarial-v1",
+        }
+        live = [ROOT / "SKILL.md"] + [
+            path
+            for path in (ROOT / "references").rglob("*.md")
+            if "scenarios" not in path.relative_to(ROOT / "references").parts
+        ]
+        for path in live:
+            text = path.read_text(encoding="utf-8")
+            for match in re.finditer(r"\bwaza-[a-z][a-z0-9-]*", text):
+                self.assertIn(match.group(0), own_names, path)
+
+    def test_package_manifest_and_lock_have_no_evaluator_dependency(self) -> None:
+        for name in ("apm.yml", "apm.lock.yaml"):
+            text = (ROOT / name).read_text(encoding="utf-8")
+            self.assertNotRegex(text, r"(?i)waza|agent-spec", name)
+
+    def test_live_instructions_do_not_require_agent_spec_or_feature_files(
+        self,
+    ) -> None:
+        live = [ROOT / "SKILL.md"] + sorted(
+            (ROOT / "references/modules").glob("*/SKILL.md")
+        )
+        mention = re.compile(r"(?i)agent-spec|gherkin|\.feature\b")
+        retired = re.compile(r"(?i)\b(retired|removed)\b")
+        for path in live:
+            for number, line in enumerate(
+                path.read_text(encoding="utf-8").splitlines(), 1
+            ):
+                if mention.search(line):
+                    self.assertRegex(
+                        line, retired, f"{path.relative_to(ROOT)}:{number}"
+                    )
 
     def test_help_and_getting_started_are_explanatory_operations(self) -> None:
         contract = json.loads(
@@ -490,15 +567,15 @@ class SourceContractTests(unittest.TestCase):
                 content = path.read_text(encoding="utf-8")
                 self.assertIn(reference, content)
 
-    def test_actual_root_version_surface_is_v0_8_1(self) -> None:
+    def test_actual_root_version_surface_is_v0_9_0(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         manifest = (ROOT / "apm.yml").read_text(encoding="utf-8")
 
         self.assertRegex(skill, r"(?m)^name: autogenesis$")
-        self.assertRegex(skill, r'(?m)^version: "?0\.8\.1"?$')
+        self.assertRegex(skill, r'(?m)^version: "?0\.9\.0"?$')
         self.assertRegex(skill, r"(?m)^activation_card: on$")
         self.assertIn("name: autogenesis\n", manifest)
-        self.assertIn("version: 0.8.1\n", manifest)
+        self.assertIn("version: 0.9.0\n", manifest)
 
     def test_optional_module_template_is_instruction_only(self) -> None:
         template = (

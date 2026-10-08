@@ -49,7 +49,7 @@ in `apm.lock.yaml`. The lock is generated state: commit it, but never edit
 it by hand. `apm_modules/` and harness deployment directories are disposable
 and must remain untracked.
 
-Autogenesis v0.8.1 has 22 parent-routed modules and no `discuss` operation.
+Autogenesis v0.9.0 has 22 parent-routed modules and no `discuss` operation.
 Think support modules nest-load catalog `think@atlas`; they do not vendor
 forked think procedure. The root `SKILL.md` owns the version surface and
 module registry. Module
@@ -125,6 +125,19 @@ commands through tools already available in the repository and retain actual
 output; no separate evaluator is required. GitHub CI remains the final
 release gate.
 
+Behavioural suites are authored in the upstream Waza format (Waza 0.38.9,
+`schemaVersion: "1.4"`) at `<subject>/evals/<skill>/`, following
+`references/waza-authoring.md`. Autogenesis never runs suite tasks against an
+agent and makes no model call for evaluation. It may run only the closed
+model-free allowlist (`waza check`, `waza spec verify` without the semantic
+flag, and `waza grade` of deterministic graders against authored reference and
+negative fixtures), always with `WAZA_NO_UPDATE_CHECK=1`, and records the
+result as validity evidence with `run_status: not-run-by-autogenesis`, never
+as behavioural evidence. Running a suite belongs to the subject owner or its
+CI under their own token and budget; supplied results may be cited only with
+the provenance block in the guide. Do not add Waza, a wrapper or agent-spec
+to `apm.yml`, and do not add CI jobs that run Waza.
+
 The invocation authority and repository checks above govern Autogenesis, not
 all S8 adopters. Preserve the instruction-first boundary in design, initialise,
 templates and review facets: no mandatory generated framework or validator.
@@ -168,16 +181,16 @@ and target-specific consumer commands stay here.
 Keep these commands on the same version as `apm.yml`:
 
 ```text
-apm install sergio-sisternes-epam/autogenesis#v0.8.1 --target agent-skills
+apm install sergio-sisternes-epam/autogenesis#v0.9.0 --target agent-skills
 ```
 
 ```text
-apm install sergio-sisternes-epam/autogenesis#v0.8.1 --target claude,codex,copilot,cursor,gemini,grok-build,kiro,opencode,windsurf
+apm install sergio-sisternes-epam/autogenesis#v0.9.0 --target claude,codex,copilot,cursor,gemini,grok-build,kiro,opencode,windsurf
 ```
 
 Do not update any global consumer yet. After a release, and only with
 explicit approval, prefer an immutable dependency:
-  `sergio-sisternes-epam/autogenesis#v0.8.1`.
+  `sergio-sisternes-epam/autogenesis#v0.9.0`.
 
 ## Release handoff
 

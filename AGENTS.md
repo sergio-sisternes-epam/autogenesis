@@ -21,7 +21,7 @@ and `references/` are authoritative package source. Do not introduce a
 - `scripts/`: deterministic local and CI release checks.
 - `.github/`: pinned CI/release automation and contribution templates.
 
-Autogenesis v0.8.1 has 22 parent-routed modules and no `discuss` operation.
+Autogenesis v0.9.0 has 22 parent-routed modules and no `discuss` operation.
 Think support modules nest-load catalog `think@atlas`; they do not vendor
 forked think procedure. The root `SKILL.md` owns the version surface and
 module registry; module
@@ -50,6 +50,17 @@ speculative abstractions or semantic validators.
 Autogenesis has no external evaluator dependency. Current scenarios are
 portable specifications; run applicable commands with repository tools and
 record actual evidence. GitHub CI remains the final release gate.
+
+Behavioural evaluation is authored, not run. Autogenesis designs and authors
+upstream Waza eval suites (pinned at Waza 0.38.9, `schemaVersion: "1.4"`)
+following `references/waza-authoring.md`, and never runs suite tasks against
+an agent or makes a model call for evaluation. The only Waza commands it may
+run are the model-free validity checks V1-V3 in that guide, each with
+`WAZA_NO_UPDATE_CHECK=1`; their output is validity evidence, not behavioural
+evidence. Running suites belongs to the subject owner or its CI. Waza is not
+an APM dependency; do not add it, any wrapper or agent-spec to `apm.yml`, and
+do not add CI jobs, Copilot tokens or model-request permissions that run it.
+The agent-spec/Gherkin gate is retired.
 
 ## Generated state
 
