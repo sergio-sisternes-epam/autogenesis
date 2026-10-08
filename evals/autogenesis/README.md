@@ -39,9 +39,12 @@ policy.
    - its required skills from `apm.yml`: `atlas`, `okf`, `discuss` and `think`;
    - `genesis`: used by design (loaded by name) but not declared in `apm.yml`.
 3. Waza finds the skill by the root `SKILL.md` and this suite at
-   `evals/autogenesis/eval.yaml`, so no `.waza.yaml` is shipped. If the skills
-   are installed under a dot-folder such as `.agents/skills/`, discovery skips
-   it: add a local `.waza.yaml` with `paths.skills` set to that folder, or set
+   `evals/autogenesis/eval.yaml`. The repository root ships a `.waza.yaml`
+   that only sets token limits (no `paths`), so discovery still works as
+   described. If the skills are installed under a dot-folder such as
+   `.agents/skills/`, discovery skips it: merge `paths.skills` set to that
+   folder into the root `.waza.yaml` (or a local copy) rather than replacing
+   the file, so the token limits are kept, or set
    `config.skill_directories` (and, if wanted, `config.required_skills`) in a
    local copy of `eval.yaml`. The suite does not declare `required_skills`,
    because Waza's preflight rejects it unless `skill_directories` names the
