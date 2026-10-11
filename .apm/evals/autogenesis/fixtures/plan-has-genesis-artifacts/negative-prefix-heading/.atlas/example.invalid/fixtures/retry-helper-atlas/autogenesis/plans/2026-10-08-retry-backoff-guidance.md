@@ -19,7 +19,7 @@ Designed; awaiting explicit approval.
 
 ## Change class
 
-hardening plus more
+hardening-extra
 
 ## Change-class
 

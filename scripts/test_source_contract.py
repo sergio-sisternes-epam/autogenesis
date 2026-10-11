@@ -587,11 +587,13 @@ class SourceContractTests(unittest.TestCase):
             [
                 "negative",
                 "negative-heading",
+                "negative-heading-prose-prefix",
                 "negative-inline-label-prefix",
                 "negative-prefix",
                 "negative-prefix-heading",
                 "reference",
                 "reference-heading",
+                "reference-heading-prose",
                 "reference-inline-label",
             ],
         )
@@ -633,6 +635,12 @@ class SourceContractTests(unittest.TestCase):
             "* __change_class:__ hardening",
             "| Change class | `hardening` |",
             "| **Change-class** | new-skill |",
+            "## Change class\n\nhardening plus more",
+            "## Change class\n\n- hardening plus more",
+            "## Change class\n\n`hardening` - revise one existing procedure.",
+            "## Change-class\n\n`hardening` — a small safety clarification in the existing skill procedure.",
+            "### Change class\n\n**new-surface**: adds one module",
+            "## Change class\n\nnew-skill (full Genesis)",
         )
         rejected = (
             "change_class: hardening-extra",
@@ -643,11 +651,8 @@ class SourceContractTests(unittest.TestCase):
             "change_class: hardening plus more",
             "change_class: Hardening",
             'change_class: "hardening\'',
-            "## Change class\n\nhardening plus more",
             "## Change class\n\nnew-skill-ish",
             "## Change class\n\nnew-surface.v2",
-            "## Change class\n\n- hardening plus more",
-            "## Change class\n\n`hardening` - revise one existing procedure.",
             "## Change class\n\nTo be decided.",
             "# Change class\n\nhardening",
             "- **Change-class:** `hardening-extra`",
@@ -657,6 +662,10 @@ class SourceContractTests(unittest.TestCase):
             "The change class is hardening.",
             "not a table | Change class | hardening |",
             "text | **Change-class** | new-skill |",
+            "## Change class\n\nhardening-extra — prose",
+            "## Change class\n\n`new-skill-ish` — prose",
+            "## Change class\n\nThis is a hardening change.",
+            "## Change class\n\nnew-surface.v2 — prose",
         )
         for sample in accepted:
             with self.subTest(sample=sample):
@@ -1534,7 +1543,7 @@ class SourceContractTests(unittest.TestCase):
                         parsed_modify.append(args[index + 1])
                         index += 2
                         continue
-                    if args[index] == "--allow-append":
+                    if args[index] == "--allow-log-entry":
                         parsed_append.append(args[index + 1])
                         index += 2
                         continue
@@ -2226,15 +2235,15 @@ class SourceContractTests(unittest.TestCase):
             self._copy_fixture(subject, appended)
             log_path = appended / log
             log_path.write_bytes(log_path.read_bytes() + b"\n- 2026-11-02: remembered.\n")
-            passed = grade(appended, "--allow-append", log)
+            passed = grade(appended, "--allow-log-entry", log)
             self.assertEqual(passed.returncode, 0, passed.stderr)
 
             rewritten = root / "rewritten-log"
             self._copy_fixture(subject, rewritten)
             (rewritten / log).write_text("# Log\n\n- rewritten\n", encoding="utf-8")
-            failed = grade(rewritten, "--allow-append", log)
+            failed = grade(rewritten, "--allow-log-entry", log)
             self.assertNotEqual(failed.returncode, 0, failed.stdout)
-            self.assertIn("not append-only: " + log, failed.stderr)
+            self.assertIn("not an allowed log change: " + log, failed.stderr)
 
             added = root / "dated-plan"
             self._copy_fixture(subject, added)
@@ -2254,6 +2263,174 @@ class SourceContractTests(unittest.TestCase):
             failed = grade(linked_plan, "--allow-dated", dated)
             self.assertNotEqual(failed.returncode, 0, failed.stdout)
             self.assertIn(plan + " is a symlink", failed.stderr)
+
+    def test_allow_log_entry_accepts_newest_first_and_rejects_other_edits(self) -> None:
+        subject = ROOT / ".apm/evals/autogenesis/fixtures/subjects/subject"
+        store = ".atlas/example.invalid/fixtures/retry-helper-atlas"
+        log = store + "/log.md"
+        baseline_flag = ".apm/evals/autogenesis/fixtures/subjects/subject"
+        original = (subject / log).read_bytes()
+        self.assertTrue(original.startswith(b"# Log\n"))
+        self.assertFalse(original.endswith(b"\n\n"))
+        entry = b"- 2026-10-11: opened design work; plan awaits approval.\n"
+
+        def grade(
+            workspace: Path, baseline: str = baseline_flag
+        ) -> subprocess.CompletedProcess[str]:
+            return subprocess.run(
+                [
+                    "python3",
+                    str(self._allowlist_script()),
+                    "--baseline",
+                    baseline,
+                    "--allow-log-entry",
+                    log,
+                ],
+                cwd=ROOT,
+                env={**os.environ, "WAZA_WORKSPACE_DIR": str(workspace)},
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+
+            def workspace_with(
+                name: str, content: bytes, source: Path = subject
+            ) -> Path:
+                dest = root / name
+                self._copy_fixture(source, dest)
+                (dest / log).write_bytes(content)
+                return dest
+
+            # Newest-first: one contiguous block after the blank line under # Log.
+            newest = b"# Log\n\n" + entry + original.split(b"\n", 2)[2]
+            self.assertTrue(newest.startswith(b"# Log\n\n" + entry))
+            self.assertIn(original.split(b"\n", 2)[2], newest)
+            passed = grade(workspace_with("newest", newest))
+            self.assertEqual(passed.returncode, 0, passed.stderr)
+
+            # Immediately after the heading, before the blank line that follows it.
+            before_blank = b"# Log\n" + entry + b"\n" + original.split(b"\n", 2)[2]
+            passed = grade(workspace_with("before-blank", before_blank))
+            self.assertEqual(passed.returncode, 0, passed.stderr)
+
+            two_blank_base = root / "two-blank-baseline"
+            self._copy_fixture(subject, two_blank_base)
+            body = original.split(b"\n", 2)[2]
+            two_blank = b"# Log\n\n\n" + body
+            (two_blank_base / log).write_bytes(two_blank)
+            after_blanks = b"# Log\n\n\n" + entry + body
+            between_blanks = b"# Log\n\n" + entry + b"\n" + body
+            passed = grade(
+                workspace_with("after-blanks", after_blanks, two_blank_base),
+                str(two_blank_base),
+            )
+            self.assertEqual(passed.returncode, 0, passed.stderr)
+            failed = grade(
+                workspace_with("between-blanks", between_blanks, two_blank_base),
+                str(two_blank_base),
+            )
+            self.assertNotEqual(failed.returncode, 0, failed.stdout)
+            self.assertIn("not an allowed log change: " + log, failed.stderr)
+
+            space_base = root / "space-blank-baseline"
+            self._copy_fixture(subject, space_base)
+            (space_base / log).write_bytes(b"# Log\n \n" + body)
+            passed = grade(
+                workspace_with("after-space", b"# Log\n \n" + entry + body, space_base),
+                str(space_base),
+            )
+            self.assertEqual(passed.returncode, 0, passed.stderr)
+
+            above = entry + b"\n" + original
+            failed = grade(workspace_with("above", above))
+            self.assertNotEqual(failed.returncode, 0, failed.stdout)
+            self.assertIn("not an allowed log change: " + log, failed.stderr)
+
+            two_entry_base = root / "two-entry-baseline"
+            self._copy_fixture(subject, two_entry_base)
+            trailing = b"- trailing line that must stay last.\n"
+            (two_entry_base / log).write_bytes(original + trailing)
+            mid = original + entry + trailing
+            failed = grade(
+                workspace_with("mid", mid, two_entry_base), str(two_entry_base)
+            )
+            self.assertNotEqual(failed.returncode, 0, failed.stdout)
+            self.assertIn("not an allowed log change: " + log, failed.stderr)
+
+            edited = (
+                b"# Log\n\n"
+                + entry
+                + b"- 2026-10-08: fixture store was edited after creation.\n"
+            )
+            failed = grade(workspace_with("edited", edited))
+            self.assertNotEqual(failed.returncode, 0, failed.stdout)
+            self.assertIn("not an allowed log change: " + log, failed.stderr)
+
+            removed = root / "removed"
+            self._copy_fixture(subject, removed)
+            (removed / log).unlink()
+            failed = grade(removed)
+            self.assertNotEqual(failed.returncode, 0, failed.stdout)
+            self.assertIn("missing " + log, failed.stderr)
+
+            no_heading_base = root / "no-heading-baseline"
+            self._copy_fixture(subject, no_heading_base)
+            no_heading = b"Notes\n\n- keep this line.\n"
+            (no_heading_base / log).write_bytes(no_heading)
+            passed = grade(
+                workspace_with(
+                    "no-heading-append",
+                    no_heading + b"- added at the end.\n",
+                    no_heading_base,
+                ),
+                str(no_heading_base),
+            )
+            self.assertEqual(passed.returncode, 0, passed.stderr)
+            failed = grade(
+                workspace_with(
+                    "no-heading-insert",
+                    b"Notes\n\n- inserted.\n- keep this line.\n",
+                    no_heading_base,
+                ),
+                str(no_heading_base),
+            )
+            self.assertNotEqual(failed.returncode, 0, failed.stdout)
+            self.assertIn("not an allowed log change: " + log, failed.stderr)
+
+            bare_base = root / "bare-baseline"
+            self._copy_fixture(subject, bare_base)
+            bare = original[:-1] if original.endswith(b"\n") else original
+            self.assertFalse(bare.endswith(b"\n"))
+            (bare_base / log).write_bytes(bare)
+            passed = grade(
+                workspace_with("bare-newest", b"# Log\n\n" + entry + bare.split(b"\n", 2)[2] + b"\n", bare_base),
+                str(bare_base),
+            )
+            self.assertEqual(passed.returncode, 0, passed.stderr)
+            failed = grade(
+                workspace_with("bare-extended", bare + b" extra", bare_base),
+                str(bare_base),
+            )
+            self.assertNotEqual(failed.returncode, 0, failed.stdout)
+            self.assertIn("not an allowed log change: " + log, failed.stderr)
+
+        suite = ROOT / ".apm/evals/autogenesis/fixtures/design-stops-for-approval"
+        remembered = self._grade_task_allowlist(
+            "design-stops-for-approval", suite / "reference-log-newest-first"
+        )
+        self.assertEqual(remembered.returncode, 0, remembered.stderr)
+        self.assertTrue((suite / "reference-log-newest-first.results.json").is_file())
+        for variant in ("negative-log-insert-middle", "negative-log-edited-line"):
+            with self.subTest(variant=variant):
+                failed = self._grade_task_allowlist(
+                    "design-stops-for-approval", suite / variant
+                )
+                self.assertNotEqual(failed.returncode, 0, failed.stdout)
+                self.assertIn("not an allowed log change: " + log, failed.stderr)
+                self.assertTrue((suite / f"{variant}.results.json").is_file())
 
     def test_package_manifest_and_lock_have_no_evaluator_dependency(self) -> None:
         for name in ("apm.yml", "apm.lock.yaml"):

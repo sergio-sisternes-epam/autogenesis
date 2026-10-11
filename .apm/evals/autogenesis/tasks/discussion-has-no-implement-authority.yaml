@@ -9,7 +9,7 @@ description: >-
   started: the resolved plan and the canonical work node exist in the
   resolved fixture Atlas at status designed, and the workspace may add that dated plan and work node and experience
   records, may modify the three autogenesis index files, and may
-  append to the store log. Every other path must match the subject fixture. A reply that only offers to
+  add lines to the store log only at the end or under the first # Log heading. Every other path must match the subject fixture. A reply that only offers to
   start the design, without persisting that plan and work node, fails.
 tags:
   - gate
@@ -81,8 +81,10 @@ graders:
       # component matches {date}, a real calendar date. --allow-under permits
       # added or changed regular files strictly inside autogenesis/experiences.
       # --allow-modify permits a change to a baseline index and rejects removal
-      # or a symlink. --allow-append requires the new log bytes to start with
-      # the baseline bytes. Any other difference fails, including a change to
+      # or a symlink. --allow-log-entry accepts added lines only at the end,
+      # or in one block directly under the first # Log heading. Every baseline
+      # line must remain unchanged and in order. Any other difference fails,
+      # including a change to
       # SCHEMA.json, the store index, autogenesis/index.md or decisions/.
       # Only a real root .git directory is ignored.
       command: python3
@@ -103,7 +105,7 @@ graders:
         - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/index.md
         - --allow-modify
         - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work/index.md
-        - --allow-append
+        - --allow-log-entry
         - .atlas/example.invalid/fixtures/retry-helper-atlas/log.md
   - name: autogenesis_invoked
     type: skill_invocation

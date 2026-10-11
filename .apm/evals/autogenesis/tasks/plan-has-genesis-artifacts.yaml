@@ -9,14 +9,18 @@ description: >-
   label line (optionally a list item; label Change class / Change-class /
   Change_class, any case, optionally wrapped in ** or __ with the colon
   inside or outside the emphasis), or a whole-line markdown table row with
-  optional leading whitespace. After the allowed wrappers, the value must be
-  exactly `hardening`, `new-surface` or `new-skill`, then only whitespace and
-  an optional ` # comment`. A value that merely starts with a class, such as
-  `hardening-extra`, does not pass. Prose that merely contains a table
-  fragment does not pass.
+  optional leading whitespace. The value must be exactly `hardening`,
+  `new-surface` or `new-skill`, optionally wrapped in quotes, backticks or
+  emphasis. On a key, inline label or table row, only whitespace and an
+  optional ` # comment` may follow. On the heading form only, the token may
+  also be followed by whitespace and prose, or by `:`, `;` or `,` and then
+  whitespace or the end of the line. A value that merely starts with a class,
+  such as `hardening-extra`, does not pass, and prose that merely contains a
+  table fragment does not pass.
   The two patterns are repeated --must-match arguments. The workspace may
   add the dated plan and work node and experience records, may modify the
-  three autogenesis index files, and may append to the store log. Left to
+  three autogenesis index files, and may add lines to the store log only at
+  the end or under the first # Log heading. Left to
   the runner: Autogenesis never grades a task with a prompt grader.
 tags:
   - quality
@@ -37,8 +41,9 @@ graders:
       # Date-agnostic plan check. The first path is the one dated plan.
       # Both --must-match patterns are data: Genesis Artifacts, then the
       # exact change-class token in a key, heading, inline label or
-      # whole-line table row. Go-RE2 and Python compatible: no lookaround,
-      # no backreference.
+      # whole-line table row. The heading form may follow that token with
+      # prose; the key, inline label and table forms stay exact. Go-RE2 and
+      # Python compatible: no lookaround, no backreference.
       # Default status remains the simple scalar designed.
       command: python3
       timeout: 30
@@ -48,7 +53,7 @@ graders:
         - --must-match
         - '(?m)^## Genesis Artifacts\s*$'
         - --must-match
-        - '(?m)^(?:change[_-]class:[ \t]*|#{2,6}[ \t]+(?i:change[ _-]class)[ \t]*\n(?:[ \t]*\n)*[ \t]*(?:[-*][ \t]+)?|(?:[-*][ \t]+)?(?:\*\*(?i:change[ _-]class)[ \t]*:\*\*|\*\*(?i:change[ _-]class)\*\*[ \t]*:|__(?i:change[ _-]class)[ \t]*:__|__(?i:change[ _-]class)__[ \t]*:|(?i:change[ _-]class)[ \t]*:)[ \t]*)(?:"(?:hardening|new-surface|new-skill)"|''(?:hardening|new-surface|new-skill)''|`(?:hardening|new-surface|new-skill)`|\*\*(?:hardening|new-surface|new-skill)\*\*|\*(?:hardening|new-surface|new-skill)\*|__(?:hardening|new-surface|new-skill)__|_(?:hardening|new-surface|new-skill)_|(?:hardening|new-surface|new-skill))(?:[ \t]+#.*)?[ \t]*$|^[ \t]*\|[ \t]*(?:\*\*(?i:change[ _-]class)\*\*|__(?i:change[ _-]class)__|(?i:change[ _-]class))[ \t]*\|[ \t]*(?:"(?:hardening|new-surface|new-skill)"|''(?:hardening|new-surface|new-skill)''|`(?:hardening|new-surface|new-skill)`|\*\*(?:hardening|new-surface|new-skill)\*\*|\*(?:hardening|new-surface|new-skill)\*|__(?:hardening|new-surface|new-skill)__|_(?:hardening|new-surface|new-skill)_|(?:hardening|new-surface|new-skill))(?:[ \t]+#.*)?[ \t]*\|[ \t]*$'
+        - '(?m)^(?:(?:change[_-]class:[ \t]*|(?:[-*][ \t]+)?(?:\*\*(?i:change[ _-]class)[ \t]*:\*\*|\*\*(?i:change[ _-]class)\*\*[ \t]*:|__(?i:change[ _-]class)[ \t]*:__|__(?i:change[ _-]class)__[ \t]*:|(?i:change[ _-]class)[ \t]*:)[ \t]*)(?:"(?:hardening|new-surface|new-skill)"|''(?:hardening|new-surface|new-skill)''|`(?:hardening|new-surface|new-skill)`|\*\*(?:hardening|new-surface|new-skill)\*\*|\*(?:hardening|new-surface|new-skill)\*|__(?:hardening|new-surface|new-skill)__|_(?:hardening|new-surface|new-skill)_|(?:hardening|new-surface|new-skill))(?:[ \t]+#.*)?[ \t]*$|#{2,6}[ \t]+(?i:change[ _-]class)[ \t]*\n(?:[ \t]*\n)*[ \t]*(?:[-*][ \t]+)?(?:"(?:hardening|new-surface|new-skill)"|''(?:hardening|new-surface|new-skill)''|`(?:hardening|new-surface|new-skill)`|\*\*(?:hardening|new-surface|new-skill)\*\*|\*(?:hardening|new-surface|new-skill)\*|__(?:hardening|new-surface|new-skill)__|_(?:hardening|new-surface|new-skill)_|(?:hardening|new-surface|new-skill))(?:[ \t]+.*|[:;,](?:[ \t]+.*|[ \t]*))?[ \t]*$)|^[ \t]*\|[ \t]*(?:\*\*(?i:change[ _-]class)\*\*|__(?i:change[ _-]class)__|(?i:change[ _-]class))[ \t]*\|[ \t]*(?:"(?:hardening|new-surface|new-skill)"|''(?:hardening|new-surface|new-skill)''|`(?:hardening|new-surface|new-skill)`|\*\*(?:hardening|new-surface|new-skill)\*\*|\*(?:hardening|new-surface|new-skill)\*|__(?:hardening|new-surface|new-skill)__|_(?:hardening|new-surface|new-skill)_|(?:hardening|new-surface|new-skill))(?:[ \t]+#.*)?[ \t]*\|[ \t]*$'
   - name: workspace_allowlist
     type: program
     config:
@@ -61,8 +66,10 @@ graders:
       # component matches {date}, a real calendar date. --allow-under permits
       # added or changed regular files strictly inside autogenesis/experiences.
       # --allow-modify permits a change to a baseline index and rejects removal
-      # or a symlink. --allow-append requires the new log bytes to start with
-      # the baseline bytes. Any other difference fails, including a change to
+      # or a symlink. --allow-log-entry accepts added lines only at the end,
+      # or in one block directly under the first # Log heading. Every baseline
+      # line must remain unchanged and in order. Any other difference fails,
+      # including a change to
       # SCHEMA.json, the store index, autogenesis/index.md or decisions/.
       # Only a real root .git directory is ignored.
       command: python3
@@ -83,7 +90,7 @@ graders:
         - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/index.md
         - --allow-modify
         - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work/index.md
-        - --allow-append
+        - --allow-log-entry
         - .atlas/example.invalid/fixtures/retry-helper-atlas/log.md
   - name: pins_answer_counters
     type: prompt

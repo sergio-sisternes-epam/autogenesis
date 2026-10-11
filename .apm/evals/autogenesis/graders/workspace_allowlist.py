@@ -16,8 +16,16 @@ only through real directories; a symlink anywhere on that path fails
 closed. Removals, new directories and symlinks there still fail.
 --allow-modify names a baseline regular file that may change and must still
 be a regular file reached only through real directories. It may not be
-removed or replaced by a symlink or directory. --allow-append is the same,
-and the new bytes must start with the complete baseline bytes.
+removed or replaced by a symlink or directory. --allow-log-entry is the
+same constraint on the file type, and the new text may only add lines.
+Added lines must be either only at the end, or one contiguous block
+directly under the first `# Log` heading: immediately after that heading
+line, or after the blank line or lines that directly follow it. Every
+baseline line must remain, unchanged and in the same order. Nothing may
+be removed or edited, and no insertion anywhere else is accepted. A file
+with no `# Log` heading accepts only an end append. Lines are compared
+without their LF terminator, so a missing trailing newline does not let
+the original last line change.
 --allow-dated names a relative path with one {date} placeholder in its
 final component. {date} is any real YYYY-MM-DD. A matching added or changed
 regular file, reached only through real directories, is allowed. Removal
@@ -46,7 +54,7 @@ from pathlib import Path
 USAGE = (
     "usage: workspace_allowlist.py --baseline PATH "
     "[--allow REL]... [--allow-under REL_DIR]... "
-    "[--allow-modify REL]... [--allow-append REL]... "
+    "[--allow-modify REL]... [--allow-log-entry REL]... "
     "[--allow-dated REL]... [--allow-bytecode]"
 )
 
@@ -260,7 +268,7 @@ def excused(
 ):
     # Diff exemption only. An allowed path, and every path under an
     # allow-under directory, is checked separately and must be a regular
-    # file reached only through real directories. modify, append and dated
+    # file reached only through real directories. modify, log-entry and dated
     # do not excuse a removal or a non-file replacement.
     if rel in allowed:
         return True
@@ -312,7 +320,7 @@ def parse_args(argv):
             allowed_modify.append(workspace_relative(take_value(argv, index, arg)))
             index += 2
             continue
-        if arg == "--allow-append":
+        if arg == "--allow-log-entry":
             allowed_append.append(workspace_relative(take_value(argv, index, arg)))
             index += 2
             continue
@@ -445,7 +453,60 @@ def enforce_real_allowed_paths(
                 require_real_path(root, rel, "file")
 
 
-def enforce_append(baseline_root, current_root, baseline, current, allowed_append):
+def line_contents(data):
+    """Return LF-separated line contents, without terminators.
+
+    A missing final LF keeps the last line and does not add an empty line.
+    A CR stays inside the line, so the original last line is byte-identical
+    only when its content is unchanged.
+    """
+    if not data:
+        return []
+    parts = data.split(b"\n")
+    if data.endswith(b"\n"):
+        del parts[-1]
+    return parts
+
+
+def is_log_heading(line):
+    return line.rstrip(b" \t") == b"# Log"
+
+
+def is_blank_line(line):
+    return line.strip(b" \t") == b""
+
+
+def log_entry_allowed(old, new):
+    old_lines = line_contents(old)
+    new_lines = line_contents(new)
+    if new_lines == old_lines:
+        return True
+    extra = len(new_lines) - len(old_lines)
+    if extra <= 0:
+        return False
+    allowed = {len(old_lines)}
+    heading = next(
+        (index for index, line in enumerate(old_lines) if is_log_heading(line)),
+        None,
+    )
+    if heading is not None:
+        allowed.add(heading + 1)
+        blank = 0
+        while heading + 1 + blank < len(old_lines) and is_blank_line(
+            old_lines[heading + 1 + blank]
+        ):
+            blank += 1
+        allowed.add(heading + 1 + blank)
+    for index in allowed:
+        if (
+            new_lines[:index] == old_lines[:index]
+            and new_lines[index + extra :] == old_lines[index:]
+        ):
+            return True
+    return False
+
+
+def enforce_log_entry(baseline_root, current_root, baseline, current, allowed_append):
     for rel in sorted(allowed_append):
         previous = baseline.get(rel)
         record = current.get(rel)
@@ -455,8 +516,8 @@ def enforce_append(baseline_root, current_root, baseline, current, allowed_appen
             continue
         old = read_regular_bytes(baseline_root / rel, rel)
         new = read_regular_bytes(current_root / rel, rel)
-        if not new.startswith(old):
-            fail("not append-only: " + rel)
+        if not log_entry_allowed(old, new):
+            fail("not an allowed log change: " + rel)
 
 
 def compare(
@@ -532,7 +593,7 @@ def main():
         set(allowed_append),
         set(allowed_dated),
     )
-    enforce_append(
+    enforce_log_entry(
         baseline_root,
         current_root,
         baseline,
@@ -560,7 +621,7 @@ def main():
         + str(len(allowed_modify))
         + " allow-modify paths; "
         + str(len(allowed_append))
-        + " allow-append paths; "
+        + " allow-log-entry paths; "
         + str(len(allowed_dated))
         + " allow-dated paths; "
         + (
