@@ -11,7 +11,7 @@ in `SKILL.md`.
 
 ### Changed
 
-- Harden root routing (work_id `2026-10-11-root-routing-hardening`). A discussion conclusion, prior agreement, or request to apply a package change starts formal design instead of only refusing. A user-named plan path outside the resolved subject Atlas is not a storage override: persist in the resolved store, say why the named path was not used, and do not stop to ask. A legacy `references/atlas` gitlink still routes to migrate; a plain directory does not block. Current successors are `explicit-discuss-integration-adversarial-v2` and `atlas-storage-semantics-adversarial-v5`. Dogfood `suite_version` moves from 14 to 15. Version surfaces stay 0.9.0.
+- Harden root routing (work_id `2026-10-11-root-routing-hardening`). A discussion conclusion, prior agreement, or request to apply a package change starts formal design instead of only refusing. A user-named plan path outside the resolved subject Atlas is not a storage override: persist in the resolved store, say why the named path was not used, and do not stop to ask. A legacy `references/atlas` gitlink still routes to migrate; a plain directory does not block. Current successors are `explicit-discuss-integration-adversarial-v2` and `atlas-storage-semantics-adversarial-v5`. Dogfood `suite_version` moves from 14 to 16 (15 added the just-discuss and declined-path gates; 16 accepts a proposed plan status, scopes the work-node grader to the work node, and accepts inline change-class prose). Version surfaces stay 0.9.0.
 - Bound the source audit by a 720-second wall-clock deadline instead of
   shrinking each file's timeout by the tracked-file count. Each file is
   limited to the minimum of the 300-second command cap, a 60-second
@@ -122,7 +122,11 @@ in `SKILL.md`.
   gives the fixture SCHEMA a minimal compile block that Atlas v0.13.1 accepts;
   version 13 accepts a newest-first log entry under `# Log` and heading-led
   change-class prose; version 14 requires the canonical work node on the
-  plan tasks and keeps status whitespace to spaces and tabs.
+  plan tasks and keeps status whitespace to spaces and tabs; version 15
+  adds the just-discuss and declined-path gates; version 16 accepts a
+  proposed or designed plan status, checks work-node status only on the
+  work node, and accepts prose after a bold or underscore inline
+  change-class label.
 - Consumer validation fails when an installed `autogenesis` skill contains an
   `evals/` directory, a `.apm/` directory or any `eval.yaml`; source checks
   and the `suite-not-shipped` smoke keep the suite under `.apm/evals/`.

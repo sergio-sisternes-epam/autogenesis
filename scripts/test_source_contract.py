@@ -605,6 +605,7 @@ class SourceContractTests(unittest.TestCase):
                 "reference-heading",
                 "reference-heading-prose",
                 "reference-inline-label",
+                "reference-inline-prose",
             ],
         )
         for variant in variants:
@@ -646,6 +647,11 @@ class SourceContractTests(unittest.TestCase):
             "- **Change-class:** `hardening`",
             "**Change class:** new-surface",
             "**Change-class**: `new-skill`",
+            "**Change-class:** `hardening` — prose",
+            "- **Change-class:** `hardening` — prose",
+            "**Change-class:** hardening — prose",
+            "**Change class:** new-surface: adds one module",
+            "__Change-class:__ new-skill, full Genesis",
             "Change class: hardening",
             "* __change_class:__ hardening",
             "| Change class | `hardening` |",
@@ -671,7 +677,11 @@ class SourceContractTests(unittest.TestCase):
             "## Change class\n\nTo be decided.",
             "# Change class\n\nhardening",
             "- **Change-class:** `hardening-extra`",
+            "**Change-class:** hardening-extra",
             "**Change class:** TBD",
+            "**Change-class:** This is hardening",
+            "**Change-class:** hardening-extra — prose",
+            "Change class: hardening plus more",
             "| Change class | hardening plus more |",
             "Change class: Hardening",
             "The change class is hardening.",
@@ -701,10 +711,22 @@ class SourceContractTests(unittest.TestCase):
         cases = {
             "design-stops-for-approval": {
                 "reference-quoted": (plan, "status: 'designed'"),
+                "reference-proposed": (plan, "status: proposed"),
                 "negative-quoted": (plan, "status: 'approved'"),
                 "negative-comment": (plan, "status: done # implemented"),
                 "negative-work-approved": (work, "status: approved"),
                 "negative-work-done": (work, "status: done"),
+                "negative-work-proposed": (work, "status: proposed"),
+            },
+            "discussion-has-no-implement-authority": {
+                "reference-proposed": (plan, "status: proposed"),
+            },
+            "plan-only-in-resolved-atlas": {
+                "reference-proposed": (plan, "status: proposed"),
+                "negative-plan-awaiting": (plan, "status: awaiting-approval"),
+            },
+            "declined-plan-path-explained": {
+                "reference-proposed": (plan, "status: proposed"),
             },
             "implement-blocks-without-approval": {
                 "negative-plan-quoted": (plan, "status: 'approved'"),
@@ -1060,11 +1082,20 @@ class SourceContractTests(unittest.TestCase):
                 )
                 self.assertIn(dated_plan, args)
                 self.assertIn(dated_work, args)
-                self.assertLess(args.index(dated_plan), args.index("--status"))
-                self.assertLess(args.index(dated_work), args.index("--status"))
-                self.assertEqual(args[args.index("--status") + 1], "designed")
+                self.assertNotIn("--status", args)
                 self.assertNotIn("--exists-only", args)
                 self.assertNotIn("-c", args)
+                # The plan path is resolved only so both files share one
+                # date. Status is scoped to the work node.
+                scoped = []
+                index = 0
+                while index < len(args):
+                    if args[index] == "--status-for":
+                        scoped.append((args[index + 1], args[index + 2]))
+                        index += 3
+                        continue
+                    index += 1
+                self.assertEqual(scoped, [(dated_work, "designed")])
                 # The plan grader stays plan-only, so a missing work node
                 # fails only the work-node grader.
                 plan_graders = [
@@ -1090,6 +1121,179 @@ class SourceContractTests(unittest.TestCase):
                         "status: designed\n",
                         (variant / work).read_text(encoding="utf-8"),
                     )
+
+    def test_plan_status_accepts_proposed_and_work_node_stays_designed(self) -> None:
+        yaml = self._require_yaml()
+        script = ".apm/evals/autogenesis/graders/atlas_record_check.py"
+        tasks_dir = ROOT / ".apm/evals/autogenesis/tasks"
+        for path in sorted(tasks_dir.glob("*.yaml")):
+            task = yaml.safe_load(path.read_text(encoding="utf-8"))
+            for grader in task["graders"]:
+                if grader["type"] != "program":
+                    continue
+                args = grader["config"]["args"]
+                if not args or args[0] != script:
+                    continue
+                positional = []
+                statuses = []
+                status_for = {}
+                exists_only = False
+                index = 1
+                while index < len(args):
+                    arg = args[index]
+                    if arg == "--exists-only":
+                        exists_only = True
+                        index += 1
+                        continue
+                    if arg == "--status":
+                        statuses.append(args[index + 1])
+                        index += 2
+                        continue
+                    if arg == "--status-for":
+                        status_for.setdefault(args[index + 1], []).append(
+                            args[index + 2]
+                        )
+                        index += 3
+                        continue
+                    if arg == "--must-match":
+                        index += 2
+                        continue
+                    self.assertFalse(arg.startswith("--"), arg)
+                    positional.append(arg)
+                    index += 1
+                self.assertFalse(statuses and status_for, grader["name"])
+                checked = {}
+                if not exists_only:
+                    if status_for:
+                        checked = status_for
+                    else:
+                        checked = {item: list(statuses) for item in positional}
+                with self.subTest(task=task["id"], grader=grader["name"]):
+                    for rel, allowed in checked.items():
+                        if "/plans/" in rel:
+                            self.assertEqual(allowed, ["proposed", "designed"])
+                        elif "/work/" in rel:
+                            self.assertEqual(allowed, ["designed"])
+                        else:
+                            self.fail(rel)
+                    if grader["name"] == "work_node_persisted_in_resolved_atlas":
+                        self.assertFalse(
+                            any("/plans/" in rel for rel in checked),
+                            checked,
+                        )
+
+        plan = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/plans/2026-10-08-add-retry-note.md"
+        )
+        work = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/work/2026-10-08-add-retry-note.md"
+        )
+        base = (
+            ROOT
+            / ".apm/evals/autogenesis/fixtures/design-stops-for-approval"
+            / "reference"
+        )
+        plan_text = (base / plan).read_text(encoding="utf-8")
+        work_text = (base / work).read_text(encoding="utf-8")
+        design = yaml.safe_load(
+            (tasks_dir / "design-stops-for-approval.yaml").read_text(
+                encoding="utf-8"
+            )
+        )
+        design_status = next(
+            item
+            for item in design["graders"]
+            if item["name"] == "plan_status_not_advanced"
+        )["config"]["args"]
+        plan_only = yaml.safe_load(
+            (tasks_dir / "plan-only-in-resolved-atlas.yaml").read_text(
+                encoding="utf-8"
+            )
+        )
+        plan_only_status = next(
+            item
+            for item in plan_only["graders"]
+            if item["name"] == "plan_status_not_advanced"
+        )["config"]["args"]
+        plan_only_work = next(
+            item
+            for item in plan_only["graders"]
+            if item["name"] == "work_node_persisted_in_resolved_atlas"
+        )["config"]["args"]
+
+        def run(args, workspace):
+            return subprocess.run(
+                ["python3", *args],
+                cwd=ROOT,
+                env={**os.environ, "WAZA_WORKSPACE_DIR": str(workspace)},
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+        cases = {
+            "proposed": (plan_text.replace("status: designed\n", "status: proposed\n", 1), work_text, 0),
+            "missing-status": (plan_text.replace("status: designed\n", "", 1), work_text, 1),
+            "awaiting-approval": (
+                plan_text.replace("status: designed\n", "status: awaiting-approval\n", 1),
+                work_text,
+                1,
+            ),
+            "approved": (
+                plan_text.replace("status: designed\n", "status: approved\n", 1),
+                work_text,
+                1,
+            ),
+            "work-proposed": (
+                plan_text,
+                work_text.replace("status: designed\n", "status: proposed\n", 1),
+                1,
+            ),
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            for name, (plan_body, work_body, expect) in cases.items():
+                workspace = Path(tmp) / name
+                (workspace / plan).parent.mkdir(parents=True)
+                (workspace / work).parent.mkdir(parents=True)
+                (workspace / plan).write_text(plan_body, encoding="utf-8")
+                (workspace / work).write_text(work_body, encoding="utf-8")
+                result = run(design_status, workspace)
+                with self.subTest(case=name):
+                    if expect == 0:
+                        self.assertEqual(result.returncode, 0, result.stderr)
+                    else:
+                        self.assertNotEqual(result.returncode, 0, result.stdout)
+                if name == "missing-status":
+                    self.assertIn("found 0", result.stderr)
+                if name in {"awaiting-approval", "approved"}:
+                    self.assertIn("expected one of 'proposed', 'designed'", result.stderr)
+                if name == "work-proposed":
+                    self.assertIn("/work/", result.stderr)
+                    self.assertIn("status is 'proposed'", result.stderr)
+
+        awaiting = (
+            ROOT
+            / ".apm/evals/autogenesis/fixtures/plan-only-in-resolved-atlas"
+            / "negative-plan-awaiting"
+        )
+        proposed = (
+            ROOT
+            / ".apm/evals/autogenesis/fixtures/plan-only-in-resolved-atlas"
+            / "reference-proposed"
+        )
+        bad_plan = run(plan_only_status, awaiting)
+        good_work = run(plan_only_work, awaiting)
+        good_plan = run(plan_only_status, proposed)
+        self.assertNotEqual(bad_plan.returncode, 0, bad_plan.stdout)
+        self.assertIn("awaiting-approval", bad_plan.stderr)
+        self.assertEqual(good_work.returncode, 0, good_work.stderr)
+        notes, _, resolved = good_work.stdout.partition("resolved:")
+        self.assertIn("status 'designed'", notes)
+        self.assertNotIn("plans/", notes)
+        self.assertIn("plans/", resolved)
+        self.assertEqual(good_plan.returncode, 0, good_plan.stderr)
 
     def test_plan_work_node_missing_omits_only_the_work_node(self) -> None:
         cases = {

@@ -1,4 +1,5 @@
-# suite_version: 15
+# suite_version: 16
+# Reason for 16: every plan-status check accepts the simple scalar proposed or designed; the work-node grader checks only the work node (the plan path shares the date and is not read); a bold or underscore inline Change-class label may follow the exact class token with prose.
 # Reason for 15: new gate tasks for the just-discuss non-trigger and the declined-path explanation; evidence-task prompts, graders, and fixtures unchanged.
 # Reason for 14: plan tasks require the canonical work node at status designed, sharing the plan date, and the status parser treats only spaces and tabs as whitespace.
 # Reason for 13: a store log may gain lines at the end or in one contiguous block directly under the first # Log heading, so a newest-first entry passes, and a Change-class heading may follow the exact class token with prose while the key, inline-label and table forms stay exact.
