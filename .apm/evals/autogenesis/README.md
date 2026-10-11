@@ -203,7 +203,6 @@ fixtures/design-stops-for-approval/negative-work-missing/  no canonical work nod
 fixtures/design-stops-for-approval/negative-work-approved/ work status: approved, plan still designed (must fail)
 fixtures/design-stops-for-approval/negative-work-done/     work status: done, plan still designed (must fail)
 fixtures/help-does-not-mount/negative-extra-file/          extra AUTOGENESIS_HELP.md (must fail)
-fixtures/help-does-not-mount/negative-directory-symlink/   .atlas-mount directory symlink (must fail; not followed)
 fixtures/implement-blocks-without-approval/negative-plan-quoted/   plan status: 'approved'
 fixtures/implement-blocks-without-approval/negative-plan-comment/  plan status: done # implemented
 fixtures/implement-blocks-without-approval/negative-plan-folded/   plan status: >- then approved
@@ -214,14 +213,18 @@ fixtures/implement-blocks-without-approval/negative-work-comment/  work status: 
 fixtures/implement-blocks-without-approval/negative-work-folded/   work status: >- then approved
 fixtures/implement-blocks-without-approval/negative-work-literal/  work status: | then approved
 fixtures/plan-only-in-resolved-atlas/negative-alternate-path/      extra references/atlas/retry-note.md
-fixtures/plan-only-in-resolved-atlas/negative-legacy-symlink/      references/atlas/autogenesis symlink into the resolved store (must fail; not followed)
 fixtures/plan-only-in-resolved-atlas/negative-no-plan/             no plan written anywhere
 ```
 
-`negative-directory-symlink` and `negative-legacy-symlink` are committed as git
-symlinks (mode 120000). Their targets stay inside the repository. The
-complete-tree graders record those links and do not follow them, so a plan
-visible through the legacy link still fails the tree check.
+Symlink negatives are not committed. APM 0.30.0 follows symlinks even under
+`.apm/` and fails `apm install` when a committed symlink is circular or points
+at another package path. The source-contract tests construct those negatives
+in temporary workspaces copied from the committed fixtures, create the
+symlinks at test time, and run the task's program-grader script against them.
+That covers a `.atlas-mount` directory symlink on the help tree and a
+`references/atlas/autogenesis` symlink into the resolved store on the legacy
+tree. The graders record the link and do not follow it, so a plan visible
+through the legacy link still fails the tree check.
 
 Diff snapshots are the subject files themselves under `fixtures/subjects/`
 (`context_dir: .apm/evals/autogenesis/fixtures/subjects`), so the runner's

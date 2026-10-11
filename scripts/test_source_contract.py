@@ -1209,20 +1209,50 @@ class SourceContractTests(unittest.TestCase):
             )
             self.assertIn("unmounted subject not found", missing_baseline.stderr)
 
-    def _program_script(self, task_name: str) -> str:
+    def _program_script(self, task_name: str, index: int = 0) -> str:
         text = (
             ROOT / ".apm/evals/autogenesis/tasks" / task_name
         ).read_text(encoding="utf-8")
-        start = text.index("          import os\n")
-        end = text.index('          if __name__ == "__main__":\n', start)
+        start = 0
+        found = -1
+        for _ in range(index + 1):
+            found = text.find("          import os\n", start)
+            if found < 0:
+                self.fail(f"{task_name}: program script {index} not found")
+            start = found + 1
+        end = text.index('          if __name__ == "__main__":\n', found)
         lines = []
-        for line in text[start:end].splitlines():
+        for line in text[found:end].splitlines():
             if line.startswith("          "):
                 lines.append(line[10:])
             else:
                 self.assertEqual(line, "")
                 lines.append("")
         return "\n".join(lines) + 'if __name__ == "__main__":\n    main()\n'
+
+    def _copy_fixture(self, source: Path, dest: Path) -> None:
+        dest.mkdir(parents=True, exist_ok=True)
+        for dirpath, dirnames, filenames in os.walk(source, followlinks=False):
+            current = dest / Path(dirpath).relative_to(source)
+            current.mkdir(parents=True, exist_ok=True)
+            for name in list(dirnames) + list(filenames):
+                child = Path(dirpath) / name
+                if child.is_symlink() or not (child.is_dir() or child.is_file()):
+                    self.fail(f"committed fixture contains a non-regular path: {child}")
+            for name in filenames:
+                (current / name).write_bytes((Path(dirpath) / name).read_bytes())
+
+    def _grade_program(
+        self, task_name: str, workspace: Path, index: int = 0
+    ) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            ["python3", "-c", self._program_script(task_name, index)],
+            cwd=ROOT,
+            env={**os.environ, "WAZA_WORKSPACE_DIR": str(workspace)},
+            capture_output=True,
+            text=True,
+            check=False,
+        )
 
     def test_complete_tree_graders_share_symlink_recording(self) -> None:
         help_script = self._program_script("help-does-not-mount.yaml")
@@ -1240,95 +1270,66 @@ class SourceContractTests(unittest.TestCase):
         self.assertIn('"symlink"', help_helpers)
         self.assertNotIn("followlinks=True", help_helpers)
 
-    def test_directory_symlink_fixtures_are_git_symlinks(self) -> None:
-        suite = ROOT / ".apm/evals/autogenesis/fixtures"
-        expected = {
-            (
-                "help-does-not-mount/negative-directory-symlink/.atlas-mount"
-            ): ".",
-            (
-                "plan-only-in-resolved-atlas/negative-legacy-symlink/"
-                "references/atlas/autogenesis"
-            ): (
-                "../../.atlas/example.invalid/fixtures/"
-                "retry-helper-atlas/autogenesis"
-            ),
-        }
-        git_paths = [
-            ".apm/evals/autogenesis/fixtures/" + relative
-            for relative in expected
-        ]
+    def test_repository_tracks_no_symlinks(self) -> None:
         listed = subprocess.run(
-            ["git", "ls-files", "-s", "--", *git_paths],
+            ["git", "ls-files", "-s"],
             cwd=ROOT,
             capture_output=True,
             text=True,
             check=True,
         )
-        modes = {}
-        for line in listed.stdout.splitlines():
-            mode, _blob, _stage, path = line.split(maxsplit=3)
-            modes[path] = mode
-        for relative, target in expected.items():
-            with self.subTest(path=relative):
-                path = suite / relative
-                self.assertTrue(path.is_symlink(), relative)
-                self.assertEqual(os.readlink(path), target)
-                self.assertEqual(
-                    modes.get(".apm/evals/autogenesis/fixtures/" + relative),
-                    "120000",
-                    relative,
-                )
-                self.assertTrue(path.resolve().is_relative_to(ROOT))
+        symlinks = [
+            line for line in listed.stdout.splitlines() if line.startswith("120000 ")
+        ]
+        self.assertEqual(symlinks, [])
 
-    def test_help_directory_symlink_negative_adds_only_the_mount_link(
+    def test_tracked_symlink_is_rejected_anywhere(self) -> None:
+        import audit_source
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+            (root / "file.txt").write_text("x\n", encoding="utf-8")
+            (root / "link").symlink_to("file.txt")
+            subprocess.run(["git", "add", "-A"], cwd=root, check=True)
+            with self.assertRaises(audit_source.SourceAuditError) as caught:
+                audit_source.tracked_files(root)
+            self.assertIn(
+                "link: tracked symbolic links are not auditable",
+                str(caught.exception),
+            )
+            nested = root / ".apm" / "evals" / "example"
+            nested.mkdir(parents=True)
+            (nested / "mount").symlink_to(".", target_is_directory=True)
+            subprocess.run(["git", "add", "-A"], cwd=root, check=True)
+            with self.assertRaises(audit_source.SourceAuditError) as nested_caught:
+                audit_source.tracked_files(root)
+            self.assertIn(
+                ".apm/evals/example/mount: tracked symbolic links are not auditable",
+                str(nested_caught.exception),
+            )
+
+    def test_help_directory_symlink_negative_is_constructed_at_test_time(
         self,
     ) -> None:
         base = (
             ROOT
             / ".apm/evals/autogenesis/fixtures/help-does-not-mount/reference"
         )
-        variant = base.parent / "negative-directory-symlink"
-        link = variant / ".atlas-mount"
-        self.assertEqual(os.readlink(link), ".")
-        changed = [
-            path.relative_to(variant).as_posix()
-            for path in variant.rglob("*")
-            if not path.is_symlink()
-            and path.is_file()
-            and (
-                not (base / path.relative_to(variant)).is_file()
-                or (base / path.relative_to(variant)).read_bytes()
-                != path.read_bytes()
-            )
-        ]
-        extras = [
-            path.relative_to(variant).as_posix()
-            for path in variant.rglob("*")
-            if path.is_symlink()
-            or (
-                path.is_file()
-                and not (base / path.relative_to(variant)).exists()
-            )
-        ]
-        self.assertEqual(changed, [])
-        self.assertEqual(extras, [".atlas-mount"])
-        self.assertTrue(
-            (base.parent / "negative-directory-symlink.results.json").is_file()
-        )
-        script = self._program_script("help-does-not-mount.yaml")
-        result = subprocess.run(
-            ["python3", "-c", script],
-            cwd=ROOT,
-            env={**os.environ, "WAZA_WORKSPACE_DIR": str(variant)},
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertNotEqual(result.returncode, 0, result.stdout)
-        self.assertIn(".atlas-mount", result.stderr)
+        task = "help-does-not-mount.yaml"
+        passed = self._grade_program(task, base)
+        self.assertEqual(passed.returncode, 0, passed.stderr)
+        with tempfile.TemporaryDirectory() as tmp:
+            variant = Path(tmp) / "negative-directory-symlink"
+            self._copy_fixture(base, variant)
+            link = variant / ".atlas-mount"
+            link.symlink_to(".", target_is_directory=True)
+            self.assertEqual(os.readlink(link), ".")
+            failed = self._grade_program(task, variant)
+        self.assertNotEqual(failed.returncode, 0, failed.stdout)
+        self.assertIn(".atlas-mount", failed.stderr)
 
-    def test_legacy_symlink_negative_points_into_the_resolved_store(
+    def test_legacy_symlink_negative_is_constructed_at_test_time(
         self,
     ) -> None:
         base = (
@@ -1336,71 +1337,33 @@ class SourceContractTests(unittest.TestCase):
             / ".apm/evals/autogenesis/fixtures/plan-only-in-resolved-atlas"
             / "reference"
         )
-        variant = base.parent / "negative-legacy-symlink"
-        relative = "references/atlas/autogenesis"
-        link = variant / relative
-        target = (
-            "../../.atlas/example.invalid/fixtures/"
-            "retry-helper-atlas/autogenesis"
-        )
-        self.assertEqual(os.readlink(link), target)
+        task = "plan-only-in-resolved-atlas.yaml"
+        passed = self._grade_program(task, base)
+        self.assertEqual(passed.returncode, 0, passed.stderr)
         plan = (
             ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
             "/plans/2026-10-08-add-retry-note.md"
         )
-        self.assertTrue((variant / plan).is_file())
-        self.assertEqual(
-            (variant / plan).read_bytes(),
-            (base / plan).read_bytes(),
+        relative = "references/atlas/autogenesis"
+        target = (
+            "../../.atlas/example.invalid/fixtures/"
+            "retry-helper-atlas/autogenesis"
         )
-        self.assertTrue((link / "plans/2026-10-08-add-retry-note.md").is_file())
-        changed = [
-            path.relative_to(variant).as_posix()
-            for path in variant.rglob("*")
-            if not path.is_symlink()
-            and path.is_file()
-            and (
-                not (base / path.relative_to(variant)).is_file()
-                or (base / path.relative_to(variant)).read_bytes()
-                != path.read_bytes()
+        with tempfile.TemporaryDirectory() as tmp:
+            variant = Path(tmp) / "negative-legacy-symlink"
+            self._copy_fixture(base, variant)
+            link = variant / relative
+            link.symlink_to(target, target_is_directory=True)
+            self.assertEqual(os.readlink(link), target)
+            self.assertEqual(
+                (variant / plan).read_bytes(),
+                (base / plan).read_bytes(),
             )
-        ]
-        self.assertEqual(changed, [])
-        self.assertTrue(
-            (base.parent / "negative-legacy-symlink.results.json").is_file()
-        )
-        script = self._program_script("plan-only-in-resolved-atlas.yaml")
-        passed = subprocess.run(
-            ["python3", "-c", script],
-            cwd=ROOT,
-            env={**os.environ, "WAZA_WORKSPACE_DIR": str(base)},
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(passed.returncode, 0, passed.stderr)
-        failed = subprocess.run(
-            ["python3", "-c", script],
-            cwd=ROOT,
-            env={**os.environ, "WAZA_WORKSPACE_DIR": str(variant)},
-            capture_output=True,
-            text=True,
-            check=False,
-        )
+            self.assertTrue((link / "plans/2026-10-08-add-retry-note.md").is_file())
+            failed = self._grade_program(task, variant)
         self.assertNotEqual(failed.returncode, 0, failed.stdout)
         self.assertIn("autogenesis", failed.stderr)
         self.assertNotIn("2026-10-08-add-retry-note.md", failed.stderr)
-
-    def test_eval_fixture_symlinks_are_skipped_by_source_audit(self) -> None:
-        import audit_source
-
-        tracked = audit_source.tracked_files()
-        symlink = (
-            ".apm/evals/autogenesis/fixtures/help-does-not-mount/"
-            "negative-directory-symlink/.atlas-mount"
-        )
-        self.assertNotIn(symlink, tracked)
-        self.assertTrue((ROOT / symlink).is_symlink())
 
     def test_package_manifest_and_lock_have_no_evaluator_dependency(self) -> None:
         for name in ("apm.yml", "apm.lock.yaml"):
