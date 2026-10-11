@@ -4,11 +4,11 @@ dependencies:
 - repo_url: sergio-sisternes-epam/atlas
   name: atlas
   host: github.com
-  resolved_commit: 40e11c65e243236850c26fc6cd5a04acdd483eb4
-  resolved_ref: v0.12.0
-  version: 0.12.0
+  resolved_commit: b0b101243ffae8f6da16ab4d139057b4f29a01a5
+  resolved_ref: v0.13.0
+  version: 0.13.0
   package_type: hybrid
-  content_hash: sha256:c6f574a9746301ff2167f0a90bdb4dd8ef56113357073d6ac226d9dea943dc8c
+  content_hash: sha256:f88f93a9a3423640dd3a28b3e9da8df2f32324786db77c02dbfa417d73b2882e
   discovered_via: atlas
   marketplace_plugin_name: atlas
   declared_license: Apache-2.0

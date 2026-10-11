@@ -7,6 +7,112 @@ in `SKILL.md`.
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-10-08
+
+### Changed
+
+- Cut behavioural evaluation over from the agent-spec/Gherkin gate to
+  authored upstream Waza eval suites (work_id `2026-10-08-waza-evaluation`).
+  Autogenesis designs and authors suites in the Waza 0.38.9 format
+  (`schemaVersion: "1.4"`) and never runs suite tasks against an agent or
+  makes a model call for evaluation. Running belongs to the subject owner or
+  its CI; supplied results may be cited with provenance.
+- `behavioural_contract` now accepts `waza | deferred:<reason>`; the removed
+  value `specify` is rejected with a diagnostic (no alias). Gate G-BEHAVIOUR
+  replaces G-BDD; G-EVAL stays deterministic-first.
+- Design drafts `## Behavioural evaluation (Waza)` tasks with reference and
+  negative fixtures for gate tasks, or preserves `deferred:<reason>`.
+  Drafting tasks does not approve suite files. Implement authors files at
+  `<subject>/evals/<skill>/` (or `<subject>/.apm/evals/<skill>/` with
+  `paths.evals: .apm/evals` when the subject is an APM package with a root
+  `SKILL.md`, because APM 0.30.0 ships every other path) only when the
+  approved plan names that suite-file scope. Counter conversion into gate
+  tasks is optional inside that scope and does not happen after a deferral.
+  When suite files are in scope, implement runs only the model-free validity
+  allowlist V1-V3 with `WAZA_NO_UPDATE_CHECK=1` and records the `waza_suite`
+  block with `run_status: not-run-by-autogenesis`, which is not behavioural
+  evidence.
+- The source-contract tests require PyYAML 6.0.2, hash-pinned in
+  `scripts/requirements-test.txt` and installed by CI before unittest. A
+  missing parser fails those tests instead of skipping them.
+- `specify-only-adversarial-v2` and `help-getting-started-adversarial-v1`
+  become historical, succeeded by `waza-evaluation-adversarial-v1` and the
+  parse-valid `help-getting-started-adversarial-v2`.
+- `atlas-migrate-activation-adherence-v4` and
+  `atlas-storage-semantics-adversarial-v3` stay historical with their
+  original bodies. Successors `atlas-migrate-activation-adherence-v5` and
+  `atlas-storage-semantics-adversarial-v4` carry the 0.9.0 release identity.
+  The storage successor asserts Atlas path `references/paths/recall.md`
+  instead of the removed `references/paths/query.md`.
+- Refresh the frozen dependency graph so Atlas follows the live catalog
+  resolution `v0.13.0` (`b0b101243ffae8f6da16ab4d139057b4f29a01a5`).
+  Autogenesis 0.9.0 requires Atlas v0.13.0 or later. Path `query` and CLI
+  `search`/`query` were removed in that release with no alias, so those
+  uses now follow path `recall` and `atlas recall run`. OKF `v0.2.1`,
+  Discuss `v0.5.0`, and Think `v0.1.0` stay on their existing lock
+  resolutions.
+
+### Added
+
+- Autogenesis dogfood eval suite at `.apm/evals/autogenesis/`
+  (`suite_version: 2`, Waza 0.38.9 format, `schemaVersion: "1.4"`): five
+  gate tasks with deterministic outcome graders, two trigger tasks and one
+  advisory quality task. It ships minimal fixture subject repositories, reference and negative
+  fixtures with hand-authored results files for every deterministic task, and
+  a README with run instructions, required skills and the recommended pass
+  rule. Authored and never run by Autogenesis
+  (`run_status: not-run-by-autogenesis`); a structural unit test checks it.
+  `suite_version: 2` moves the suite under `.apm/evals/` so it is not shipped
+  in the installed skill (the root `.waza.yaml` sets `paths.evals`), narrows
+  `diff` grader context to `fixtures/subjects`, lets the
+  `plan-has-genesis-artifacts` change-class check accept a "Change class"
+  heading as well as a `change_class:` key, and adds `reference-heading` and
+  `negative-heading` fixtures. The suite README adds a run layout that keeps
+  the suite outside the agent's working directory and skill paths, recommends
+  `config.skill_directories` over `paths.skills`, explains how to read
+  `skill_invocation` scores, and requires `python3` in the runner image.
+  `suite_version: 3` parses plan and work-node status instead of matching
+  YAML spelling, compares the complete legacy `references/atlas` tree with
+  its initial state, and sets `config.inject_skill_body: false` so trigger
+  tasks are not handed the skill body. `suite_version: 4` makes those status
+  graders fail closed unless the value is the simple scalar `designed`, and
+  requires the resolved plan file to exist. `suite_version: 5` requires the
+  canonical design work node to exist at status `designed`, and compares the
+  help workspace with the unmounted subject, ignoring only the root `.git`
+  directory. `suite_version: 6` records every child in those complete-tree
+  comparisons with lstat, including directory and file symlinks, and never
+  follows them. `suite_version: 7` makes status graders lstat each canonical
+  path and its parents and fail closed on a symlink, requires discussion to
+  persist a designed plan and work node, and stops committing symlink
+  fixtures because a committed symlink breaks APM install.
+  `suite_version: 8` gives every task one shared whole-workspace allowlist:
+  any added, changed or removed path outside that list, including a symlink,
+  fails. The suite README records the model-free validity re-run for
+  suite_version 8, and leaves `plan-has-genesis-artifacts` to the runner
+  because it contains a prompt grader. `suite_version: 9` lets the near-miss
+  trigger task change `app/durations.py` and Python bytecode caches, and lets
+  the skill-change trigger task add or change regular files under the resolved
+  store's plans and work directories. Any other path, including a symlink,
+  still fails. Committed fixture grades are unchanged.
+- Consumer validation fails when an installed `autogenesis` skill contains an
+  `evals/` directory, a `.apm/` directory or any `eval.yaml`; source checks
+  and the `suite-not-shipped` smoke keep the suite under `.apm/evals/`.
+- Shared authoring guide `references/waza-authoring.md`: format pin, suite
+  layout, tiers and tags, authoring rules, reference and negative fixtures,
+  pass-bar metadata, the closed model-free validity allowlist, the evidence
+  block, the run boundary and the `supplied_results` citation format.
+- Work-node fields `eval_suite_ref` and `behavioural_status`.
+- Unit tests that every current scenario parses, that the guide carries the
+  pins, that no Waza wrapper is named, that Waza and agent-spec stay out of
+  the APM manifest and lock, and that no live instruction requires agent-spec
+  or `.feature` files.
+
+### Removed
+
+- The agent-spec `specify` behavioural contract, the
+  `## Behavioural contract (agent-spec)` plan section and the rule set around
+  behavioural Gherkin. Waza is not an APM dependency, and no CI job runs it.
+
 ## [0.8.1] - 2026-09-28
 
 ### Changed
@@ -242,7 +348,8 @@ in `SKILL.md`.
 - **Canonical decision:** `wiki-folder-deletion-policy` — no auto-delete on migrate; human-gated archive removal.
 - **Package metadata:** `apm.yml` deps on atlas + okf (not okf-wiki).
 
-[Unreleased]: https://github.com/sergio-sisternes-epam/autogenesis/compare/v0.8.1...HEAD
+[Unreleased]: https://github.com/sergio-sisternes-epam/autogenesis/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.9.0
 [0.8.1]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.8.1
 [0.8.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.8.0
 [0.7.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.7.0

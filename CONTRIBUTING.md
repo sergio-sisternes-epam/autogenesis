@@ -49,7 +49,7 @@ in `apm.lock.yaml`. The lock is generated state: commit it, but never edit
 it by hand. `apm_modules/` and harness deployment directories are disposable
 and must remain untracked.
 
-Autogenesis v0.8.1 has 22 parent-routed modules and no `discuss` operation.
+Autogenesis v0.9.0 has 22 parent-routed modules and no `discuss` operation.
 Think support modules nest-load catalog `think@atlas`; they do not vendor
 forked think procedure. The root `SKILL.md` owns the version surface and
 module registry. Module
@@ -68,9 +68,11 @@ approval flow.
 
 ## Local checks
 
-Run the focused offline suite first with a Python 3.12 interpreter:
+Install the hash-pinned test parser, then run the focused offline suite with
+a Python 3.12 interpreter. A missing parser fails the suite; it is not skipped:
 
 ```text
+python3 -m pip install --require-hashes -r scripts/requirements-test.txt
 python3 -m unittest discover -s scripts -p 'test_*.py'
 python3 scripts/release_readiness.py
 python3 scripts/dependency_contract.py
@@ -87,10 +89,8 @@ apm lock --no-policy --target agent-skills
 python3 scripts/audit_source.py --jobs 8
 ```
 
-APM 0.30.0 `apm install --frozen` compares marketplace placeholder keys
-(`_marketplace/atlas/<name>`) to resolved git lock keys and
-cannot validate this manifest. Replay with `apm lock` and require the
-committed lock to stay byte-identical.
+APM 0.30.0 `apm install --frozen` cannot validate this manifest. Replay with
+`apm lock` and keep the committed lock byte-identical.
 
 For the complete consumer checks:
 
@@ -99,12 +99,10 @@ python3 scripts/validate_consumer.py --target agent-skills
 python3 scripts/validate_consumer.py --target claude,codex,copilot,cursor,gemini,grok-build,kiro,opencode,windsurf
 ```
 
-These validators require Autogenesis itself, matching name/version metadata,
-source provenance, exact direct dependency locks, stable frozen replay, and a
-green APM audit. Transitive dependency skills are expected and permitted.
-They also reject extra Autogenesis-owned exports and missing or altered nested
-assets, repeating ownership/content validation after frozen replay. Legitimate
-APM link transformations are constrained, not treated as arbitrary text drift.
+These validators require Autogenesis itself, matching metadata, provenance,
+exact locks, stable frozen replay and a green APM audit. Transitive skills
+are expected. They reject extra owned exports and altered nested assets.
+Legitimate APM link transformations are constrained, not arbitrary drift.
 
 Module behavior is governed by the root router, module instructions and their
 linked contract. Do not introduce a generic runtime validator solely to enforce
@@ -124,6 +122,21 @@ Scenario files are evaluator-neutral specifications. Execute applicable
 commands through tools already available in the repository and retain actual
 output; no separate evaluator is required. GitHub CI remains the final
 release gate.
+
+Behavioural suites are authored in the upstream Waza format (Waza 0.38.9,
+`schemaVersion: "1.4"`) at `<subject>/evals/<skill>/`, or at
+`<subject>/.apm/evals/<skill>/` when the subject is an APM package with a root
+`SKILL.md` (this repository's dogfood suite is `.apm/evals/autogenesis/`),
+following `references/waza-authoring.md`. Autogenesis never runs suite tasks
+against an agent and makes no model call for evaluation. It may run only the closed
+model-free allowlist (`waza check`, `waza spec verify` without the semantic
+flag, and `waza grade` of deterministic graders against authored reference and
+negative fixtures), always with `WAZA_NO_UPDATE_CHECK=1`, and records the
+result as validity evidence with `run_status: not-run-by-autogenesis`, never
+as behavioural evidence. Running a suite belongs to the subject owner or its
+CI under their own token and budget; supplied results may be cited only with
+the provenance block in the guide. Do not add Waza, a wrapper or agent-spec
+to `apm.yml`, and do not add CI jobs that run Waza.
 
 The invocation authority and repository checks above govern Autogenesis, not
 all S8 adopters. Preserve the instruction-first boundary in design, initialise,
@@ -147,7 +160,7 @@ modularization.
 ## Reviewed dependency divergence
 
 Do not remove direct OKF: two Autogenesis modules invoke it directly.
-Catalog Atlas v0.12.0 and Discuss v0.5.0 now resolve nested OKF/Atlas through
+Catalog Atlas v0.13.0 and Discuss v0.5.0 now resolve nested OKF/Atlas through
 the same marketplace pins as this root. There are no reviewed graph
 divergences. Any new divergence requires an explicit dependency review.
 
@@ -155,7 +168,7 @@ Released pins from `apm.lock.yaml`:
 
 | Direct package | Released pin | Resolved commit |
 |---|---|---|
-| Atlas | `v0.12.0` | `40e11c65e243236850c26fc6cd5a04acdd483eb4` |
+| Atlas | `v0.13.0` | `b0b101243ffae8f6da16ab4d139057b4f29a01a5` |
 | OKF | `v0.2.1` | `5246f7b193b58a32ac8a15fc76aedf37c42b042c` |
 | Discuss | `v0.5.0` | `480fc5fc9f0b1c280cd2301dccbf76ff63ddbc4e` |
 | Think | `v0.1.0` | `874613a67018c74ee95f857416fb315d2f80b92b` |
@@ -168,16 +181,16 @@ and target-specific consumer commands stay here.
 Keep these commands on the same version as `apm.yml`:
 
 ```text
-apm install sergio-sisternes-epam/autogenesis#v0.8.1 --target agent-skills
+apm install sergio-sisternes-epam/autogenesis#v0.9.0 --target agent-skills
 ```
 
 ```text
-apm install sergio-sisternes-epam/autogenesis#v0.8.1 --target claude,codex,copilot,cursor,gemini,grok-build,kiro,opencode,windsurf
+apm install sergio-sisternes-epam/autogenesis#v0.9.0 --target claude,codex,copilot,cursor,gemini,grok-build,kiro,opencode,windsurf
 ```
 
 Do not update any global consumer yet. After a release, and only with
 explicit approval, prefer an immutable dependency:
-  `sergio-sisternes-epam/autogenesis#v0.8.1`.
+  `sergio-sisternes-epam/autogenesis#v0.9.0`.
 
 ## Release handoff
 

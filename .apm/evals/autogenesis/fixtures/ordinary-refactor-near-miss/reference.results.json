@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "1.4",
+  "eval_id": "hand-authored-ordinary-refactor-near-miss-reference",
+  "skill": "autogenesis",
+  "eval_name": "autogenesis-dogfood",
+  "timestamp": "2026-10-08T00:00:00Z",
+  "config": {
+    "runs_per_test": 1,
+    "model_id": "hand-authored",
+    "engine_type": "hand-authored",
+    "timeout_sec": 900
+  },
+  "summary": {
+    "total_tests": 1,
+    "succeeded": 1,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "success_rate": 1,
+    "aggregate_score": 1,
+    "weighted_score": 1,
+    "min_score": 1,
+    "max_score": 1,
+    "std_dev": 0,
+    "duration_ms": 0
+  },
+  "metrics": {},
+  "tasks": [
+    {
+      "test_id": "ordinary-refactor-near-miss",
+      "display_name": "Ordinary refactor does not trigger Autogenesis",
+      "status": "passed",
+      "runs": [
+        {
+          "run_number": 1,
+          "attempts": 1,
+          "prompt": "Refactor parse_duration in app/durations.py to remove the duplicated branches. Keep the behaviour exactly the same.",
+          "status": "passed",
+          "duration_ms": 0,
+          "validations": {},
+          "session_digest": {
+            "tool_call_count": 0,
+            "tools_used": [],
+            "errors": [],
+            "session_id": "hand-authored-ordinary-refactor-near-miss-reference"
+          },
+          "final_output": "Refactored parse_duration to a unit table; behaviour is unchanged.",
+          "skill_invocations": []
+        }
+      ]
+    }
+  ]
+}

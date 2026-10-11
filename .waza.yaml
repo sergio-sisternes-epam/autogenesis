@@ -1,0 +1,22 @@
+# Project token budget for upstream Waza 0.38.9 (microsoft/waza).
+# Waza's built-in SKILL.md default is 500 tokens (soft) and its hard limit is
+# 5000. Autogenesis's root SKILL.md is a thin router for 22 parent-routed
+# modules and measures about 3762 tokens, so 4000 keeps it under budget with
+# modest headroom while staying below the hard limit (approved 2026-10-08).
+# Setting tokens.limits replaces Waza's built-in limits wholesale, so the
+# other values restate the built-in defaults unchanged.
+# The dogfood suite lives under .apm/evals/ because APM 0.30.0 ships every
+# package path except .apm/ into the installed skill; Waza finds the suite at
+# .apm/evals/autogenesis/eval.yaml through paths.evals.
+paths:
+  evals: .apm/evals
+tokens:
+  limits:
+    defaults:
+      "SKILL.md": 4000
+      "references/**/*.md": 1000
+      "docs/**/*.md": 1500
+      "*.md": 2000
+    overrides:
+      "README.md": 3000
+      "CONTRIBUTING.md": 2500
