@@ -126,7 +126,7 @@ instruction assets in this package, not independent catalogue entries.
 3. Form a root invocation request; select an operation from the registry.
 4. Resolve the module from this loaded skill root and **read its entrypoint**
    before following its procedure. Emit the configured request card first.
-5. If Exit needs memory ops: activate root skill **atlas**, then load the named path module (`references/paths/remember.md` / `recall.md` / `work.md`) — do not invent remember/ingest from memory.
+5. If Exit needs memory ops: activate root skill **atlas**, then load the named path module (`references/paths/remember.md` / `references/paths/recall.md` / `references/paths/work.md`) — do not invent remember/ingest from memory.
 
 **Failure modes to avoid:** treating `design` / `implement` as peer root skills;
 running from a registry stub without reading its module; eager loading; treating

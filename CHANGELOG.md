@@ -38,6 +38,12 @@ in `SKILL.md`.
 - `specify-only-adversarial-v2` and `help-getting-started-adversarial-v1`
   become historical, succeeded by `waza-evaluation-adversarial-v1` and the
   parse-valid `help-getting-started-adversarial-v2`.
+- `atlas-migrate-activation-adherence-v4` and
+  `atlas-storage-semantics-adversarial-v3` stay historical with their
+  original bodies. Successors `atlas-migrate-activation-adherence-v5` and
+  `atlas-storage-semantics-adversarial-v4` carry the 0.9.0 release identity.
+  The storage successor asserts Atlas path `references/paths/recall.md`
+  instead of the removed `references/paths/query.md`.
 - Refresh the frozen dependency graph so Atlas follows the live catalog
   resolution `v0.13.0` (`b0b101243ffae8f6da16ab4d139057b4f29a01a5`).
   Autogenesis 0.9.0 requires Atlas v0.13.0 or later. Path `query` and CLI
