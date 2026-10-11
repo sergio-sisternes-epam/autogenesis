@@ -21,13 +21,17 @@ in `SKILL.md`.
   value `specify` is rejected with a diagnostic (no alias). Gate G-BEHAVIOUR
   replaces G-BDD; G-EVAL stays deterministic-first.
 - Design drafts `## Behavioural evaluation (Waza)` tasks with reference and
-  negative fixtures for gate tasks; implement authors the suite at
+  negative fixtures for gate tasks, or preserves `deferred:<reason>`.
+  Drafting tasks does not approve suite files. Implement authors files at
   `<subject>/evals/<skill>/` (or `<subject>/.apm/evals/<skill>/` with
   `paths.evals: .apm/evals` when the subject is an APM package with a root
-  `SKILL.md`, because APM 0.30.0 ships every other path), runs only the
-  model-free validity allowlist V1-V3 with `WAZA_NO_UPDATE_CHECK=1`, and
-  records the `waza_suite` block with `run_status: not-run-by-autogenesis`,
-  which is not behavioural evidence.
+  `SKILL.md`, because APM 0.30.0 ships every other path) only when the
+  approved plan names that suite-file scope. Counter conversion into gate
+  tasks is optional inside that scope and does not happen after a deferral.
+  When suite files are in scope, implement runs only the model-free validity
+  allowlist V1-V3 with `WAZA_NO_UPDATE_CHECK=1` and records the `waza_suite`
+  block with `run_status: not-run-by-autogenesis`, which is not behavioural
+  evidence.
 - `specify-only-adversarial-v2` and `help-getting-started-adversarial-v1`
   become historical, succeeded by `waza-evaluation-adversarial-v1` and the
   parse-valid `help-getting-started-adversarial-v2`.

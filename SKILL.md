@@ -29,8 +29,9 @@ change-class = hardening | new-surface | new-skill (see workflow-discipline)
 **Design depth:** load `references/modules/workflow-discipline/SKILL.md` —
 classify before packet; `new-surface` requires mini-genesis; behavior changes
 require portable scenarios and actual evaluation evidence, plus authored Waza
-task drafts (adversarial counters may also become Waza gate tasks tagged
-`adversarial`) or an explicit deferral.
+task drafts (adversarial counters may become Waza gate tasks tagged
+`adversarial` only inside approved suite-file scope; a deferral does not
+convert them) or an explicit deferral.
 
 ## Authoring versus derived skills
 
@@ -57,8 +58,9 @@ Autogenesis owns portable scenario specifications, runs applicable
 deterministic checks through tools available in the subject repository, and
 records actual evidence or an explicit deferral.
 
-Autogenesis designs and authors behavioural suites in the upstream Waza format
-and never runs them against an agent. It may run model-free Waza validity
+Autogenesis designs behavioural suites in the upstream Waza format and authors
+suite files only when the approved plan names suite-file scope. It never runs
+them against an agent. It may run model-free Waza validity
 checks on suites it wrote. Running belongs to the subject owner. Supplied
 results may be cited with provenance. No evaluator dependency: it does not
 require a separate evaluator package or service, and Waza is a format target,
@@ -221,8 +223,9 @@ The living verification of this contract is the pair **skill-test-a → skill-te
   named-theory counter becomes a subject-skill scenario
   (`*-adversarial-vN.yaml`) that is red if shipped behaviour does the warned
   thing. Design emits a full draft; implement fills and runs applicable checks
-  at Exit. Behavioural counters may also become Waza gate tasks tagged
-  `adversarial` in the authored suite. Historical decision names remain
+  at Exit. Behavioural counters may become Waza gate tasks tagged
+  `adversarial` only inside approved suite-file scope; a deferral does not
+  convert them. Historical decision names remain
   provenance, not live dependencies.
 - **Behaviour challenge (reflect-challenge):** attacks behaviours; optional; not plan approval.
 

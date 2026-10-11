@@ -246,4 +246,8 @@ supplied_results:
 
 Derived skills get **no suite by default**. Design may recommend the Waza
 format in a derived skill's evaluation plan; `evals/` files are added to a
-derived skill only with explicit approval in that skill's plan.
+derived skill only with explicit approval in that skill's plan. Task drafts
+are not that approval. Suite files are written only when the approved plan
+names suite-file scope. Preserve `deferred:<reason>`; it does not become
+suite files or gate tasks. Converting a behavioural counter into a gate task
+is optional, and only inside that scope.

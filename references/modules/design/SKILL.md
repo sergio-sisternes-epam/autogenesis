@@ -118,9 +118,10 @@ This operation **stops for approval**. Request **implement** only after explicit
 6b. **Behavioural evaluation (Waza) drafts (when behaviour is in scope)**
    For any design that changes or defines skill/agent behaviour (new-skill, new-surface affecting runtime, or explicit behavioural evaluation):
    - Load `<skill_root>/references/waza-authoring.md` and follow it.
-   - Plan must include a `## Behavioural evaluation (Waza)` section with task drafts (id, tier `gate` / `quality` / `trigger`, tempting prompt, fixtures, graders, `source` counter, coverage of `USE FOR` / `DO NOT USE FOR` phrases) **or** `deferred: <one-line reason>`.
-   - Every gate task draft names its reference fixture (known-good, must pass) and negative control (known-bad, must fail).
-   - Behavioural counters from step 6 may also be drafted as gate tasks tagged `adversarial`, `<capability>-adversarial-vN` and the smoke id.
+   - Plan must include a `## Behavioural evaluation (Waza)` section with task drafts (id, tier `gate` / `quality` / `trigger`, tempting prompt, fixtures, graders, `source` counter, coverage of `USE FOR` / `DO NOT USE FOR` phrases) **or** exactly `deferred: <one-line reason>`. Preserve a deferral as written; do not add drafts beside it.
+   - Drafting tasks does not approve suite files. If implement is to author `evals/` or `.apm/evals/` files, the plan scope must name that suite-file scope explicitly. Task drafts alone are not that scope.
+   - When the section drafts tasks rather than deferring, every gate task draft names its reference fixture (known-good, must pass) and negative control (known-bad, must fail).
+   - Converting step-6 behavioural counters into Waza gate tasks is optional, and only inside that explicit suite-file scope. Tag any such task `adversarial`, `<capability>-adversarial-vN` and the smoke id. A deferral does not convert counters.
    - Derived skills get no suite by default; recommend the Waza format only, and add `evals/` files to a derived skill only with explicit approval in its plan.
    - Activation card for this design Run must carry the hint `behavioural_contract: waza | deferred:<reason>` when behaviour is in scope. The removed value `specify` is rejected with a diagnostic explaining the new contract (legacy cutover rule, no alias).
    - Design drafts tasks; it never runs them and makes no model call for evaluation.

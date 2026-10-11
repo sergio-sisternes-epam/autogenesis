@@ -59,15 +59,23 @@ or mismatched value.
    - For a check that cannot run, record an exact deferral reason; never infer
      success from a scenario file or prose.
    Do not require, install or invoke a separate evaluator.
-   When the approved plan has `## Behavioural evaluation (Waza)` drafts, load
-   `<skill_root>/references/waza-authoring.md` and:
-   - Author or update the suite at `<subject>/evals/<skill>/` (or
+   When the approved plan has a `## Behavioural evaluation (Waza)` section,
+   load `<skill_root>/references/waza-authoring.md`. Task drafts are not
+   approval to add suite files.
+   - If the section is `deferred:<reason>`, preserve that reason in lineage
+     and do not author suite files or convert counters.
+   - Author or update suite files at `<subject>/evals/<skill>/` (or
      `<subject>/.apm/evals/<skill>/` when the subject is an APM package with a
-     root `SKILL.md`; see the guide) from the approved drafts, including
-     reference and negative fixtures for every gate task.
-   - Run only the allowlisted model-free validity checks V1-V3 from the guide,
-     each with `WAZA_NO_UPDATE_CHECK=1` and Waza 0.38.9. Never run suite tasks
-     against an agent and never make a model call for evaluation.
+     root `SKILL.md`; see the guide) only when the approved plan's scope
+     explicitly names those suite files. Drafts alone do not.
+   - When that suite-file scope is present, author the files from the approved
+     drafts, including reference and negative fixtures for every gate task.
+     Converting a behavioural counter into a gate task is optional inside that
+     scope and must not add a task the approved drafts did not include.
+   - When suite files were authored under that scope, run only the allowlisted
+     model-free validity checks V1-V3 from the guide, each with
+     `WAZA_NO_UPDATE_CHECK=1` and Waza 0.38.9. Never run suite tasks against
+     an agent and never make a model call for evaluation.
    - Record the `waza_suite` block with its `validity` sub-block (command, Waza
      version, exit code, coverage, grader-fixture counts, `left_to_runner`)
      and `run_status: not-run-by-autogenesis`. The authored suite and the
@@ -92,9 +100,11 @@ or mismatched value.
    checks. Waive a red smoke **only if that counter is out of this change’s
    scope**; the reason must **name the counter**. New behavior or an approved
    smoke-set change requires a **new file + version bump**; keep the previous
-   file as history. Behavioural counters also become Waza gate tasks tagged
-   `adversarial`, `<capability>-adversarial-vN` and the smoke id in the
-   authored suite.
+   file as history. Do not turn behavioural counters into Waza gate tasks
+   unless the approved plan's suite-file scope includes that conversion.
+   Inside that scope it is optional: tag any included task `adversarial`,
+   `<capability>-adversarial-vN` and the smoke id. A `deferred:<reason>`
+   section does not convert counters and does not author suite files.
 7. **Exit:** Apply the multi-harness substrate contract to the skills named
    `atlas` and `okf` through
    `<skill_root>/references/modules/workflow-discipline/SKILL.md#exit-blocking`.

@@ -226,10 +226,13 @@ module-specific behaviour:
   smoke set require a new design.
 - Autogenesis does not require a separate evaluator package or service.
   Record actual command/output evidence or a precise deferral in lineage.
-- Autogenesis designs and authors Waza suites at `<subject>/evals/<skill>/`
-  (`<subject>/.apm/evals/<skill>/` for an APM package with a root `SKILL.md`)
-  and never runs suite tasks against an agent or makes a model call for
-  evaluation. An authored suite is not behavioural evidence.
+- Autogenesis designs Waza suites and authors suite files at
+  `<subject>/evals/<skill>/` (`<subject>/.apm/evals/<skill>/` for an APM
+  package with a root `SKILL.md`) only when the approved plan names that
+  suite-file scope. Task drafts are not that approval. A `deferred:<reason>`
+  is preserved and does not author files. It never runs suite tasks against
+  an agent or makes a model call for evaluation. An authored suite is not
+  behavioural evidence.
 - The only Waza it executes is the closed model-free allowlist V1-V3 in
   `<skill_root>/references/waza-authoring.md`, each call with
   `WAZA_NO_UPDATE_CHECK=1` and Waza 0.38.9. Record the `waza_suite` block with
