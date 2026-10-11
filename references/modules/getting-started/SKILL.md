@@ -58,7 +58,7 @@ help_status: pending
 
 Render inherited protected Atlas context honestly. `atlas_used` stays empty
 and `atlas_status` stays `baseline-only` because this operation performs no
-Atlas query. A requested card is not approval or execution evidence. This
+Atlas recall. A requested card is not approval or execution evidence. This
 operation does not need a `work_id`.
 
 ## Procedure

@@ -37,7 +37,7 @@ python3 <atlas-skill>/scripts/atlas.py mount github.com/sergio-sisternes-epam/au
 python3 <atlas-skill>/scripts/atlas.py resolve github.com/sergio-sisternes-epam/autogenesis-atlas
 ```
 
-Default mount and compile/query root:
+Default mount and compile/recall root:
 `.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas`.
 
 Other subjects use the Atlas declared by their active git repository. Never

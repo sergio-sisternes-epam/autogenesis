@@ -39,8 +39,11 @@ in `SKILL.md`.
   become historical, succeeded by `waza-evaluation-adversarial-v1` and the
   parse-valid `help-getting-started-adversarial-v2`.
 - Refresh the frozen dependency graph so Atlas follows the live catalog
-  resolution `v0.13.0` (`b0b101243ffae8f6da16ab4d139057b4f29a01a5`). OKF
-  `v0.2.1`, Discuss `v0.5.0`, and Think `v0.1.0` stay on their existing lock
+  resolution `v0.13.0` (`b0b101243ffae8f6da16ab4d139057b4f29a01a5`).
+  Autogenesis 0.9.0 requires Atlas v0.13.0 or later. Path `query` and CLI
+  `search`/`query` were removed in that release with no alias, so those
+  uses now follow path `recall` and `atlas recall run`. OKF `v0.2.1`,
+  Discuss `v0.5.0`, and Think `v0.1.0` stay on their existing lock
   resolutions.
 
 ### Added

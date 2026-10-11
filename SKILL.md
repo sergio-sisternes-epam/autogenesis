@@ -89,7 +89,7 @@ Do not mount or write at `<skill>/references/atlas`.
 Always pass the path returned by `atlas resolve` as card `atlas_root` /
 `root` and CLI `--root`.
 
-- **Primary change memory:** **subject** skill Atlas via **Atlas** paths (`query` / `remember` / `work`). Autogenesis-authored pages live under **`autogenesis/`** inside that root.
+- **Primary change memory:** **subject** skill Atlas via **Atlas** paths (`recall` / `remember` / `work`). Autogenesis-authored pages live under **`autogenesis/`** inside that root.
   - Resolve the subject's store from the active subject repository.
   - **subject is autogenesis:** use the Autogenesis store declared in this repository's `atlas-mesh.json`.
   - **other subjects:** use that subject repository's declared store; do not write a second pointer into the Autogenesis store.
@@ -126,7 +126,7 @@ instruction assets in this package, not independent catalogue entries.
 3. Form a root invocation request; select an operation from the registry.
 4. Resolve the module from this loaded skill root and **read its entrypoint**
    before following its procedure. Emit the configured request card first.
-5. If Exit needs memory ops: activate root skill **atlas**, then load the named path module (`references/paths/remember.md` / `query.md` / `work.md`) — do not invent remember/ingest from memory.
+5. If Exit needs memory ops: activate root skill **atlas**, then load the named path module (`references/paths/remember.md` / `recall.md` / `work.md`) — do not invent remember/ingest from memory.
 
 **Failure modes to avoid:** treating `design` / `implement` as peer root skills;
 running from a registry stub without reading its module; eager loading; treating

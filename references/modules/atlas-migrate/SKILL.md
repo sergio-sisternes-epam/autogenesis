@@ -163,7 +163,7 @@ After compile green, update only the subject package:
 - cards and receipts carry `atlas_id` and the resolved `atlas_root`;
 - okf-wiki is legacy read-only when retained;
 - no live instruction points to `<skill>/references/atlas`;
-- all Atlas query, remember, work, and compile calls receive the resolved root.
+- all Atlas recall, remember, work, and compile calls receive the resolved root.
 
 If the rewrite cannot be completed safely, record
 `discipline_rewrite: deferred: <reason>`. Storage migration is not permission

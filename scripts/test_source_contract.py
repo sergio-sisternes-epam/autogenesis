@@ -1404,6 +1404,62 @@ class SourceContractTests(unittest.TestCase):
                     module_resource_reference_errors(entrypoint, content)
                 )
 
+    def test_live_instructions_do_not_reference_removed_atlas_query(self) -> None:
+        """Atlas v0.13.0 removed path query and CLI search/query with no alias.
+
+        Frozen scenario bodies are not rewritten. The current suite
+        atlas-storage-semantics-adversarial-v3 still asserts the old path
+        name in SKILL.md; that smoke is reported, not edited. CHANGELOG
+        records the rename and older release notes.
+        """
+        patterns = (
+            re.compile(r"paths/query\.md"),
+            re.compile(r"`query\.md`"),
+            re.compile(r"\batlas(?:\.py)?\s+(?:query|search)\b"),
+            re.compile(r"atlas\.py\b[^\n]*\s(?:query|search)\b"),
+            re.compile(r"`query`\s*/\s*`remember`|`remember`,\s*`query`"),
+            re.compile(r"\bAtlas query\b"),
+            re.compile(r"read-only query\b"),
+            re.compile(r"compile/query"),
+            re.compile(r"Attempt query\b"),
+            re.compile(r"Live ingest / query"),
+        )
+        roots = [
+            ROOT / "SKILL.md",
+            ROOT / "README.md",
+            ROOT / "CONTRIBUTING.md",
+            ROOT / "AGENTS.md",
+            ROOT / "references",
+            ROOT / "scripts",
+            ROOT / ".apm" / "evals",
+        ]
+        skip_dirs = {
+            ".git",
+            ".atlas",
+            "apm_modules",
+            "scenarios",
+            "__pycache__",
+        }
+        skip_files = {ROOT / "CHANGELOG.md", Path(__file__).resolve()}
+        allowed_suffixes = {".md", ".py", ".yml", ".yaml", ".json", ".txt"}
+        hits: list[str] = []
+        for root in roots:
+            candidates = [root] if root.is_file() else root.rglob("*")
+            for path in candidates:
+                if not path.is_file() or path.suffix not in allowed_suffixes:
+                    continue
+                if path in skip_files or any(
+                    part in skip_dirs for part in path.parts
+                ):
+                    continue
+                text = path.read_text(encoding="utf-8")
+                for lineno, line in enumerate(text.splitlines(), start=1):
+                    if any(pattern.search(line) for pattern in patterns):
+                        hits.append(
+                            f"{path.relative_to(ROOT)}:{lineno}:{line.strip()}"
+                        )
+        self.assertEqual(hits, [])
+
     def test_live_workflow_has_no_construct_binding(self) -> None:
         live_paths = [
             ROOT / "SKILL.md",

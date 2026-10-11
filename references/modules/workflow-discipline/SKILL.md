@@ -254,7 +254,7 @@ Lineage is an obligation, not a chat claim.
 1. Re-resolve the subject Atlas through the rules above.
 2. Apply the substrate contract to the external skill named `atlas` and, when
    format questions arise, to the skill named `okf`.
-3. Load the appropriate Atlas path module (`remember`, `query`, or `work`) and
+3. Load the appropriate Atlas path module (`remember`, `recall`, or `work`) and
    follow it exactly.
 4. If product files were created or edited, the durable experience must contain
    `## Changed files` listing every touched relative path.

@@ -59,6 +59,6 @@ from skill_root, not cwd. Auditing another target does not change write-home.
 
 ## Non-goals
 
-- Live ingest / query / expand of any session store (that is atlas / okf-wiki operational paths).
+- Live ingest / recall / expand of any session store (that is atlas / okf-wiki operational paths).
 - Mutation of the target store.
 - Nesting or progressive-disclosure checks.
