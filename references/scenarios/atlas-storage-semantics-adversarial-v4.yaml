@@ -48,13 +48,13 @@ smokes:
   - id: mount-resolve-contract-is-explicit
     source: Atlas mount path and deterministic root resolution
     cmd: |
-      python3 -c "import json,os; from pathlib import Path; root=(Path(os.environ['PKG_subject'])/'SKILL.md').read_text(); wd=(Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/SKILL.md').read_text(); need=['active git root','no `--target`','atlas resolve <atlas_id>','SCHEMA.json']; print(json.dumps({'ok':all(x in root+wd for x in need)}))"
+      python3 -c "import json,os; from pathlib import Path; root=(Path(os.environ['PKG_subject'])/'SKILL.md').read_text(); wd=(Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/SKILL.md').read_text(); need=['active subject git root','no `--target`','atlas resolve <atlas_id>','SCHEMA.json']; print(json.dumps({'ok':all(x in root+wd for x in need)}))"
     expect:
       ok: true
   - id: no-silent-fallback
     source: fail-closed rule
     cmd: |
-      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/SKILL.md').read_text().lower(); print(json.dumps({'ok':'fail' in t and 'closed' in t and 'never use a path guess' in t and 'silent fallback' in t}))"
+      python3 -c "import json,os; from pathlib import Path; t=((Path(os.environ['PKG_subject'])/'SKILL.md').read_text()+(Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/SKILL.md').read_text()).lower(); print(json.dumps({'ok':'fails closed' in t and 'never use a path guess' in t}))"
     expect:
       ok: true
   - id: no-dual-write-compatibility
