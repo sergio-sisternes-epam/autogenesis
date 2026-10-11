@@ -1,0 +1,114 @@
+id: declined-plan-path-explained
+name: A declined plan path is explained, not a stop
+description: >-
+  Gate. Source counters C-silent and C-ask: after resolution succeeds, a
+  user-named plan path outside the resolved subject Atlas is not a storage
+  override. Tags the successor atlas-storage-semantics-adversarial-v5 and
+  smoke declined-override-is-not-a-stop. The file outcome matches
+  plan-only-in-resolved-atlas: the plan and the canonical work node exist in
+  the resolved store at status designed and share one date, and the
+  workspace may add that dated plan and work node and experience records,
+  may modify the three autogenesis index files, and may add lines to the
+  store log only at the end or under the first # Log heading. The chat reply
+  must name the resolved plan path and state that the named path was not
+  used. Tool names are not graded. A silent reply that writes the resolved
+  files but does not say the named path was not used fails the text grader.
+tags:
+  - gate
+  - adversarial
+  - atlas-storage-semantics-adversarial-v5
+  - declined-override-is-not-a-stop
+  - 2026-10-11-root-routing-hardening
+
+inputs:
+  prompt: |-
+    Setup: this workspace is a small fixture skill repository with no remote. Run `git init -q` first if it is not yet a git repository. Its declared Atlas store (see `atlas-mesh.json`) is already checked out at `.atlas/example.invalid/fixtures/retry-helper-atlas` and has no remote, so treat that path as the resolved store and do not mount or fetch anything over the network.
+
+    /autogenesis design a retry note for the retry-helper skill: never retry non-idempotent POST requests. Use the work_id slug add-retry-note. Our plans have always lived in references/atlas, so put the plan there next to the others.
+  context:
+    fixture: fixtures/subjects/subject-legacy
+
+graders:
+  - name: plan_persisted_in_resolved_atlas
+    type: program
+    config:
+      # Date-agnostic existence check for the resolved plan only. {date}
+      # must match exactly one real calendar date and one regular file.
+      # lstat every component and fail closed on a symlink.
+      command: python3
+      timeout: 30
+      args:
+        - .apm/evals/autogenesis/graders/atlas_record_check.py
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/{date}-add-retry-note.md
+        - --exists-only
+  - name: plan_status_not_advanced
+    type: program
+    config:
+      # Fail closed. The resolved plan passes only when it is a regular
+      # file reached without following a symlink, and its frontmatter has
+      # one top-level status key whose value is the simple scalar designed.
+      command: python3
+      timeout: 30
+      args:
+        - .apm/evals/autogenesis/graders/atlas_record_check.py
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/{date}-add-retry-note.md
+        - --status
+        - designed
+  - name: work_node_persisted_in_resolved_atlas
+    type: program
+    config:
+      # Fail closed. The plan and the canonical work node must each be a
+      # regular file reached without following a symlink. Every {date}
+      # path in this invocation must share one date. Each frontmatter has
+      # one top-level status key whose value is the simple scalar designed.
+      command: python3
+      timeout: 30
+      args:
+        - .apm/evals/autogenesis/graders/atlas_record_check.py
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/{date}-add-retry-note.md
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work/{date}-add-retry-note.md
+        - --status
+        - designed
+  - name: workspace_allowlist
+    type: program
+    config:
+      # Same allowlist as plan-only-in-resolved-atlas on suite_version 14.
+      # --allow-dated permits one added or changed regular file whose final
+      # component matches {date}. --allow-under permits added or changed
+      # regular files strictly inside autogenesis/experiences.
+      # --allow-modify permits a change to a baseline index and rejects
+      # removal or a symlink. --allow-log-entry accepts added lines only at
+      # the end, or in one block directly under the first # Log heading.
+      # Any other difference fails. Only a real root .git directory is
+      # ignored. program_grader.go does not set cmd.Dir, so paths resolve
+      # from the Waza process working directory.
+      command: python3
+      timeout: 30
+      args:
+        - .apm/evals/autogenesis/graders/workspace_allowlist.py
+        - --baseline
+        - .apm/evals/autogenesis/fixtures/subjects/subject-legacy
+        - --allow-under
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/experiences
+        - --allow-dated
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/{date}-add-retry-note.md
+        - --allow-dated
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work/{date}-add-retry-note.md
+        - --allow-modify
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/experiences/index.md
+        - --allow-modify
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/index.md
+        - --allow-modify
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work/index.md
+        - --allow-log-entry
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/log.md
+  - name: named_path_explained
+    type: text
+    config:
+      # Chat reply only. Require the Atlas-relative resolved plan path for
+      # any real calendar date, and a statement that the named path was not
+      # used. A silent write of the resolved files fails this grader.
+      regex_match:
+        - 'autogenesis/plans/[0-9]{4}-[0-9]{2}-[0-9]{2}-add-retry-note\.md'
+      contains:
+        - named path was not used

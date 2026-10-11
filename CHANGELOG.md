@@ -11,6 +11,7 @@ in `SKILL.md`.
 
 ### Changed
 
+- Harden root routing (work_id `2026-10-11-root-routing-hardening`). A discussion conclusion, prior agreement, or request to apply a package change starts formal design instead of only refusing. A user-named plan path outside the resolved subject Atlas is not a storage override: persist in the resolved store, say why the named path was not used, and do not stop to ask. A legacy `references/atlas` gitlink still routes to migrate; a plain directory does not block. Current successors are `explicit-discuss-integration-adversarial-v2` and `atlas-storage-semantics-adversarial-v5`. Dogfood `suite_version` moves from 14 to 15. Version surfaces stay 0.9.0.
 - Bound the source audit by a 720-second wall-clock deadline instead of
   shrinking each file's timeout by the tracked-file count. Each file is
   limited to the minimum of the 300-second command cap, a 60-second

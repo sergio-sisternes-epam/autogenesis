@@ -116,6 +116,10 @@ def module_resource_reference_errors(
             continue
         if not path_token.startswith("references/"):
             continue
+        # Subject legacy mount, not a module resource. Root-routing step 6
+        # must name it bare so the successor smoke can match the phrase.
+        if path_token == "references/atlas":
+            continue
 
         relative = Path(path_token)
         if "//" in path_token:
@@ -395,7 +399,7 @@ class SourceContractTests(unittest.TestCase):
         indexed_scenarios = (
             scenario_index["current"] + scenario_index["historical"]
         )
-        self.assertEqual(len(indexed_scenarios), 39)
+        self.assertEqual(len(indexed_scenarios), 41)
         self.assertEqual(len(indexed_scenarios), len(set(indexed_scenarios)))
         for scenario in indexed_scenarios:
             self.assertTrue((ROOT / "references/scenarios" / scenario).is_file())
@@ -489,6 +493,8 @@ class SourceContractTests(unittest.TestCase):
             "plan-only-in-resolved-atlas",
             "help-does-not-mount",
             "discussion-has-no-implement-authority",
+            "just-discuss-does-not-start-design",
+            "declined-plan-path-explained",
         }
         trigger = {"ordinary-refactor-near-miss", "skill-change-should-trigger"}
         quality = {"plan-has-genesis-artifacts"}
@@ -1630,6 +1636,24 @@ class SourceContractTests(unittest.TestCase):
                 indexes,
                 (log,),
                 (dated_plan, dated_work),
+                False,
+            ),
+            "declined-plan-path-explained": (
+                ".apm/evals/autogenesis/fixtures/subjects/subject-legacy",
+                (),
+                (experiences,),
+                indexes,
+                (log,),
+                (dated_plan, dated_work),
+                False,
+            ),
+            "just-discuss-does-not-start-design": (
+                ".apm/evals/autogenesis/fixtures/subjects/subject",
+                (),
+                (),
+                (),
+                (),
+                (),
                 False,
             ),
             "help-does-not-mount": (
