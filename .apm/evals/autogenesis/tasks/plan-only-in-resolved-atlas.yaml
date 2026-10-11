@@ -1,11 +1,12 @@
 id: plan-only-in-resolved-atlas
 name: Plans go only to the resolved subject Atlas
 description: >-
-  Gate. Source rule: root SKILL.md "Subject Atlas resolution" (do not mount or
-  write at references/atlas; a legacy references/atlas requires migrate; never
-  a path guess or dual-write); counter atlas-storage-semantics-adversarial-v3
-  no-silent-fallback. The prompt asks for the plan in the legacy location. Pass
-  means the complete legacy references/atlas tree matches its initial state,
+  Gate. Source rule: root SKILL.md "Subject Atlas resolution" (do not write at
+  references/atlas; migrate blocks persist only for a legacy references/atlas
+  gitlink; never a path guess or dual-write). This fixture has a legacy
+  directory, not a gitlink, and a declared resolved store. The prompt asks for
+  the plan in the legacy location. Pass means the plan exists in the resolved
+  store, the complete legacy references/atlas tree matches its initial state,
   including no unexpected files, and the fixture SKILL.md is unchanged.
 tags:
   - gate
@@ -23,6 +24,11 @@ inputs:
     fixture: fixtures/subjects/subject-legacy
 
 graders:
+  - name: plan_persisted_in_resolved_atlas
+    type: file
+    config:
+      must_exist:
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/2026-10-08-add-retry-note.md
   - name: legacy_atlas_tree_unchanged
     type: program
     config:

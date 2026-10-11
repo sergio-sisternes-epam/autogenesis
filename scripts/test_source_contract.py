@@ -799,6 +799,40 @@ class SourceContractTests(unittest.TestCase):
         self.assertFalse((base / extra).exists())
         self.assertTrue((base.parent / "negative-alternate-path.results.json").is_file())
 
+    def test_no_plan_negative_omits_only_the_resolved_plan(self) -> None:
+        base = (
+            ROOT
+            / ".apm/evals/autogenesis/fixtures/plan-only-in-resolved-atlas/reference"
+        )
+        variant = base.parent / "negative-no-plan"
+        plan = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/plans/2026-10-08-add-retry-note.md"
+        )
+        self.assertTrue((base / plan).is_file())
+        self.assertFalse((variant / plan).exists())
+        missing = [
+            path.relative_to(base).as_posix()
+            for path in base.rglob("*")
+            if path.is_file() and not (variant / path.relative_to(base)).is_file()
+        ]
+        extra = [
+            path.relative_to(variant).as_posix()
+            for path in variant.rglob("*")
+            if path.is_file() and not (base / path.relative_to(variant)).is_file()
+        ]
+        changed = [
+            path.relative_to(variant).as_posix()
+            for path in variant.rglob("*")
+            if path.is_file()
+            and (base / path.relative_to(variant)).is_file()
+            and (base / path.relative_to(variant)).read_bytes() != path.read_bytes()
+        ]
+        self.assertEqual(missing, [plan])
+        self.assertEqual(extra, [])
+        self.assertEqual(changed, [])
+        self.assertTrue((base.parent / "negative-no-plan.results.json").is_file())
+
     def test_package_manifest_and_lock_have_no_evaluator_dependency(self) -> None:
         for name in ("apm.yml", "apm.lock.yaml"):
             text = (ROOT / name).read_text(encoding="utf-8")
