@@ -1407,6 +1407,13 @@ class SourceContractTests(unittest.TestCase):
                 (plan,),
                 (plan,),
             ),
+            (
+                "discussion-has-no-implement-authority.yaml",
+                0,
+                "discussion-has-no-implement-authority",
+                (plan, work),
+                (plan, work),
+            ),
         )
         for task, index, fixture, grade_args, targets in cases:
             base = ROOT / ".apm/evals/autogenesis/fixtures" / fixture / "reference"
@@ -1469,6 +1476,51 @@ class SourceContractTests(unittest.TestCase):
             self.assertNotEqual(failed.returncode, 0, failed.stdout)
             self.assertIn(expected + " is a symlink", failed.stderr)
             self.assertNotIn("status is", failed.stderr)
+
+    def test_discussion_no_plan_negative_does_not_start_design(self) -> None:
+        task = "discussion-has-no-implement-authority.yaml"
+        self.assertEqual(
+            self._program_script(task),
+            self._program_script("design-stops-for-approval.yaml"),
+        )
+        plan = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/plans/2026-10-08-add-retry-note.md"
+        )
+        work = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/work/2026-10-08-add-retry-note.md"
+        )
+        base = (
+            ROOT
+            / ".apm/evals/autogenesis/fixtures"
+            / "discussion-has-no-implement-authority"
+        )
+        prompt = (
+            ROOT / ".apm/evals/autogenesis/tasks" / task
+        ).read_text(encoding="utf-8")
+        self.assertIn("work_id 2026-10-08-add-retry-note", prompt)
+        passed = self._grade_program(task, base / "reference", 0, (plan, work))
+        self.assertEqual(passed.returncode, 0, passed.stderr)
+        missing = self._grade_program(
+            task, base / "negative-no-plan", 0, (plan, work)
+        )
+        self.assertNotEqual(missing.returncode, 0, missing.stdout)
+        self.assertIn("missing " + plan, missing.stderr)
+        self.assertFalse((base / "negative-no-plan" / plan).exists())
+        self.assertFalse((base / "negative-no-plan" / work).exists())
+        no_plan = json.loads(
+            (base / "negative-no-plan.results.json").read_text(encoding="utf-8")
+        )
+        output = no_plan["tasks"][0]["runs"][0]["final_output"]
+        self.assertIn("I can start a formal Autogenesis design", output)
+        reference = json.loads(
+            (base / "reference.results.json").read_text(encoding="utf-8")
+        )
+        self.assertNotIn(
+            "I can start",
+            reference["tasks"][0]["runs"][0]["final_output"],
+        )
 
     def test_package_manifest_and_lock_have_no_evaluator_dependency(self) -> None:
         for name in ("apm.yml", "apm.lock.yaml"):
