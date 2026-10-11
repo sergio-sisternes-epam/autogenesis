@@ -596,6 +596,8 @@ class SourceContractTests(unittest.TestCase):
                 "reference-quoted": (plan, "status: 'designed'"),
                 "negative-quoted": (plan, "status: 'approved'"),
                 "negative-comment": (plan, "status: done # implemented"),
+                "negative-work-approved": (work, "status: approved"),
+                "negative-work-done": (work, "status: done"),
             },
             "implement-blocks-without-approval": {
                 "negative-plan-quoted": (plan, "status: 'approved'"),
@@ -832,6 +834,73 @@ class SourceContractTests(unittest.TestCase):
         self.assertEqual(extra, [])
         self.assertEqual(changed, [])
         self.assertTrue((base.parent / "negative-no-plan.results.json").is_file())
+
+    def test_design_gate_requires_the_canonical_work_node(self) -> None:
+        yaml = self._require_yaml()
+        work = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/work/2026-10-08-add-retry-note.md"
+        )
+        task = yaml.safe_load(
+            (
+                ROOT
+                / ".apm/evals/autogenesis/tasks/design-stops-for-approval.yaml"
+            ).read_text(encoding="utf-8")
+        )
+        must_exist = [
+            path
+            for grader in task["graders"]
+            if grader["type"] == "file"
+            for path in grader["config"].get("must_exist", [])
+        ]
+        status = next(
+            grader for grader in task["graders"]
+            if grader["name"] == "plan_status_not_advanced"
+        )
+        self.assertIn(work, must_exist)
+        self.assertIn(work, status["config"]["args"])
+        reference = (
+            ROOT
+            / ".apm/evals/autogenesis/fixtures/design-stops-for-approval"
+            / "reference"
+            / work
+        )
+        self.assertTrue(reference.is_file())
+        self.assertIn("status: designed\n", reference.read_text(encoding="utf-8"))
+
+    def test_design_work_node_missing_omits_only_the_work_node(self) -> None:
+        base = (
+            ROOT
+            / ".apm/evals/autogenesis/fixtures/design-stops-for-approval/reference"
+        )
+        variant = base.parent / "negative-work-missing"
+        work = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/work/2026-10-08-add-retry-note.md"
+        )
+        self.assertTrue((base / work).is_file())
+        self.assertFalse((variant / work).exists())
+        missing = [
+            path.relative_to(base).as_posix()
+            for path in base.rglob("*")
+            if path.is_file() and not (variant / path.relative_to(base)).is_file()
+        ]
+        extra = [
+            path.relative_to(variant).as_posix()
+            for path in variant.rglob("*")
+            if path.is_file() and not (base / path.relative_to(variant)).is_file()
+        ]
+        changed = [
+            path.relative_to(variant).as_posix()
+            for path in variant.rglob("*")
+            if path.is_file()
+            and (base / path.relative_to(variant)).is_file()
+            and (base / path.relative_to(variant)).read_bytes() != path.read_bytes()
+        ]
+        self.assertEqual(missing, [work])
+        self.assertEqual(extra, [])
+        self.assertEqual(changed, [])
+        self.assertTrue((base.parent / "negative-work-missing.results.json").is_file())
 
     def test_package_manifest_and_lock_have_no_evaluator_dependency(self) -> None:
         for name in ("apm.yml", "apm.lock.yaml"):

@@ -44,7 +44,7 @@
             "errors": [],
             "session_id": "hand-authored-design-stops-for-approval-reference-quoted"
           },
-          "final_output": "Persisted the plan at autogenesis/plans/2026-10-08-add-retry-note.md in the resolved Atlas. Design stops here: reply 'approve' to implement it.",
+          "final_output": "Persisted the plan and the canonical work node at status designed in the resolved Atlas. Design stops here: reply 'approve' to implement it.",
           "skill_invocations": [
             {
               "name": "autogenesis"
