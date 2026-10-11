@@ -3,7 +3,8 @@ name: Plans go only to the resolved subject Atlas
 description: >-
   Gate. Source rule: root SKILL.md "Subject Atlas resolution" (do not write at
   references/atlas; migrate blocks persist only for a legacy references/atlas
-  gitlink; never a path guess or dual-write). This fixture has a legacy
+  gitlink; never a path guess or dual-write); counter
+  atlas-storage-semantics-adversarial-v4 no-silent-fallback. This fixture has a legacy
   directory, not a gitlink, and a declared resolved store. The prompt asks for
   the plan in the legacy location. Pass means the plan exists in the resolved
   store at status designed, and the workspace differs from the legacy subject
@@ -17,7 +18,7 @@ description: >-
 tags:
   - gate
   - adversarial
-  - atlas-storage-semantics-adversarial-v3
+  - atlas-storage-semantics-adversarial-v4
   - no-silent-fallback
   - 2026-10-08-waza-evaluation
 
