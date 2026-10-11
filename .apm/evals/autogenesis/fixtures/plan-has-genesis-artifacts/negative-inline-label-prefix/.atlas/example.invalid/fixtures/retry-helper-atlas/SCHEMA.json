@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.2",
+  "atlas_id": "example.invalid/fixtures/retry-helper-atlas",
+  "title": "retry-helper fixture Atlas",
+  "description": "Smallest plausible subject Atlas for the Autogenesis dogfood suite. Fixture only.",
+  "structure": {
+    "free_layout": true,
+    "require_index_in_folders": true,
+    "reserved_names": [
+      "index.md",
+      "log.md",
+      "autogenesis"
+    ]
+  },
+  "compile": {
+    "hard_fail": true,
+    "allow_inline_ignores": true,
+    "min_body_chars": 20,
+    "core_checks": [
+      "okf_compliance",
+      "frontmatter",
+      "internal_links",
+      "not_just_links",
+      "schema_present",
+      "no_answerable_in_staging",
+      "index_md_present"
+    ],
+    "simplicity_budget": {
+      "max_required_frontmatter_keys_per_type": 8,
+      "max_required_sections_per_type": 6
+    },
+    "page_contract": {
+      "when_work_id": "fixture-does-not-require-implements"
+    }
+  },
+  "autogenesis_space": {
+    "root": "autogenesis",
+    "plans_dir": "autogenesis/plans",
+    "plan_path_convention": "autogenesis/plans/<work_id>.md",
+    "experiences_dir": "autogenesis/experiences",
+    "decisions_dir": "autogenesis/decisions",
+    "work_dir": "autogenesis/work"
+  }
+}

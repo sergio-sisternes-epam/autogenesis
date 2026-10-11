@@ -545,20 +545,29 @@ class SourceContractTests(unittest.TestCase):
         )
 
     def test_plan_change_class_patterns_tell_fixtures_apart(self) -> None:
+        yaml = self._require_yaml()
         suite = ROOT / ".apm/evals/autogenesis"
-        lines = (
-            suite / "tasks/plan-has-genesis-artifacts.yaml"
-        ).read_text(encoding="utf-8").splitlines()
-        start = next(
-            index for index, line in enumerate(lines)
-            if line.strip() == "must_match:"
+        task = yaml.safe_load(
+            (
+                suite / "tasks/plan-has-genesis-artifacts.yaml"
+            ).read_text(encoding="utf-8")
         )
-        patterns = []
-        for line in lines[start + 1:]:
-            match = re.fullmatch(r"\s*- '(.*)'", line)
-            if not match:
-                break
-            patterns.append(match.group(1).replace("''", "'"))
+        grader = next(
+            item
+            for item in task["graders"]
+            if item["name"] == "plan_has_genesis_artifacts"
+        )
+        args = grader["config"]["args"]
+        self.assertEqual(
+            args[0],
+            ".apm/evals/autogenesis/graders/atlas_record_check.py",
+        )
+        self.assertNotIn("-c", args)
+        patterns = [
+            args[index + 1]
+            for index, arg in enumerate(args)
+            if arg == "--must-match"
+        ]
         self.assertEqual(len(patterns), 2)
         artifacts, change_class = patterns
         self.assertIn("Genesis Artifacts", artifacts)
@@ -578,10 +587,12 @@ class SourceContractTests(unittest.TestCase):
             [
                 "negative",
                 "negative-heading",
+                "negative-inline-label-prefix",
                 "negative-prefix",
                 "negative-prefix-heading",
                 "reference",
                 "reference-heading",
+                "reference-inline-label",
             ],
         )
         for variant in variants:
@@ -615,6 +626,13 @@ class SourceContractTests(unittest.TestCase):
             "##### CHANGE CLASS\n\n**hardening**",
             "###### change class\n\n_new-surface_ # note",
             "## Change class\n\n\nnew-skill",
+            "- **Change-class:** `hardening`",
+            "**Change class:** new-surface",
+            "**Change-class**: `new-skill`",
+            "Change class: hardening",
+            "* __change_class:__ hardening",
+            "| Change class | `hardening` |",
+            "| **Change-class** | new-skill |",
         )
         rejected = (
             "change_class: hardening-extra",
@@ -632,6 +650,11 @@ class SourceContractTests(unittest.TestCase):
             "## Change class\n\n`hardening` - revise one existing procedure.",
             "## Change class\n\nTo be decided.",
             "# Change class\n\nhardening",
+            "- **Change-class:** `hardening-extra`",
+            "**Change class:** TBD",
+            "| Change class | hardening plus more |",
+            "Change class: Hardening",
+            "The change class is hardening.",
         )
         for sample in accepted:
             with self.subTest(sample=sample):
@@ -747,25 +770,24 @@ class SourceContractTests(unittest.TestCase):
                     )
 
     def test_status_grader_fails_closed_on_non_simple_scalars(self) -> None:
-        scripts = []
-        for name in (
-            "design-stops-for-approval",
-            "implement-blocks-without-approval",
+        yaml = self._require_yaml()
+        script = self._record_script()
+        relative = ".apm/evals/autogenesis/graders/atlas_record_check.py"
+        for name, grader_name in (
+            ("design-stops-for-approval", "plan_status_not_advanced"),
+            ("implement-blocks-without-approval", "lineage_not_advanced"),
         ):
-            text = (
-                ROOT / ".apm/evals/autogenesis/tasks" / f"{name}.yaml"
-            ).read_text(encoding="utf-8")
-            start = text.index("          import os\n")
-            end = text.index("        - --\n", start)
-            lines = []
-            for line in text[start:end].splitlines():
-                if line.startswith("          "):
-                    lines.append(line[10:])
-                else:
-                    self.assertEqual(line, "")
-                    lines.append("")
-            scripts.append("\n".join(lines) + "\n")
-        self.assertEqual(scripts[0], scripts[1])
+            task = yaml.safe_load(
+                (
+                    ROOT / ".apm/evals/autogenesis/tasks" / f"{name}.yaml"
+                ).read_text(encoding="utf-8")
+            )
+            grader = next(
+                item for item in task["graders"] if item["name"] == grader_name
+            )
+            self.assertEqual(grader["config"]["args"][0], relative)
+            self.assertNotIn("-c", grader["config"]["args"])
+            self.assertNotIn("import os", "\n".join(grader["config"]["args"]))
         plan = (
             ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
             "/plans/2026-10-08-add-retry-note.md"
@@ -798,8 +820,6 @@ class SourceContractTests(unittest.TestCase):
             "comment": "status: designed # awaiting approval\n",
         }
         with tempfile.TemporaryDirectory() as tmp:
-            script = Path(tmp) / "status_check.py"
-            script.write_text(scripts[0], encoding="utf-8")
             for name, replacement in {**rejected, **accepted}.items():
                 workspace = Path(tmp) / name
                 dest = workspace / plan
@@ -811,7 +831,7 @@ class SourceContractTests(unittest.TestCase):
                 env = os.environ.copy()
                 env["WAZA_WORKSPACE_DIR"] = str(workspace)
                 result = subprocess.run(
-                    ["python3", str(script), "--", plan],
+                    ["python3", str(script), plan],
                     env=env,
                     capture_output=True,
                     text=True,
@@ -829,7 +849,7 @@ class SourceContractTests(unittest.TestCase):
             env = os.environ.copy()
             env["WAZA_WORKSPACE_DIR"] = str(missing_fence)
             result = subprocess.run(
-                ["python3", str(script), "--", plan],
+                ["python3", str(script), plan],
                 env=env,
                 capture_output=True,
                 text=True,
@@ -905,18 +925,23 @@ class SourceContractTests(unittest.TestCase):
                 / ".apm/evals/autogenesis/tasks/design-stops-for-approval.yaml"
             ).read_text(encoding="utf-8")
         )
-        must_exist = [
-            path
-            for grader in task["graders"]
-            if grader["type"] == "file"
-            for path in grader["config"].get("must_exist", [])
-        ]
+        dated_work = work.replace(
+            "2026-10-08-add-retry-note.md",
+            "{date}-add-retry-note.md",
+        )
+        exists = next(
+            grader for grader in task["graders"]
+            if grader["name"] == "work_node_persisted_in_resolved_atlas"
+        )
         status = next(
             grader for grader in task["graders"]
             if grader["name"] == "plan_status_not_advanced"
         )
-        self.assertIn(work, must_exist)
-        self.assertIn(work, status["config"]["args"])
+        self.assertEqual(exists["type"], "program")
+        self.assertIn(dated_work, exists["config"]["args"])
+        self.assertIn("--exists-only", exists["config"]["args"])
+        self.assertIn(dated_work, status["config"]["args"])
+        self.assertNotIn("-c", status["config"]["args"])
         reference = (
             ROOT
             / ".apm/evals/autogenesis/fixtures/design-stops-for-approval"
@@ -1257,26 +1282,8 @@ class SourceContractTests(unittest.TestCase):
             )
             self.assertIn("baseline not found", missing_baseline.stderr)
 
-    def _program_script(self, task_name: str, index: int = 0) -> str:
-        text = (
-            ROOT / ".apm/evals/autogenesis/tasks" / task_name
-        ).read_text(encoding="utf-8")
-        start = 0
-        found = -1
-        for _ in range(index + 1):
-            found = text.find("          import os\n", start)
-            if found < 0:
-                self.fail(f"{task_name}: program script {index} not found")
-            start = found + 1
-        end = text.index('          if __name__ == "__main__":\n', found)
-        lines = []
-        for line in text[found:end].splitlines():
-            if line.startswith("          "):
-                lines.append(line[10:])
-            else:
-                self.assertEqual(line, "")
-                lines.append("")
-        return "\n".join(lines) + 'if __name__ == "__main__":\n    main()\n'
+    def _record_script(self) -> Path:
+        return ROOT / ".apm/evals/autogenesis/graders/atlas_record_check.py"
 
     def _copy_fixture(self, source: Path, dest: Path) -> None:
         dest.mkdir(parents=True, exist_ok=True)
@@ -1351,11 +1358,9 @@ class SourceContractTests(unittest.TestCase):
         index: int = 0,
         args: tuple[str, ...] = (),
     ) -> subprocess.CompletedProcess[str]:
-        command = ["python3", "-c", self._program_script(task_name, index)]
-        if args:
-            command.extend(["--", *args])
+        del task_name, index
         return subprocess.run(
-            command,
+            ["python3", str(self._record_script()), *args],
             cwd=ROOT,
             env={**os.environ, "WAZA_WORKSPACE_DIR": str(workspace)},
             capture_output=True,
@@ -1375,55 +1380,58 @@ class SourceContractTests(unittest.TestCase):
         self.assertIn("hashlib.sha256", text)
         self.assertNotIn("followlinks=True", text)
         self.assertNotIn("os.walk(root, followlinks=True", text)
-        plan = (
-            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
-            "/plans/2026-10-08-add-retry-note.md"
-        )
-        work = (
-            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
-            "/work/2026-10-08-add-retry-note.md"
-        )
+        store = ".atlas/example.invalid/fixtures/retry-helper-atlas"
+        experiences = store + "/autogenesis/experiences"
+        plans_index = store + "/autogenesis/plans/index.md"
+        work_index = store + "/autogenesis/work/index.md"
+        experiences_index = experiences + "/index.md"
+        log = store + "/log.md"
+        dated_plan = store + "/autogenesis/plans/{date}-add-retry-note.md"
+        dated_work = store + "/autogenesis/work/{date}-add-retry-note.md"
         genesis_plan = (
-            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
-            "/plans/2026-10-08-retry-backoff-guidance.md"
+            store + "/autogenesis/plans/{date}-retry-backoff-guidance.md"
         )
         genesis_work = (
-            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
-            "/work/2026-10-08-retry-backoff-guidance.md"
+            store + "/autogenesis/work/{date}-retry-backoff-guidance.md"
         )
-        plans_dir = (
-            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans"
-        )
-        work_dir = (
-            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work"
+        plans_dir = store + "/autogenesis/plans"
+        work_dir = store + "/autogenesis/work"
+        indexes = (experiences_index, plans_index, work_index)
+        design_owned = (
+            ".apm/evals/autogenesis/fixtures/subjects/subject",
+            (),
+            (experiences,),
+            indexes,
+            (log,),
+            (dated_plan, dated_work),
+            False,
         )
         expected = {
-            "design-stops-for-approval": (
-                ".apm/evals/autogenesis/fixtures/subjects/subject",
-                (plan, work),
-                (),
-                False,
-            ),
-            "discussion-has-no-implement-authority": (
-                ".apm/evals/autogenesis/fixtures/subjects/subject",
-                (plan, work),
-                (),
-                False,
-            ),
+            "design-stops-for-approval": design_owned,
+            "discussion-has-no-implement-authority": design_owned,
             "implement-blocks-without-approval": (
                 ".apm/evals/autogenesis/fixtures/subjects/subject-designed",
+                (),
+                (),
+                (),
                 (),
                 (),
                 False,
             ),
             "plan-only-in-resolved-atlas": (
                 ".apm/evals/autogenesis/fixtures/subjects/subject-legacy",
-                (plan, work),
                 (),
+                (experiences,),
+                indexes,
+                (log,),
+                (dated_plan, dated_work),
                 False,
             ),
             "help-does-not-mount": (
                 ".apm/evals/autogenesis/fixtures/subjects/subject-unmounted",
+                (),
+                (),
+                (),
                 (),
                 (),
                 False,
@@ -1432,25 +1440,42 @@ class SourceContractTests(unittest.TestCase):
                 ".apm/evals/autogenesis/fixtures/subjects/python-app",
                 ("app/durations.py",),
                 (),
+                (),
+                (),
+                (),
                 True,
             ),
             "skill-change-should-trigger": (
                 ".apm/evals/autogenesis/fixtures/subjects/subject",
                 (),
-                (plans_dir, work_dir),
+                (plans_dir, work_dir, experiences),
+                indexes,
+                (log,),
+                (),
                 False,
             ),
             "plan-has-genesis-artifacts": (
                 ".apm/evals/autogenesis/fixtures/subjects/subject",
-                (genesis_plan, genesis_work),
                 (),
+                (experiences,),
+                indexes,
+                (log,),
+                (genesis_plan, genesis_work),
                 False,
             ),
         }
         suite = ROOT / ".apm/evals/autogenesis/tasks"
         self.assertEqual({path.stem for path in suite.glob("*.yaml")}, set(expected))
         relative_script = ".apm/evals/autogenesis/graders/workspace_allowlist.py"
-        for task_id, (baseline, allow, allow_under, bytecode) in expected.items():
+        for task_id, (
+            baseline,
+            allow,
+            allow_under,
+            allow_modify,
+            allow_append,
+            allow_dated,
+            bytecode,
+        ) in expected.items():
             with self.subTest(task=task_id):
                 task = yaml.safe_load(
                     (suite / f"{task_id}.yaml").read_text(encoding="utf-8")
@@ -1470,6 +1495,9 @@ class SourceContractTests(unittest.TestCase):
                 parsed_baseline = None
                 parsed_allow = []
                 parsed_under = []
+                parsed_modify = []
+                parsed_append = []
+                parsed_dated = []
                 parsed_bytecode = False
                 index = 1
                 while index < len(args):
@@ -1486,6 +1514,18 @@ class SourceContractTests(unittest.TestCase):
                         parsed_under.append(args[index + 1])
                         index += 2
                         continue
+                    if args[index] == "--allow-modify":
+                        parsed_modify.append(args[index + 1])
+                        index += 2
+                        continue
+                    if args[index] == "--allow-append":
+                        parsed_append.append(args[index + 1])
+                        index += 2
+                        continue
+                    if args[index] == "--allow-dated":
+                        parsed_dated.append(args[index + 1])
+                        index += 2
+                        continue
                     if args[index] == "--allow-bytecode":
                         parsed_bytecode = True
                         index += 1
@@ -1494,6 +1534,9 @@ class SourceContractTests(unittest.TestCase):
                 self.assertEqual(parsed_baseline, baseline)
                 self.assertEqual(tuple(parsed_allow), allow)
                 self.assertEqual(tuple(parsed_under), allow_under)
+                self.assertEqual(tuple(parsed_modify), allow_modify)
+                self.assertEqual(tuple(parsed_append), allow_append)
+                self.assertEqual(tuple(parsed_dated), allow_dated)
                 self.assertEqual(parsed_bytecode, bytecode)
                 self.assertNotIn(
                     "diff",
@@ -1790,15 +1833,30 @@ class SourceContractTests(unittest.TestCase):
         self.assertNotIn("2026-10-08-add-retry-note.md", failed.stderr)
 
     def test_status_graders_reject_symlinks_to_a_designed_file(self) -> None:
-        design_script = self._program_script("design-stops-for-approval.yaml")
-        self.assertEqual(
-            design_script,
-            self._program_script("implement-blocks-without-approval.yaml"),
-        )
-        self.assertEqual(
-            design_script,
-            self._program_script("plan-only-in-resolved-atlas.yaml", 0),
-        )
+        yaml = self._require_yaml()
+        design_script = self._record_script().read_text(encoding="utf-8")
+        relative = ".apm/evals/autogenesis/graders/atlas_record_check.py"
+        for task_name in (
+            "design-stops-for-approval.yaml",
+            "implement-blocks-without-approval.yaml",
+            "plan-only-in-resolved-atlas.yaml",
+            "discussion-has-no-implement-authority.yaml",
+        ):
+            task = yaml.safe_load(
+                (
+                    ROOT / ".apm/evals/autogenesis/tasks" / task_name
+                ).read_text(encoding="utf-8")
+            )
+            checkers = [
+                grader
+                for grader in task["graders"]
+                if grader["type"] == "program"
+                and grader["name"] != "workspace_allowlist"
+            ]
+            self.assertTrue(checkers, task_name)
+            for grader in checkers:
+                self.assertEqual(grader["config"]["args"][0], relative)
+                self.assertNotIn("-c", grader["config"]["args"])
         self.assertIn("os.lstat", design_script)
         self.assertIn("O_NOFOLLOW", design_script)
         plan = (
@@ -1896,10 +1954,20 @@ class SourceContractTests(unittest.TestCase):
 
     def test_discussion_no_plan_negative_does_not_start_design(self) -> None:
         task = "discussion-has-no-implement-authority.yaml"
-        self.assertEqual(
-            self._program_script(task),
-            self._program_script("design-stops-for-approval.yaml"),
-        )
+        yaml = self._require_yaml()
+        relative = ".apm/evals/autogenesis/graders/atlas_record_check.py"
+        for task_name in (task, "design-stops-for-approval.yaml"):
+            loaded = yaml.safe_load(
+                (
+                    ROOT / ".apm/evals/autogenesis/tasks" / task_name
+                ).read_text(encoding="utf-8")
+            )
+            checker = next(
+                grader
+                for grader in loaded["graders"]
+                if grader["name"] == "plan_status_not_advanced"
+            )
+            self.assertEqual(checker["config"]["args"][0], relative)
         plan = (
             ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
             "/plans/2026-10-08-add-retry-note.md"
@@ -1916,7 +1984,8 @@ class SourceContractTests(unittest.TestCase):
         prompt = (
             ROOT / ".apm/evals/autogenesis/tasks" / task
         ).read_text(encoding="utf-8")
-        self.assertIn("work_id 2026-10-08-add-retry-note", prompt)
+        self.assertIn("Use the work_id slug add-retry-note.", prompt)
+        self.assertNotIn("work_id 2026-10-08-add-retry-note", prompt)
         passed = self._grade_program(task, base / "reference", 0, (plan, work))
         self.assertEqual(passed.returncode, 0, passed.stderr)
         missing = self._grade_program(
@@ -1938,6 +2007,237 @@ class SourceContractTests(unittest.TestCase):
             "I can start",
             reference["tasks"][0]["runs"][0]["final_output"],
         )
+
+    def test_record_checker_parses_indented_frontmatter(self) -> None:
+        plan = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/plans/2026-10-08-add-retry-note.md"
+        )
+        base = (
+            ROOT
+            / ".apm/evals/autogenesis/fixtures/design-stops-for-approval"
+            / "reference"
+            / plan
+        ).read_text(encoding="utf-8")
+        self.assertIn("status: designed\n", base)
+        accepted = {
+            "relates-to-list": (
+                "relates_to:\n"
+                "  - kind: implements\n"
+                "    target: autogenesis/work/2026-10-11-add-retry-note.md\n"
+                "status: designed\n"
+            ),
+            "nested-mapping-list": (
+                "owner:\n"
+                "  name: fixture\n"
+                "  roles:\n"
+                "    - author\n"
+                "status: designed\n"
+            ),
+            "tags-flow": "tags: [a, b]\nstatus: designed\n",
+            "description-block": (
+                "description: |\n"
+                "  several\n"
+                "  lines\n"
+                "status: designed\n"
+            ),
+            "status-after-block": (
+                "notes:\n"
+                "  indented block\n"
+                "status: designed\n"
+            ),
+        }
+        rejected = {
+            "status-continuation": "status: designed\n  approved\n",
+            "status-nested-only": "parent:\n  status: designed\n",
+            "tab-indent": "title: note\n\tstatus: designed\n",
+            "sequence-after-inline": "title: note\n- item\nstatus: designed\n",
+            "continuation-before-key": "  early\nstatus: designed\n",
+        }
+        script = self._record_script()
+        with tempfile.TemporaryDirectory() as tmp:
+            for name, frontmatter in {**accepted, **rejected}.items():
+                workspace = Path(tmp) / name
+                dest = workspace / plan
+                dest.parent.mkdir(parents=True)
+                dest.write_text(
+                    "---\n" + frontmatter + "---\nbody\n",
+                    encoding="utf-8",
+                )
+                result = subprocess.run(
+                    ["python3", str(script), plan],
+                    env={**os.environ, "WAZA_WORKSPACE_DIR": str(workspace)},
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                with self.subTest(case=name):
+                    if name in accepted:
+                        self.assertEqual(result.returncode, 0, result.stderr)
+                    else:
+                        self.assertNotEqual(result.returncode, 0, result.stdout)
+
+    def test_record_checker_resolves_one_shared_date(self) -> None:
+        dated_plan = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/plans/{date}-add-retry-note.md"
+        )
+        dated_work = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/work/{date}-add-retry-note.md"
+        )
+        plan = dated_plan.replace("{date}", "2026-10-08")
+        work = dated_work.replace("{date}", "2026-10-08")
+        base = (
+            ROOT
+            / ".apm/evals/autogenesis/fixtures/design-stops-for-approval"
+            / "reference"
+        )
+        script = self._record_script()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            resolved = root / "resolved"
+            self._copy_fixture(base, resolved)
+            passed = self._grade_program(
+                "record", resolved, 0, (dated_plan, dated_work)
+            )
+            self.assertEqual(passed.returncode, 0, passed.stderr)
+            self.assertIn("resolved:", passed.stdout)
+            self.assertIn(plan, passed.stdout)
+            self.assertIn(work, passed.stdout)
+
+            missing = root / "missing"
+            self._copy_fixture(base, missing)
+            (missing / plan).unlink()
+            failed = self._grade_program("record", missing, 0, (dated_plan,))
+            self.assertNotEqual(failed.returncode, 0, failed.stdout)
+            self.assertIn("missing " + dated_plan, failed.stderr)
+
+            ambiguous = root / "ambiguous"
+            self._copy_fixture(base, ambiguous)
+            extra = ambiguous / plan.replace("2026-10-08", "2026-11-02")
+            extra.write_bytes((ambiguous / plan).read_bytes())
+            failed = self._grade_program("record", ambiguous, 0, (dated_plan,))
+            self.assertNotEqual(failed.returncode, 0, failed.stdout)
+            self.assertIn("ambiguous " + dated_plan, failed.stderr)
+
+            invalid = root / "invalid-date"
+            self._copy_fixture(base, invalid)
+            (invalid / plan).unlink()
+            (invalid / plan.replace("2026-10-08", "2026-13-40")).write_text(
+                "---\nstatus: designed\n---\n",
+                encoding="utf-8",
+            )
+            failed = self._grade_program("record", invalid, 0, (dated_plan,))
+            self.assertNotEqual(failed.returncode, 0, failed.stdout)
+            self.assertIn("missing " + dated_plan, failed.stderr)
+
+            mismatch = root / "mismatch"
+            self._copy_fixture(base, mismatch)
+            shifted = mismatch / work.replace("2026-10-08", "2026-11-03")
+            shifted.write_bytes((mismatch / work).read_bytes())
+            (mismatch / work).unlink()
+            failed = self._grade_program(
+                "record", mismatch, 0, (dated_plan, dated_work)
+            )
+            self.assertNotEqual(failed.returncode, 0, failed.stdout)
+            self.assertIn("dates differ", failed.stderr)
+
+            linked = root / "symlink"
+            self._copy_fixture(base, linked)
+            source = linked / plan
+            outside = root / "outside-plan.md"
+            outside.write_bytes(source.read_bytes())
+            source.unlink()
+            source.symlink_to(outside)
+            failed = self._grade_program("record", linked, 0, (dated_plan,))
+            self.assertNotEqual(failed.returncode, 0, failed.stdout)
+            self.assertIn(plan + " is a symlink", failed.stderr)
+
+    def test_allow_modify_append_and_dated_fail_closed(self) -> None:
+        subject = ROOT / ".apm/evals/autogenesis/fixtures/subjects/subject"
+        baseline = ".apm/evals/autogenesis/fixtures/subjects/subject"
+        store = ".atlas/example.invalid/fixtures/retry-helper-atlas"
+        index = store + "/autogenesis/plans/index.md"
+        log = store + "/log.md"
+        dated = store + "/autogenesis/plans/{date}-add-retry-note.md"
+        plan = dated.replace("{date}", "2026-11-02")
+
+        def grade(workspace: Path, *flags: str) -> subprocess.CompletedProcess[str]:
+            return subprocess.run(
+                [
+                    "python3",
+                    str(self._allowlist_script()),
+                    "--baseline",
+                    baseline,
+                    *flags,
+                ],
+                cwd=ROOT,
+                env={**os.environ, "WAZA_WORKSPACE_DIR": str(workspace)},
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            changed = root / "changed-index"
+            self._copy_fixture(subject, changed)
+            target = changed / index
+            target.write_text(target.read_text(encoding="utf-8") + "\n- added\n", encoding="utf-8")
+            passed = grade(changed, "--allow-modify", index)
+            self.assertEqual(passed.returncode, 0, passed.stderr)
+
+            removed = root / "removed-index"
+            self._copy_fixture(subject, removed)
+            (removed / index).unlink()
+            failed = grade(removed, "--allow-modify", index)
+            self.assertNotEqual(failed.returncode, 0, failed.stdout)
+            self.assertIn("missing " + index, failed.stderr)
+
+            linked_index = root / "linked-index"
+            self._copy_fixture(subject, linked_index)
+            source = linked_index / index
+            outside = root / "outside-index.md"
+            outside.write_bytes(source.read_bytes())
+            source.unlink()
+            source.symlink_to(outside)
+            failed = grade(linked_index, "--allow-modify", index)
+            self.assertNotEqual(failed.returncode, 0, failed.stdout)
+            self.assertIn(index + " is a symlink", failed.stderr)
+
+            appended = root / "appended-log"
+            self._copy_fixture(subject, appended)
+            log_path = appended / log
+            log_path.write_bytes(log_path.read_bytes() + b"\n- 2026-11-02: remembered.\n")
+            passed = grade(appended, "--allow-append", log)
+            self.assertEqual(passed.returncode, 0, passed.stderr)
+
+            rewritten = root / "rewritten-log"
+            self._copy_fixture(subject, rewritten)
+            (rewritten / log).write_text("# Log\n\n- rewritten\n", encoding="utf-8")
+            failed = grade(rewritten, "--allow-append", log)
+            self.assertNotEqual(failed.returncode, 0, failed.stdout)
+            self.assertIn("not append-only: " + log, failed.stderr)
+
+            added = root / "dated-plan"
+            self._copy_fixture(subject, added)
+            dest = added / plan
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_text("---\nstatus: designed\n---\n", encoding="utf-8")
+            passed = grade(added, "--allow-dated", dated)
+            self.assertEqual(passed.returncode, 0, passed.stderr)
+
+            linked_plan = root / "linked-plan"
+            self._copy_fixture(subject, linked_plan)
+            dest = linked_plan / plan
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            outside_plan = root / "outside-plan.md"
+            outside_plan.write_text("---\nstatus: designed\n---\n", encoding="utf-8")
+            dest.symlink_to(outside_plan)
+            failed = grade(linked_plan, "--allow-dated", dated)
+            self.assertNotEqual(failed.returncode, 0, failed.stdout)
+            self.assertIn(plan + " is a symlink", failed.stderr)
 
     def test_package_manifest_and_lock_have_no_evaluator_dependency(self) -> None:
         for name in ("apm.yml", "apm.lock.yaml"):

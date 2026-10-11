@@ -55,9 +55,9 @@ in `SKILL.md`.
 ### Added
 
 - Autogenesis dogfood eval suite at `.apm/evals/autogenesis/`
-  (final `suite_version: 11`, Waza 0.38.9 format, `schemaVersion: "1.4"`):
+  (final `suite_version: 12`, Waza 0.38.9 format, `schemaVersion: "1.4"`):
   five gate tasks with deterministic outcome graders, two trigger tasks and
-  one advisory quality task. The shipped suite is version 11. It ships
+  one advisory quality task. The shipped suite is version 12. It ships
   minimal fixture subject repositories, reference and negative fixtures with
   hand-authored results files for every deterministic task, and a README with
   run instructions, required skills and the recommended pass rule. Authored
@@ -66,8 +66,9 @@ in `SKILL.md`.
   shipped in the installed skill (the root `.waza.yaml` sets `paths.evals`).
   Diff-grader context is `fixtures/subjects`. A change class is accepted only
   as an exact `hardening`, `new-surface` or `new-skill` token on a
-  `change_class:` / `change-class:` key, or on the first non-blank line under
-  a "Change class" heading. The suite README adds a run layout that keeps the
+  `change_class:` / `change-class:` key, on the first non-blank line under
+  a "Change class" heading, as an inline label, or as a table row. A value
+  that only starts with a class still fails. The suite README adds a run layout that keeps the
   suite outside the agent's working directory and skill paths, recommends
   `config.skill_directories` over `paths.skills`, explains how to read
   `skill_invocation` scores, and requires `python3` in the runner image.
@@ -94,7 +95,7 @@ in `SKILL.md`.
   `plan-has-genesis-artifacts` to the runner because it contains a prompt
   grader.
   History of `suite_version` bumps (not the shipped version; the shipped
-  suite is version 11): version 2 placed the suite under `.apm/evals/` and
+  suite is version 12): version 2 placed the suite under `.apm/evals/` and
   accepted a "Change class" heading; version 3 parsed status and set
   `inject_skill_body: false`; version 4 failed closed on a non-scalar status
   and required the resolved plan; version 5 required the designed work node
@@ -103,7 +104,10 @@ in `SKILL.md`.
   plan and work node, and stopped committing symlink fixtures; version 8
   introduced the shared allowlist; version 9 widened the two trigger
   allowlists; version 10 rejected a symlink on an allowed path; version 11
-  requires an exact change-class token.
+  requires an exact change-class token; version 12 makes design tasks
+  date-agnostic, parses indented frontmatter in one shared checker, allows
+  Atlas-owned experience, index and log writes on the design tasks, and
+  gives the fixture SCHEMA a minimal compile block that Atlas v0.13.1 accepts.
 - Consumer validation fails when an installed `autogenesis` skill contains an
   `evals/` directory, a `.apm/` directory or any `eval.yaml`; source checks
   and the `suite-not-shipped` smoke keep the suite under `.apm/evals/`.
