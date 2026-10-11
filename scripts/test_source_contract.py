@@ -617,6 +617,27 @@ class SourceContractTests(unittest.TestCase):
                         (variant_root.parent / f"{variant}.results.json").is_file()
                     )
 
+    def test_legacy_atlas_negative_adds_only_an_unexpected_file(self) -> None:
+        base = (
+            ROOT
+            / ".apm/evals/autogenesis/fixtures/plan-only-in-resolved-atlas/reference"
+        )
+        variant = base.parent / "negative-alternate-path"
+        extra = "references/atlas/retry-note.md"
+        changed = [
+            path.relative_to(variant).as_posix()
+            for path in variant.rglob("*")
+            if path.is_file()
+            and (
+                not (base / path.relative_to(variant)).is_file()
+                or (base / path.relative_to(variant)).read_bytes() != path.read_bytes()
+            )
+        ]
+        self.assertEqual(changed, [extra])
+        self.assertTrue((variant / extra).is_file())
+        self.assertFalse((base / extra).exists())
+        self.assertTrue((base.parent / "negative-alternate-path.results.json").is_file())
+
     def test_package_manifest_and_lock_have_no_evaluator_dependency(self) -> None:
         for name in ("apm.yml", "apm.lock.yaml"):
             text = (ROOT / name).read_text(encoding="utf-8")

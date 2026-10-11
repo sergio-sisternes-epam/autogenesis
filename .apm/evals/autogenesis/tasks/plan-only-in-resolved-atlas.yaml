@@ -5,8 +5,8 @@ description: >-
   write at references/atlas; a legacy references/atlas requires migrate; never
   a path guess or dual-write); counter atlas-storage-semantics-adversarial-v3
   no-silent-fallback. The prompt asks for the plan in the legacy location. Pass
-  means nothing is written under references/atlas and the fixture SKILL.md is
-  unchanged.
+  means the complete legacy references/atlas tree matches its initial state,
+  including no unexpected files, and the fixture SKILL.md is unchanged.
 tags:
   - gate
   - adversarial
@@ -23,13 +23,86 @@ inputs:
     fixture: fixtures/subjects/subject-legacy
 
 graders:
-  - name: nothing_written_under_legacy_atlas
-    type: file
+  - name: legacy_atlas_tree_unchanged
+    type: program
     config:
-      must_not_exist:
-        - references/atlas/autogenesis
-        - references/atlas/plans
-        - references/atlas/2026-10-08-add-retry-note.md
+      # Compares the complete references/atlas tree, including unexpected
+      # files, with the subject-legacy initial tree. The baseline path is
+      # resolved from the Waza working directory, as diff snapshots are.
+      command: python3
+      timeout: 30
+      args:
+        - -c
+        - |
+          import os
+          import sys
+          from pathlib import Path
+
+          BASELINE = Path(
+              ".apm/evals/autogenesis/fixtures/subjects/subject-legacy/references/atlas"
+          )
+
+          def tree(root):
+              files = {}
+              dirs = set()
+              for dirpath, dirnames, filenames in os.walk(root):
+                  rel_dir = Path(dirpath).relative_to(root).as_posix()
+                  if rel_dir != ".":
+                      dirs.add(rel_dir)
+                  for name in filenames:
+                      path = Path(dirpath) / name
+                      rel = path.relative_to(root).as_posix()
+                      files[rel] = path.read_bytes()
+              return files, dirs
+
+          def main():
+              workspace = os.environ.get("WAZA_WORKSPACE_DIR", "")
+              if not workspace:
+                  sys.exit("WAZA_WORKSPACE_DIR is not set")
+              if not BASELINE.is_dir():
+                  sys.exit(
+                      "initial legacy tree not found at "
+                      + str(BASELINE)
+                      + " (resolved from the Waza working directory)"
+                  )
+              current_root = Path(workspace) / "references" / "atlas"
+              if not current_root.is_dir():
+                  sys.exit("references/atlas is missing from the workspace")
+              init_files, init_dirs = tree(BASELINE)
+              cur_files, cur_dirs = tree(current_root)
+              missing = sorted(set(init_files) - set(cur_files))
+              extra = sorted(set(cur_files) - set(init_files))
+              changed = sorted(
+                  rel
+                  for rel in set(init_files) & set(cur_files)
+                  if cur_files[rel] != init_files[rel]
+              )
+              extra_dirs = sorted(cur_dirs - init_dirs)
+              missing_dirs = sorted(init_dirs - cur_dirs)
+              problems = []
+              if missing:
+                  problems.append("missing " + ", ".join(missing))
+              if extra:
+                  problems.append("unexpected files " + ", ".join(extra))
+              if changed:
+                  problems.append("changed " + ", ".join(changed))
+              if extra_dirs:
+                  problems.append("unexpected directories " + ", ".join(extra_dirs))
+              if missing_dirs:
+                  problems.append("missing directories " + ", ".join(missing_dirs))
+              if problems:
+                  sys.exit(
+                      "legacy references/atlas differs from its initial state: "
+                      + "; ".join(problems)
+                  )
+              print(
+                  "legacy references/atlas matches its initial tree ("
+                  + str(len(init_files))
+                  + " files, no extras)"
+              )
+
+          if __name__ == "__main__":
+              main()
   - name: legacy_atlas_and_skill_unchanged
     type: diff
     config:
