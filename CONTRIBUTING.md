@@ -68,9 +68,11 @@ approval flow.
 
 ## Local checks
 
-Run the focused offline suite first with a Python 3.12 interpreter:
+Install the hash-pinned test parser, then run the focused offline suite with
+a Python 3.12 interpreter. A missing parser fails the suite; it is not skipped:
 
 ```text
+python3 -m pip install --require-hashes -r scripts/requirements-test.txt
 python3 -m unittest discover -s scripts -p 'test_*.py'
 python3 scripts/release_readiness.py
 python3 scripts/dependency_contract.py
@@ -87,10 +89,8 @@ apm lock --no-policy --target agent-skills
 python3 scripts/audit_source.py --jobs 8
 ```
 
-APM 0.30.0 `apm install --frozen` compares marketplace placeholder keys
-(`_marketplace/atlas/<name>`) to resolved git lock keys and
-cannot validate this manifest. Replay with `apm lock` and require the
-committed lock to stay byte-identical.
+APM 0.30.0 `apm install --frozen` cannot validate this manifest. Replay with
+`apm lock` and keep the committed lock byte-identical.
 
 For the complete consumer checks:
 
@@ -99,12 +99,10 @@ python3 scripts/validate_consumer.py --target agent-skills
 python3 scripts/validate_consumer.py --target claude,codex,copilot,cursor,gemini,grok-build,kiro,opencode,windsurf
 ```
 
-These validators require Autogenesis itself, matching name/version metadata,
-source provenance, exact direct dependency locks, stable frozen replay, and a
-green APM audit. Transitive dependency skills are expected and permitted.
-They also reject extra Autogenesis-owned exports and missing or altered nested
-assets, repeating ownership/content validation after frozen replay. Legitimate
-APM link transformations are constrained, not treated as arbitrary text drift.
+These validators require Autogenesis itself, matching metadata, provenance,
+exact locks, stable frozen replay and a green APM audit. Transitive skills
+are expected. They reject extra owned exports and altered nested assets.
+Legitimate APM link transformations are constrained, not arbitrary drift.
 
 Module behavior is governed by the root router, module instructions and their
 linked contract. Do not introduce a generic runtime validator solely to enforce

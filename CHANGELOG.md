@@ -32,6 +32,9 @@ in `SKILL.md`.
   allowlist V1-V3 with `WAZA_NO_UPDATE_CHECK=1` and records the `waza_suite`
   block with `run_status: not-run-by-autogenesis`, which is not behavioural
   evidence.
+- The source-contract tests require PyYAML 6.0.2, hash-pinned in
+  `scripts/requirements-test.txt` and installed by CI before unittest. A
+  missing parser fails those tests instead of skipping them.
 - `specify-only-adversarial-v2` and `help-getting-started-adversarial-v1`
   become historical, succeeded by `waza-evaluation-adversarial-v1` and the
   parse-valid `help-getting-started-adversarial-v2`.

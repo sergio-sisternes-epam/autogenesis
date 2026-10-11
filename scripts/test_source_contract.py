@@ -394,11 +394,31 @@ class SourceContractTests(unittest.TestCase):
         for scenario in indexed_scenarios:
             self.assertTrue((ROOT / "references/scenarios" / scenario).is_file())
 
-    def test_current_scenarios_parse_with_required_smoke_shape(self) -> None:
+    def _require_yaml(self):
         try:
             import yaml
         except ImportError:
-            self.skipTest("PyYAML not installed")
+            self.fail(
+                "PyYAML is required; install scripts/requirements-test.txt "
+                "(a missing parser is a failure, not a skip)"
+            )
+        return yaml
+
+    def test_pyyaml_test_extra_is_hash_pinned(self) -> None:
+        text = (ROOT / "scripts/requirements-test.txt").read_text(encoding="utf-8")
+        self.assertIn("PyYAML==6.0.2", text)
+        self.assertIn("--hash=sha256:", text)
+        self.assertIn(
+            "80bab7bfc629882493af4aa31a4cfa43a4c57c83813253626916b8c7ada83476",
+            text,
+        )
+        self.assertIn(
+            "d584d9ec91ad65861cc08d42e834324ef890a082e591037abe114850ff7bbc3e",
+            text,
+        )
+
+    def test_current_scenarios_parse_with_required_smoke_shape(self) -> None:
+        yaml = self._require_yaml()
         scenario_root = ROOT / "references/scenarios"
         index = json.loads(
             (scenario_root / "suite-index.json").read_text(encoding="utf-8")
@@ -450,10 +470,7 @@ class SourceContractTests(unittest.TestCase):
                 self.assertIn(match.group(0), own_names, path)
 
     def test_dogfood_eval_suite_structure(self) -> None:
-        try:
-            import yaml
-        except ImportError:
-            self.skipTest("PyYAML not installed")
+        yaml = self._require_yaml()
         suite = ROOT / ".apm/evals/autogenesis"
         spec = yaml.safe_load((suite / "eval.yaml").read_text(encoding="utf-8"))
         self.assertEqual(spec.get("schemaVersion"), "1.4")
