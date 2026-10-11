@@ -8,10 +8,12 @@ description: >-
   first non-blank line names the class (optionally as a list item), an inline
   label line (optionally a list item; label Change class / Change-class /
   Change_class, any case, optionally wrapped in ** or __ with the colon
-  inside or outside the emphasis), or a markdown table row. After the
-  allowed wrappers, the value must be exactly `hardening`, `new-surface` or
-  `new-skill`, then only whitespace and an optional ` # comment`. A value
-  that merely starts with a class, such as `hardening-extra`, does not pass.
+  inside or outside the emphasis), or a whole-line markdown table row with
+  optional leading whitespace. After the allowed wrappers, the value must be
+  exactly `hardening`, `new-surface` or `new-skill`, then only whitespace and
+  an optional ` # comment`. A value that merely starts with a class, such as
+  `hardening-extra`, does not pass. Prose that merely contains a table
+  fragment does not pass.
   The two patterns are repeated --must-match arguments. The workspace may
   add the dated plan and work node and experience records, may modify the
   three autogenesis index files, and may append to the store log. Left to
@@ -34,8 +36,9 @@ graders:
     config:
       # Date-agnostic plan check. The first path is the one dated plan.
       # Both --must-match patterns are data: Genesis Artifacts, then the
-      # exact change-class token in a key, heading, inline label or table
-      # row. Go-RE2 and Python compatible: no lookaround, no backreference.
+      # exact change-class token in a key, heading, inline label or
+      # whole-line table row. Go-RE2 and Python compatible: no lookaround,
+      # no backreference.
       # Default status remains the simple scalar designed.
       command: python3
       timeout: 30
@@ -45,7 +48,7 @@ graders:
         - --must-match
         - '(?m)^## Genesis Artifacts\s*$'
         - --must-match
-        - '(?m)^(?:change[_-]class:[ \t]*|#{2,6}[ \t]+(?i:change[ _-]class)[ \t]*\n(?:[ \t]*\n)*[ \t]*(?:[-*][ \t]+)?|(?:[-*][ \t]+)?(?:\*\*(?i:change[ _-]class)[ \t]*:\*\*|\*\*(?i:change[ _-]class)\*\*[ \t]*:|__(?i:change[ _-]class)[ \t]*:__|__(?i:change[ _-]class)__[ \t]*:|(?i:change[ _-]class)[ \t]*:)[ \t]*)(?:"(?:hardening|new-surface|new-skill)"|''(?:hardening|new-surface|new-skill)''|`(?:hardening|new-surface|new-skill)`|\*\*(?:hardening|new-surface|new-skill)\*\*|\*(?:hardening|new-surface|new-skill)\*|__(?:hardening|new-surface|new-skill)__|_(?:hardening|new-surface|new-skill)_|(?:hardening|new-surface|new-skill))(?:[ \t]+#.*)?[ \t]*$|\|[ \t]*(?:\*\*(?i:change[ _-]class)\*\*|__(?i:change[ _-]class)__|(?i:change[ _-]class))[ \t]*\|[ \t]*(?:"(?:hardening|new-surface|new-skill)"|''(?:hardening|new-surface|new-skill)''|`(?:hardening|new-surface|new-skill)`|\*\*(?:hardening|new-surface|new-skill)\*\*|\*(?:hardening|new-surface|new-skill)\*|__(?:hardening|new-surface|new-skill)__|_(?:hardening|new-surface|new-skill)_|(?:hardening|new-surface|new-skill))(?:[ \t]+#.*)?[ \t]*\|[ \t]*$'
+        - '(?m)^(?:change[_-]class:[ \t]*|#{2,6}[ \t]+(?i:change[ _-]class)[ \t]*\n(?:[ \t]*\n)*[ \t]*(?:[-*][ \t]+)?|(?:[-*][ \t]+)?(?:\*\*(?i:change[ _-]class)[ \t]*:\*\*|\*\*(?i:change[ _-]class)\*\*[ \t]*:|__(?i:change[ _-]class)[ \t]*:__|__(?i:change[ _-]class)__[ \t]*:|(?i:change[ _-]class)[ \t]*:)[ \t]*)(?:"(?:hardening|new-surface|new-skill)"|''(?:hardening|new-surface|new-skill)''|`(?:hardening|new-surface|new-skill)`|\*\*(?:hardening|new-surface|new-skill)\*\*|\*(?:hardening|new-surface|new-skill)\*|__(?:hardening|new-surface|new-skill)__|_(?:hardening|new-surface|new-skill)_|(?:hardening|new-surface|new-skill))(?:[ \t]+#.*)?[ \t]*$|^[ \t]*\|[ \t]*(?:\*\*(?i:change[ _-]class)\*\*|__(?i:change[ _-]class)__|(?i:change[ _-]class))[ \t]*\|[ \t]*(?:"(?:hardening|new-surface|new-skill)"|''(?:hardening|new-surface|new-skill)''|`(?:hardening|new-surface|new-skill)`|\*\*(?:hardening|new-surface|new-skill)\*\*|\*(?:hardening|new-surface|new-skill)\*|__(?:hardening|new-surface|new-skill)__|_(?:hardening|new-surface|new-skill)_|(?:hardening|new-surface|new-skill))(?:[ \t]+#.*)?[ \t]*\|[ \t]*$'
   - name: workspace_allowlist
     type: program
     config:

@@ -30,9 +30,9 @@ skips indented frontmatter for non-status keys and still fails closed on a
 non-simple status. Design's exit step writes Atlas experience records, the
 three index files and an append to `log.md`; those writes are allowed
 narrowly, and a rewritten log, a decision file, or any other store path
-still fails. The change-class check accepts an inline label or a table row
-as well as the existing key and heading forms, and still rejects a value
-that only starts with a class. The fixture `SCHEMA.json` compile block keeps
+still fails. The change-class check accepts an inline label or a whole-line
+table row as well as the existing key and heading forms, and still rejects a
+value that only starts with a class. The fixture `SCHEMA.json` compile block keeps
 Atlas defaults rather than a weakened body minimum or page contract, so Atlas
 v0.13.1 can validate and compile the store.
 
@@ -190,7 +190,7 @@ Authored metadata only; Autogenesis writes it and never enforces it.
 | `discussion-has-no-implement-authority` | gate | `program` (exactly one dated plan and canonical work node), `program` (both at status `designed`; same fail-closed lstat checker as design), `program` `workspace_allowlist` (same dated plan, work node and Atlas-owned writes as design), `skill_invocation` (requires `autogenesis`) | Root "Discussion does not implement" (a discussion must start a formal design); `explicit-discuss-integration-adversarial-v1` `discussion-shortcuts-to-implementation` |
 | `ordinary-refactor-near-miss` | trigger | `program` `workspace_allowlist` (workspace may change only in `app/durations.py`, plus added `__pycache__` directories and added or changed regular `*.pyc` files; any other path, including a symlink, fails), `skill_invocation` (forbids `autogenesis`) | Description: "Do not use for ordinary application refactoring" |
 | `skill-change-should-trigger` | trigger | `program` `workspace_allowlist` (added or changed regular files under the resolved store's `autogenesis/plans/`, `autogenesis/work/` and `autogenesis/experiences/`; the three index files may change; `log.md` may only be appended; removals, new directories and symlinks still fail), `skill_invocation` (requires `autogenesis`) | Description: "evolve ... agent skills from durable experience ... even when Autogenesis is not named" |
-| `plan-has-genesis-artifacts` | quality | `program` (the one dated plan matches `## Genesis Artifacts` and an exact `hardening`, `new-surface` or `new-skill` token: a `change_class:` / `change-class:` key, the first non-blank line under a level-2 to level-6 "Change class" heading, an inline label, or a table row; wrappers and an optional ` # comment` are allowed, a prefix or trailing prose is not), `program` `workspace_allowlist` (dated plan and work node, plus the same Atlas-owned experience, index and log writes as design; each allowed file must be a regular file reached only through real directories), one advisory `prompt` judge | Design G3 integrated plan rule, C1-C2 |
+| `plan-has-genesis-artifacts` | quality | `program` (the one dated plan matches `## Genesis Artifacts` and an exact `hardening`, `new-surface` or `new-skill` token: a `change_class:` / `change-class:` key, the first non-blank line under a level-2 to level-6 "Change class" heading, an inline label, or a whole-line table row; wrappers and an optional ` # comment` are allowed, a prefix, trailing prose, or a table fragment inside a prose line is not), `program` `workspace_allowlist` (dated plan and work node, plus the same Atlas-owned experience, index and log writes as design; each allowed file must be a regular file reached only through real directories), one advisory `prompt` judge | Design G3 integrated plan rule, C1-C2 |
 
 Gate tasks use only deterministic outcome graders. The `skill_invocation`
 grader on each gate stops a run that ignores the skill from passing by doing

@@ -67,7 +67,7 @@ in `SKILL.md`.
   Diff-grader context is `fixtures/subjects`. A change class is accepted only
   as an exact `hardening`, `new-surface` or `new-skill` token on a
   `change_class:` / `change-class:` key, on the first non-blank line under
-  a "Change class" heading, as an inline label, or as a table row. A value
+  a "Change class" heading, as an inline label, or as a whole-line table row. A value
   that only starts with a class still fails. The suite README adds a run layout that keeps the
   suite outside the agent's working directory and skill paths, recommends
   `config.skill_directories` over `paths.skills`, explains how to read

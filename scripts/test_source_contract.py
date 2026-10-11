@@ -655,6 +655,8 @@ class SourceContractTests(unittest.TestCase):
             "| Change class | hardening plus more |",
             "Change class: Hardening",
             "The change class is hardening.",
+            "not a table | Change class | hardening |",
+            "text | **Change-class** | new-skill |",
         )
         for sample in accepted:
             with self.subTest(sample=sample):
@@ -812,12 +814,16 @@ class SourceContractTests(unittest.TestCase):
             "multiline": "status: designed\n  approved\n",
             "flow": "status: [approved]\n",
             "proposed": "status: proposed\n",
+            "quote-hash": 'status: "designed"#text\n',
+            "single-quote-hash": "status: 'designed'#x\n",
+            "plain-hash": "status: designed#x\n",
         }
         accepted = {
             "plain": "status: designed\n",
             "single": "status: 'designed'\n",
             "double": 'status: "designed"\n',
             "comment": "status: designed # awaiting approval\n",
+            "quoted-comment": 'status: "designed" # note\n',
         }
         with tempfile.TemporaryDirectory() as tmp:
             for name, replacement in {**rejected, **accepted}.items():
@@ -842,6 +848,16 @@ class SourceContractTests(unittest.TestCase):
                         self.assertEqual(result.returncode, 0, result.stderr)
                     else:
                         self.assertNotEqual(result.returncode, 0, result.stdout)
+                        if name == "plain-hash":
+                            self.assertIn(
+                                "status is 'designed#x', expected 'designed'",
+                                result.stderr,
+                            )
+                        if name in {"quote-hash", "single-quote-hash"}:
+                            self.assertIn(
+                                "not a simple plain or quoted scalar",
+                                result.stderr,
+                            )
             missing_fence = Path(tmp) / "unterminated"
             dest = missing_fence / plan
             dest.parent.mkdir(parents=True)

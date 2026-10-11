@@ -11,7 +11,10 @@ more is ambiguous.
 
 --exists-only checks existence, uniqueness and the shared date only.
 Otherwise exactly one top-level status key must be the simple plain or
-quoted scalar given by --status (default designed). A nested status key is
+quoted scalar given by --status (default designed). A trailing `#` comment
+counts only when at least one space or tab separates it from the scalar.
+`#` glued to a closing quote is not a comment, and a plain token such as
+`designed#x` is that whole token, not `designed`. A nested status key is
 not that top-level key. --must-match applies each expression to the first
 resolved path with Python re.search.
 
@@ -91,10 +94,14 @@ def quoted_scalar(raw):
             i += 2
             continue
         if ch == quote:
-            rest = raw[i + 1 :].strip()
-            if rest and not rest.startswith("#"):
-                return None
-            return "".join(out)
+            # YAML requires whitespace before a comment. Optional trailing
+            # whitespace is fine; `#` glued to the closing quote is not.
+            rest = raw[i + 1 :]
+            if rest.strip() == "":
+                return "".join(out)
+            if rest[0] in " \t" and rest.lstrip(" \t").startswith("#"):
+                return "".join(out)
+            return None
         out.append(ch)
         i += 1
     return None
@@ -103,6 +110,8 @@ def quoted_scalar(raw):
 def plain_scalar(raw):
     if not raw or raw[0] in "!&*{[}]|>%@`'\"?-":
         return None
+    # A comment needs whitespace before `#`. `designed#x` is one plain
+    # scalar, not `designed` plus a comment.
     cut = len(raw)
     for i, ch in enumerate(raw):
         if ch == "#" and (i == 0 or raw[i - 1].isspace()):
