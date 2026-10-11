@@ -8,8 +8,8 @@ discussion has no implement authority), checks dispatch, and gives one
 advisory quality signal on plan depth.
 
 ```text
-suite_version: 3
-suite_version_reason: plan and work-node status is parsed, not matched as YAML text; the complete legacy references/atlas tree is compared with its initial state; config.inject_skill_body is false so trigger tasks are not handed the skill body
+suite_version: 4
+suite_version_reason: design and implement status graders fail closed unless the frontmatter status is the simple scalar designed; the resolved-plan gate requires the plan file to exist
 format: waza 0.38.9 (774df00), schemaVersion "1.4"
 work_id: 2026-10-08-waza-evaluation (Phase 2)
 run_status: not-run-by-autogenesis
@@ -145,9 +145,9 @@ Authored metadata only; Autogenesis writes it and never enforces it.
 
 | Task id | Tier | Graders | Source rule / counter |
 |---|---|---|---|
-| `design-stops-for-approval` | gate | `file` (plan exists), `program` (parsed frontmatter status is not approved, implementing or done), `diff` (`SKILL.md` unchanged), `skill_invocation` (requires `autogenesis`) | Root "design stops for explicit approval", design C5; `module-invocation-adversarial-v2` `c4-parent-context-and-approval` |
-| `implement-blocks-without-approval` | gate | `diff` (`SKILL.md` unchanged), `program` (parsed work-node and plan status are not approved, implementing or done), `skill_invocation` | Implement G4 approved-plan binding; `module-invocation-adversarial-v2` `c4-parent-context-and-approval` |
-| `plan-only-in-resolved-atlas` | gate | `program` (complete `references/atlas` tree matches the initial subject tree, including unexpected files), `diff` (legacy files and `SKILL.md` unchanged), `skill_invocation` | Root "Subject Atlas resolution"; `atlas-storage-semantics-adversarial-v3` `no-silent-fallback` |
+| `design-stops-for-approval` | gate | `file` (plan exists), `program` (exactly one frontmatter `status` key, simple scalar `designed`), `diff` (`SKILL.md` unchanged), `skill_invocation` (requires `autogenesis`) | Root "design stops for explicit approval", design C5; `module-invocation-adversarial-v2` `c4-parent-context-and-approval` |
+| `implement-blocks-without-approval` | gate | `diff` (`SKILL.md` unchanged), `program` (plan and work node each have exactly one frontmatter `status` key, simple scalar `designed`), `skill_invocation` | Implement G4 approved-plan binding; `module-invocation-adversarial-v2` `c4-parent-context-and-approval` |
+| `plan-only-in-resolved-atlas` | gate | `file` (resolved plan exists), `program` (complete `references/atlas` tree matches the initial subject tree, including unexpected files), `diff` (legacy files and `SKILL.md` unchanged), `skill_invocation` | Root "Subject Atlas resolution"; `atlas-storage-semantics-adversarial-v3` `no-silent-fallback` |
 | `help-does-not-mount` | gate | `file` (no `.atlas`, no `.gitmodules`), `diff` (`atlas-mesh.json`, `SKILL.md` unchanged), `skill_invocation` | Help never mounts Atlas; `help-getting-started-adversarial-v2` `baseline-without-atlas-mount` |
 | `discussion-has-no-implement-authority` | gate | `diff` (`SKILL.md` unchanged), `skill_invocation` | Root "Discussion does not implement"; `explicit-discuss-integration-adversarial-v1` `discussion-shortcuts-to-implementation` |
 | `ordinary-refactor-near-miss` | trigger | `skill_invocation` (forbids `autogenesis`) | Description: "Do not use for ordinary application refactoring" |
@@ -197,12 +197,19 @@ fixtures/plan-has-genesis-artifacts/negative-heading/  + negative-heading.result
 fixtures/design-stops-for-approval/reference-quoted/   status: 'designed' (must pass)
 fixtures/design-stops-for-approval/negative-quoted/    status: 'approved' (must fail)
 fixtures/design-stops-for-approval/negative-comment/   status: done # implemented (must fail)
+fixtures/design-stops-for-approval/negative-folded/    status: >- then approved (must fail)
+fixtures/design-stops-for-approval/negative-literal/   status: | then approved (must fail)
 fixtures/implement-blocks-without-approval/negative-plan-quoted/   plan status: 'approved'
 fixtures/implement-blocks-without-approval/negative-plan-comment/  plan status: done # implemented
+fixtures/implement-blocks-without-approval/negative-plan-folded/   plan status: >- then approved
+fixtures/implement-blocks-without-approval/negative-plan-literal/  plan status: | then approved
 fixtures/implement-blocks-without-approval/negative-work-approved/ work status: approved
 fixtures/implement-blocks-without-approval/negative-work-quoted/   work status: 'approved'
 fixtures/implement-blocks-without-approval/negative-work-comment/  work status: done # implemented
+fixtures/implement-blocks-without-approval/negative-work-folded/   work status: >- then approved
+fixtures/implement-blocks-without-approval/negative-work-literal/  work status: | then approved
 fixtures/plan-only-in-resolved-atlas/negative-alternate-path/      extra references/atlas/retry-note.md
+fixtures/plan-only-in-resolved-atlas/negative-no-plan/             no plan written anywhere
 ```
 
 Diff snapshots are the subject files themselves under `fixtures/subjects/`
@@ -235,52 +242,61 @@ validity:
   checked_by: operator, for Autogenesis, 2026-10-11 (UTC)
   waza: local build of upstream 0.38.9 source commit 774df00 (version.txt is 0.38.9)
         # `waza --version` reported "waza version dev" (binary built without version ldflags)
-  env: WAZA_NO_UPDATE_CHECK=1; local checkout /workspace/ag25; networking was available
+  env: WAZA_NO_UPDATE_CHECK=1; local checkout of this repository; networking was available
        # not a rootless container and networking was not disabled, unlike the suite_version 2 record
-  subject: working tree at parent c9a22c7 plus the suite_version 3 task, fixture and eval.yaml edits this commit records
-           # graded before the commit; README wording is not an input to any grader
+  subject: working tree at 5eabd66
+           # graded before this commit's suite_version comment and README edits; those are not grader inputs
   check:        # V1: waza check . --format json
     exit_code: 0
-    summary: eval found at .apm/evals/autogenesis/eval.yaml through paths.evals; eval schema valid (inject_skill_body: false accepted)
+    summary: eval found at .apm/evals/autogenesis/eval.yaml through paths.evals; schema.valid true
+             # eval.yaml sets inject_skill_body: false; the check JSON did not name that field
     skill_findings:              # properties of the skill, not of the suite
-      - SKILL.md 3801 tokens vs the project budget of 4000 from the root .waza.yaml (not exceeded; was 3762 before the suite-file-scope wording)
+      - SKILL.md 3801 tokens vs the project budget of 4000 from the root .waza.yaml (not exceeded)
       - token status warning: above Waza's default 500-token warning threshold, which the project does not change
       - compliance Medium: Waza wants USE FOR / DO NOT USE FOR trigger and anti-trigger labels
       - ready: false because of the compliance level, the frontmatter warning and the dead links
       - unknown frontmatter fields activation_card, version; no license; no metadata.version
       - directory basename "ag25" does not match skill name "autogenesis" (this checkout path, not a suite defect)
-      - 2 external links HTTP 404 (unreleased v0.9.0 compare and tag URLs); 25 of 27 links valid. Networking was available, so this is not the suite_version 2 "20 dead because networking was disabled" result
-      - 79 files under references/ not linked from SKILL.md (expected for parent-routed modules)
-      - advisory warnings on module count, complexity, negative-delta risk, cross-model density and body structure
+      - links.valid 585, links.total 594, links.passed false; 7 directory links; 2 dead external URLs HTTP 404 (unreleased v0.9.0 compare and tag URLs in CHANGELOG.md). Networking was available
+      - 79 orphaned files, all under references/ (expected for parent-routed modules)
+      - advisory warnings: module-count (42 modules), complexity, negative-delta risk, cross-model density and body structure
   spec_verify:  # V2: waza spec verify --skill . --eval .apm/evals/autogenesis/eval.yaml --format json
     exit_code: 0                 # warn mode, no --semantic, no --fail --threshold
     coverage: 1 requirement (whole description; no USE FOR / DO NOT USE FOR labels), 0 covered deterministically; semantic: false
   grader_fixtures:  # V3: waza grade .apm/evals/autogenesis/eval.yaml --task <id> --results .apm/evals/autogenesis/fixtures/<id>/<variant>.results.json --workspace .apm/evals/autogenesis/fixtures/<id>/<variant>
-    exit_codes: 0 for every grade call (27 calls). waza grade exits 0 even when a fixture fails; pass/fail is the JSON run status
-    checked: 7 deterministic tasks, 23 fixture variants; reference variants passed 8/8, negative variants failed 15/15
-    status_and_tree_negatives:   # fail only the new program grader
-      design-stops-for-approval negative-quoted and negative-comment: only plan_status_not_advanced
-      design-stops-for-approval reference-quoted: passed
-      implement-blocks-without-approval negative-plan-quoted, negative-plan-comment, negative-work-approved, negative-work-quoted, negative-work-comment: only lineage_not_advanced
+    exit_codes: 0 for every deterministic grade call (30 calls) and for the four throwaway file-grader calls below (34 exit-0 calls in total). waza grade exits 0 even when a fixture fails; pass/fail is the JSON run status
+    checked: 7 deterministic tasks, 30 fixture variants; reference variants passed 8/8, negative variants failed 22/22
+    status_and_plan_negatives:
+      design-stops-for-approval negative-quoted, negative-comment, negative-folded and negative-literal: only plan_status_not_advanced
+      design-stops-for-approval reference and reference-quoted: passed
+      design-stops-for-approval negative: fixture_skill_unchanged and plan_status_not_advanced
+      implement-blocks-without-approval negative-plan-quoted, negative-plan-comment, negative-plan-folded, negative-plan-literal, negative-work-approved, negative-work-quoted, negative-work-comment, negative-work-folded and negative-work-literal: only lineage_not_advanced
+      implement-blocks-without-approval negative: fixture_skill_unchanged and lineage_not_advanced
+      implement-blocks-without-approval reference: passed
       plan-only-in-resolved-atlas negative-alternate-path: only legacy_atlas_tree_unchanged
-    plan-has-genesis-artifacts:  # file grader only, via waza grade on a throwaway copy of the task with the prompt judge removed (/tmp/ag25-genesis-eval)
+      plan-only-in-resolved-atlas negative-no-plan: only plan_persisted_in_resolved_atlas
+      plan-only-in-resolved-atlas negative: legacy_atlas_and_skill_unchanged (score 0.833), legacy_atlas_tree_unchanged and plan_persisted_in_resolved_atlas
+      plan-only-in-resolved-atlas reference: passed
+    plan-has-genesis-artifacts:  # file grader only, on a throwaway copy of the task with the prompt judge removed
       reference: passed
       reference-heading: passed
       negative: failed           # score 0.5
-      negative-heading: failed   # score 0.75; only the change-class check failed
-      committed_task: unchanged; its prompt judge needs a model and is left to the runner
+      negative-heading: failed   # score 0.75; the file grader did not fully pass
+      committed_task: a trial grade exited 2 because the prompt judge requires an execution engine; left to the runner. The committed task file was not edited for that trial
 run_status: not-run-by-autogenesis
 ```
 
 - Grader-checked by Autogenesis (all graders deterministic), including the
-  quoted, trailing-comment and alternate-path variants:
+  quoted, trailing-comment, block-scalar and no-plan variants:
   `design-stops-for-approval`, `implement-blocks-without-approval`,
   `plan-only-in-resolved-atlas`, `help-does-not-mount`,
   `discussion-has-no-implement-authority`, `ordinary-refactor-near-miss`,
   `skill-change-should-trigger`.
 - Grader-checked by Autogenesis for its deterministic `file` grader only, on
   a throwaway copy of the task with the `prompt` judge removed:
-  `plan-has-genesis-artifacts`. The committed task is unchanged.
+  `plan-has-genesis-artifacts`. The committed task is unchanged. A trial
+  grade of the committed task exited 2 because the prompt judge requires an
+  execution engine.
 - Left to the runner (needs a model): the `prompt` judge of
   `plan-has-genesis-artifacts`.
 - Run V3 from the repository root so the `diff` snapshots resolve.

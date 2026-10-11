@@ -61,8 +61,10 @@ in `SKILL.md`.
   `suite_version: 3` parses plan and work-node status instead of matching
   YAML spelling, compares the complete legacy `references/atlas` tree with
   its initial state, and sets `config.inject_skill_body: false` so trigger
-  tasks are not handed the skill body. The suite README records the
-  model-free validity re-run for that version.
+  tasks are not handed the skill body. `suite_version: 4` makes those status
+  graders fail closed unless the value is the simple scalar `designed`, and
+  requires the resolved plan file to exist. The suite README records the
+  model-free validity re-run for suite_version 4.
 - Consumer validation fails when an installed `autogenesis` skill contains an
   `evals/` directory, a `.apm/` directory or any `eval.yaml`; source checks
   and the `suite-not-shipped` smoke keep the suite under `.apm/evals/`.

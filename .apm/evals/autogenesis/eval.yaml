@@ -1,4 +1,7 @@
-# suite_version: 3
+# suite_version: 4
+# Reason for 4: design and implement status graders fail closed unless the
+# frontmatter status is the simple scalar designed; the resolved-plan gate
+# requires the plan file to exist.
 # Reason for 3: plan and work-node status is parsed, not matched as YAML text;
 # the complete legacy references/atlas tree is compared with its initial state;
 # config.inject_skill_body is false so trigger tasks are not handed the skill body.
