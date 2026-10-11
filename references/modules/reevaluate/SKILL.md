@@ -109,7 +109,7 @@ Run the full pipeline when subject classification ∈ {**capability-gap**, **cor
 ### Update proposals
 1. **SKILL.md** (description / triggers / non-goals): … concrete bullet changes, or “none — rationale”
 2. **Modules / resources**: … e.g. add `references/modules/<name>/SKILL.md` with contract …, or “none — rationale”
-3. **Knowledge contracts**: … query-first / required pages, or “none — rationale”
+3. **Knowledge contracts**: … recall-first / required pages, or “none — rationale”
 4. **Open tasks**: owner + domain + next gate (design | implement after approval | PR)
 
 ### Decision gate

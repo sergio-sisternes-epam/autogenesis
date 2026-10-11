@@ -2168,13 +2168,15 @@ class SourceContractTests(unittest.TestCase):
     def test_live_instructions_do_not_reference_removed_atlas_query(self) -> None:
         """Atlas v0.13.0 removed path query and CLI search/query with no alias.
 
-        Historical scenario bodies keep their original wording, including
+        Live instructions must say recall-first, not query-first. Historical
+        scenario bodies keep their original wording, including
         atlas-storage-semantics-adversarial-v2 and the restored v3, which
         still name references/paths/query.md. The current successor asserts
         references/paths/recall.md. CHANGELOG records the rename and older
         release notes.
         """
         patterns = (
+            re.compile(r"query-first"),
             re.compile(r"paths/query\.md"),
             re.compile(r"`query\.md`"),
             re.compile(r"\batlas(?:\.py)?\s+(?:query|search)\b"),
