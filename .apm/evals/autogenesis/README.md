@@ -224,7 +224,10 @@ symlinks at test time, and run the task's program-grader script against them.
 That covers a `.atlas-mount` directory symlink on the help tree and a
 `references/atlas/autogenesis` symlink into the resolved store on the legacy
 tree. The graders record the link and do not follow it, so a plan visible
-through the legacy link still fails the tree check.
+through the legacy link still fails the tree check. The same tests also
+replace a canonical plan or work-node path, or one of its parents, with a
+symlink to a `designed` file outside the resolved Atlas. The status checkers
+lstat each component and fail closed before reading.
 
 Diff snapshots are the subject files themselves under `fixtures/subjects/`
 (`context_dir: .apm/evals/autogenesis/fixtures/subjects`), so the runner's

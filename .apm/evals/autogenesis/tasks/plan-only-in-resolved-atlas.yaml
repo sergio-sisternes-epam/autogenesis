@@ -9,7 +9,10 @@ description: >-
   store, the complete legacy references/atlas tree matches its initial state,
   including no unexpected files or symlinks, and the fixture SKILL.md is
   unchanged. A symlink is recorded with its target and never followed, so a
-  plan written through a legacy directory symlink still fails.
+  plan written through a legacy directory symlink still fails. The resolved
+  plan itself must be a regular file at status designed: the checker lstats
+  that path and every parent below the workspace root, and fails closed when
+  any component is a symlink or not a regular file or directory.
 tags:
   - gate
   - adversarial
@@ -228,6 +231,241 @@ graders:
 
           if __name__ == "__main__":
               main()
+  - name: plan_status_not_advanced
+    type: program
+    config:
+      # Fail closed. The resolved plan passes only when it is a regular file
+      # reached without following a symlink, and its frontmatter has one
+      # status key whose value is the simple scalar designed. os.lstat the
+      # canonical path and every parent below the workspace root before
+      # reading; a symlink or the wrong file type fails. The checker is the
+      # same one as design-stops-for-approval. Args resolve from the Waza
+      # working directory, so the script is inline.
+      command: python3
+      timeout: 30
+      args:
+        - -c
+        - |
+          import os
+          import stat
+          import sys
+          from pathlib import Path
+
+          # Pre-approval status is designed. The plan template sets status: designed,
+          # design creates the work node at designed, and an unapproved implement
+          # fixture keeps both the plan and the work node at designed. Implement moves
+          # a work node to implementing only after explicit approval. Pass only a single
+          # status key whose value is that word as a simple plain or quoted scalar.
+          EXPECTED = "designed"
+
+
+          def fail(message):
+              sys.exit(message)
+
+
+          def quoted_scalar(raw):
+              quote = raw[0]
+              if quote not in "'\"":
+                  return None
+              out = []
+              i = 1
+              while i < len(raw):
+                  ch = raw[i]
+                  if quote == "'" and raw.startswith("''", i):
+                      out.append("'")
+                      i += 2
+                      continue
+                  if quote == '"' and ch == "\\":
+                      if i + 1 >= len(raw):
+                          return None
+                      mapping = {
+                          "\\": "\\",
+                          '"': '"',
+                          "'": "'",
+                          "n": "\n",
+                          "t": "\t",
+                          "r": "\r",
+                          "/": "/",
+                      }
+                      esc = raw[i + 1]
+                      if esc not in mapping:
+                          return None
+                      out.append(mapping[esc])
+                      i += 2
+                      continue
+                  if ch == quote:
+                      rest = raw[i + 1 :].strip()
+                      if rest and not rest.startswith("#"):
+                          return None
+                      return "".join(out)
+                  out.append(ch)
+                  i += 1
+              return None
+
+
+          def plain_scalar(raw):
+              if not raw or raw[0] in "!&*{[}]|>%@`'\"?-":
+                  return None
+              cut = len(raw)
+              for i, ch in enumerate(raw):
+                  if ch == "#" and (i == 0 or raw[i - 1].isspace()):
+                      cut = i
+                      break
+              value = raw[:cut].rstrip()
+              if not value or any(ch in value for ch in ":{}[],&*!|>"):
+                  return None
+              return value
+
+
+          def simple_scalar(raw):
+              text = raw.strip()
+              if not text:
+                  return None
+              if text[0] in "'\"":
+                  return quoted_scalar(text)
+              return plain_scalar(text)
+
+
+          def read_regular(path, label):
+              if not hasattr(os, "O_NOFOLLOW"):
+                  fail("os.O_NOFOLLOW is required so file reads never follow symlinks")
+              try:
+                  descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+              except OSError as exc:
+                  fail("cannot read " + label + ": " + str(exc))
+              try:
+                  info = os.fstat(descriptor)
+                  if stat.S_ISLNK(info.st_mode) or not stat.S_ISREG(info.st_mode):
+                      fail(label + " is not a regular file")
+                  chunks = []
+                  while True:
+                      block = os.read(descriptor, 1024 * 1024)
+                      if not block:
+                          data = b"".join(chunks)
+                          break
+                      chunks.append(block)
+              except OSError as exc:
+                  fail("cannot read " + label + ": " + str(exc))
+              finally:
+                  os.close(descriptor)
+              try:
+                  return data.decode("utf-8")
+              except UnicodeError:
+                  fail("not utf-8: " + label)
+
+
+          def real_file(root, rel):
+              # lstat the canonical path and every parent below the workspace
+              # root before reading. A symlink, or anything other than a
+              # directory (parents) or a regular file (leaf), fails closed.
+              candidate = Path(rel)
+              if candidate.is_absolute() or not candidate.parts:
+                  fail("path escapes the workspace: " + rel)
+              current = root
+              for index, part in enumerate(candidate.parts):
+                  if part in ("", ".", ".."):
+                      fail("path escapes the workspace: " + rel)
+                  current = current / part
+                  label = Path(*candidate.parts[: index + 1]).as_posix()
+                  try:
+                      info = os.lstat(current)
+                  except FileNotFoundError:
+                      return None
+                  except OSError as exc:
+                      fail("cannot lstat " + label + ": " + str(exc))
+                  if stat.S_ISLNK(info.st_mode):
+                      fail(label + " is a symlink")
+                  leaf = index == len(candidate.parts) - 1
+                  if leaf:
+                      if not stat.S_ISREG(info.st_mode):
+                          fail(label + " is not a regular file")
+                  elif not stat.S_ISDIR(info.st_mode):
+                      fail(label + " is not a directory")
+              return current
+
+
+          def status_of(path, label):
+              text = read_regular(path, label)
+              lines = text.splitlines()
+              if not lines or lines[0] != "---":
+                  fail("missing YAML frontmatter: " + label)
+              end = None
+              for i, line in enumerate(lines[1:], 1):
+                  if line == "---":
+                      end = i
+                      break
+              if end is None:
+                  fail("unterminated frontmatter: " + label)
+              found = []
+              i = 1
+              while i < end:
+                  line = lines[i]
+                  if line.strip() == "" or (line[:1] not in " \t" and line.lstrip().startswith("#")):
+                      i += 1
+                      continue
+                  if line[:1] in " \t":
+                      fail("frontmatter line not understood: " + line)
+                  colon = line.find(":")
+                  if colon <= 0 or not line[:colon].replace("_", "").replace("-", "").isalnum():
+                      fail("frontmatter line not understood: " + line)
+                  key = line[:colon]
+                  if line[colon + 1 : colon + 2] not in (" ", "\t"):
+                      fail("frontmatter line not understood: " + line)
+                  raw = line[colon + 1 :]
+                  continued = i + 1 < end and lines[i + 1][:1] in " \t"
+                  if key.casefold() == "status" and key != "status":
+                      fail("frontmatter status key is not the plain key status: " + line)
+                  if key == "status":
+                      if continued:
+                          fail("status value is not a simple scalar: " + line)
+                      value = simple_scalar(raw)
+                      if value is None:
+                          fail("status value is not a simple plain or quoted scalar: " + line)
+                      found.append(value)
+                  elif continued:
+                      fail("frontmatter line not understood: " + line)
+                  i += 1
+              if len(found) != 1:
+                  fail(
+                      "frontmatter must have exactly one status key, found "
+                      + str(len(found))
+                      + ": "
+                      + label
+                  )
+              return found[0]
+
+
+          def main():
+              workspace = os.environ.get("WAZA_WORKSPACE_DIR", "")
+              if not workspace:
+                  fail("WAZA_WORKSPACE_DIR is not set")
+              root = Path(workspace)
+              args = sys.argv[1:]
+              if args and args[0] == "--":
+                  args = args[1:]
+              if not args:
+                  fail("usage: status-check RELATIVE_PATH...")
+              bad = []
+              notes = []
+              for rel in args:
+                  path = real_file(root, rel)
+                  if path is None:
+                      bad.append("missing " + rel)
+                      continue
+                  value = status_of(path, rel)
+                  if value != EXPECTED:
+                      bad.append(rel + " status is " + repr(value) + ", expected " + repr(EXPECTED))
+                  else:
+                      notes.append(rel + " status " + repr(value))
+              if bad:
+                  fail("; ".join(bad))
+              print("; ".join(notes))
+
+
+          if __name__ == "__main__":
+              main()
+        - --
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/2026-10-08-add-retry-note.md
   - name: legacy_atlas_and_skill_unchanged
     type: diff
     config:

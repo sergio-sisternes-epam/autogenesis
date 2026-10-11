@@ -1243,10 +1243,17 @@ class SourceContractTests(unittest.TestCase):
                 (current / name).write_bytes((Path(dirpath) / name).read_bytes())
 
     def _grade_program(
-        self, task_name: str, workspace: Path, index: int = 0
+        self,
+        task_name: str,
+        workspace: Path,
+        index: int = 0,
+        args: tuple[str, ...] = (),
     ) -> subprocess.CompletedProcess[str]:
+        command = ["python3", "-c", self._program_script(task_name, index)]
+        if args:
+            command.extend(["--", *args])
         return subprocess.run(
-            ["python3", "-c", self._program_script(task_name, index)],
+            command,
             cwd=ROOT,
             env={**os.environ, "WAZA_WORKSPACE_DIR": str(workspace)},
             capture_output=True,
@@ -1364,6 +1371,104 @@ class SourceContractTests(unittest.TestCase):
         self.assertNotEqual(failed.returncode, 0, failed.stdout)
         self.assertIn("autogenesis", failed.stderr)
         self.assertNotIn("2026-10-08-add-retry-note.md", failed.stderr)
+
+    def test_status_graders_reject_symlinks_to_a_designed_file(self) -> None:
+        design_script = self._program_script("design-stops-for-approval.yaml")
+        self.assertEqual(
+            design_script,
+            self._program_script("implement-blocks-without-approval.yaml"),
+        )
+        self.assertEqual(
+            design_script,
+            self._program_script("plan-only-in-resolved-atlas.yaml", 1),
+        )
+        self.assertIn("os.lstat", design_script)
+        self.assertIn("O_NOFOLLOW", design_script)
+        plan = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/plans/2026-10-08-add-retry-note.md"
+        )
+        work = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/work/2026-10-08-add-retry-note.md"
+        )
+        cases = (
+            (
+                "design-stops-for-approval.yaml",
+                0,
+                "design-stops-for-approval",
+                (plan, work),
+                (plan, work),
+            ),
+            (
+                "plan-only-in-resolved-atlas.yaml",
+                1,
+                "plan-only-in-resolved-atlas",
+                (plan,),
+                (plan,),
+            ),
+        )
+        for task, index, fixture, grade_args, targets in cases:
+            base = ROOT / ".apm/evals/autogenesis/fixtures" / fixture / "reference"
+            passed = self._grade_program(task, base, index, grade_args)
+            self.assertEqual(passed.returncode, 0, passed.stderr)
+            for target in targets:
+                self._assert_status_symlink_fails(
+                    task, index, base, grade_args, target, "leaf"
+                )
+                self._assert_status_symlink_fails(
+                    task, index, base, grade_args, target, "parent"
+                )
+            self._assert_status_symlink_fails(
+                task, index, base, grade_args, targets[0], "ancestor"
+            )
+
+    def _assert_status_symlink_fails(
+        self,
+        task: str,
+        index: int,
+        base: Path,
+        grade_args: tuple[str, ...],
+        target: str,
+        kind: str,
+    ) -> None:
+        with self.subTest(task=task, target=target, kind=kind):
+            with tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                variant = root / "workspace"
+                self._copy_fixture(base, variant)
+                source = variant / target
+                self.assertTrue(source.is_file())
+                self.assertIn(
+                    "status: designed\n",
+                    source.read_text(encoding="utf-8"),
+                )
+                if kind == "leaf":
+                    outside = root / "outside-designed.md"
+                    outside.write_bytes(source.read_bytes())
+                    source.unlink()
+                    source.symlink_to(outside)
+                    expected = target
+                elif kind == "parent":
+                    replaced = variant / Path(target).parent
+                    expected = Path(target).parent.as_posix()
+                    relocated = root / "outside-parent"
+                    replaced.rename(relocated)
+                    replaced.symlink_to(relocated, target_is_directory=True)
+                elif kind == "ancestor":
+                    replaced = variant / ".atlas"
+                    expected = ".atlas"
+                    relocated = root / "outside-atlas"
+                    replaced.rename(relocated)
+                    replaced.symlink_to(relocated, target_is_directory=True)
+                else:
+                    self.fail(kind)
+                followed = (variant / target).read_text(encoding="utf-8")
+                self.assertIn("status: designed\n", followed)
+                failed = self._grade_program(task, variant, index, grade_args)
+            self.assertNotEqual(failed.returncode, 0, failed.stdout)
+            self.assertIn(expected + " is a symlink", failed.stderr)
+            self.assertNotIn("status is", failed.stderr)
 
     def test_package_manifest_and_lock_have_no_evaluator_dependency(self) -> None:
         for name in ("apm.yml", "apm.lock.yaml"):
