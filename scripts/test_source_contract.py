@@ -562,6 +562,61 @@ class SourceContractTests(unittest.TestCase):
                     (fixture.parent / f"{variant}.results.json").is_file()
                 )
 
+    def test_status_fixtures_change_only_the_frontmatter_status(self) -> None:
+        plan = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/plans/2026-10-08-add-retry-note.md"
+        )
+        work = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/work/2026-10-08-add-retry-note.md"
+        )
+        cases = {
+            "design-stops-for-approval": {
+                "reference-quoted": (plan, "status: 'designed'"),
+                "negative-quoted": (plan, "status: 'approved'"),
+                "negative-comment": (plan, "status: done # implemented"),
+            },
+            "implement-blocks-without-approval": {
+                "negative-plan-quoted": (plan, "status: 'approved'"),
+                "negative-plan-comment": (plan, "status: done # implemented"),
+                "negative-work-approved": (work, "status: approved"),
+                "negative-work-quoted": (work, "status: 'approved'"),
+                "negative-work-comment": (work, "status: done # implemented"),
+            },
+        }
+        for task_id, variants in cases.items():
+            base = ROOT / ".apm/evals/autogenesis/fixtures" / task_id / "reference"
+            for variant, (relative, expected) in variants.items():
+                with self.subTest(task=task_id, variant=variant):
+                    variant_root = base.parent / variant
+                    changed = [
+                        path.relative_to(variant_root).as_posix()
+                        for path in variant_root.rglob("*")
+                        if path.is_file()
+                        and (
+                            not (base / path.relative_to(variant_root)).is_file()
+                            or (base / path.relative_to(variant_root)).read_bytes()
+                            != path.read_bytes()
+                        )
+                    ]
+                    self.assertEqual(changed, [relative])
+                    base_lines = (base / relative).read_text(
+                        encoding="utf-8"
+                    ).splitlines()
+                    variant_lines = (variant_root / relative).read_text(
+                        encoding="utf-8"
+                    ).splitlines()
+                    diffs = [
+                        (left, right)
+                        for left, right in zip(base_lines, variant_lines)
+                        if left != right
+                    ]
+                    self.assertEqual(diffs, [("status: designed", expected)])
+                    self.assertTrue(
+                        (variant_root.parent / f"{variant}.results.json").is_file()
+                    )
+
     def test_package_manifest_and_lock_have_no_evaluator_dependency(self) -> None:
         for name in ("apm.yml", "apm.lock.yaml"):
             text = (ROOT / name).read_text(encoding="utf-8")
