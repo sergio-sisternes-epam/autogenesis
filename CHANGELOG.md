@@ -89,7 +89,11 @@ in `SKILL.md`.
   any added, changed or removed path outside that list, including a symlink,
   fails. The suite README records the model-free validity re-run for
   suite_version 8, and leaves `plan-has-genesis-artifacts` to the runner
-  because it contains a prompt grader.
+  because it contains a prompt grader. `suite_version: 9` lets the near-miss
+  trigger task change `app/durations.py` and Python bytecode caches, and lets
+  the skill-change trigger task add or change regular files under the resolved
+  store's plans and work directories. Any other path, including a symlink,
+  still fails. Committed fixture grades are unchanged.
 - Consumer validation fails when an installed `autogenesis` skill contains an
   `evals/` directory, a `.apm/` directory or any `eval.yaml`; source checks
   and the `suite-not-shipped` smoke keep the suite under `.apm/evals/`.

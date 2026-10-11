@@ -6,10 +6,14 @@ Every child is recorded with os.lstat and never followed: a directory, a
 regular file plus its content hash, or a symlink plus its target. An lstat
 error or any other file type fails closed.
 
-Paths passed with --allow may be added, changed or removed. Any other
-difference fails, including symlinks of any kind. The only ignored entry is
-a real directory named .git at the workspace root, which setup creates with
-git init -q. A .git symlink or file is not ignored. Nested .git is not ignored.
+Paths passed with --allow may be added, changed or removed. --allow-under
+permits added or changed regular files strictly inside that directory;
+removals, new directories and symlinks there still fail. --allow-bytecode
+permits only added real directories named __pycache__ and added or changed
+regular *.pyc files. Any other difference fails, including symlinks of any
+kind. The only ignored entry is a real directory named .git at the workspace
+root, which setup creates with git init -q. A .git symlink or file is not
+ignored. Nested .git is not ignored.
 
 program_grader.go does not set the child working directory and does not
 rewrite arguments. python3 therefore resolves this script, and this script
@@ -22,6 +26,12 @@ import os
 import stat
 import sys
 from pathlib import Path
+
+
+USAGE = (
+    "usage: workspace_allowlist.py --baseline PATH "
+    "[--allow REL]... [--allow-under REL_DIR]... [--allow-bytecode]"
+)
 
 
 def fail(message):
@@ -133,28 +143,81 @@ def workspace_relative(raw):
     return candidate.as_posix()
 
 
+def strictly_inside(rel, directories):
+    return any(rel.startswith(directory + "/") for directory in directories)
+
+
+def entry_name(rel):
+    return rel.rsplit("/", 1)[-1]
+
+
+def allow_under_covers(rel, baseline, current, directories):
+    if not strictly_inside(rel, directories):
+        return False
+    record = current.get(rel)
+    if record is None or record[0] != "file":
+        return False
+    previous = baseline.get(rel)
+    return previous is None or previous[0] == "file"
+
+
+def bytecode_covers(rel, baseline, current):
+    record = current.get(rel)
+    if record is None:
+        return False
+    previous = baseline.get(rel)
+    name = entry_name(rel)
+    if record[0] == "dir" and name == "__pycache__":
+        return previous is None
+    if record[0] == "file" and name.endswith(".pyc"):
+        return previous is None or previous[0] == "file"
+    return False
+
+
+def excused(rel, baseline, current, allowed, allowed_under, allow_bytecode):
+    if rel in allowed:
+        return True
+    if allow_under_covers(rel, baseline, current, allowed_under):
+        return True
+    if allow_bytecode and bytecode_covers(rel, baseline, current):
+        return True
+    return False
+
+
 def parse_args(argv):
     baseline = None
     allowed = []
+    allowed_under = []
+    allow_bytecode = False
     index = 0
     while index < len(argv):
         arg = argv[index]
         if arg == "--baseline":
             if baseline is not None or index + 1 >= len(argv):
-                fail("usage: workspace_allowlist.py --baseline PATH [--allow REL]...")
+                fail(USAGE)
             baseline = argv[index + 1]
             index += 2
             continue
         if arg == "--allow":
             if index + 1 >= len(argv):
-                fail("usage: workspace_allowlist.py --baseline PATH [--allow REL]...")
+                fail(USAGE)
             allowed.append(workspace_relative(argv[index + 1]))
             index += 2
+            continue
+        if arg == "--allow-under":
+            if index + 1 >= len(argv):
+                fail(USAGE)
+            allowed_under.append(workspace_relative(argv[index + 1]))
+            index += 2
+            continue
+        if arg == "--allow-bytecode":
+            allow_bytecode = True
+            index += 1
             continue
         fail("unexpected argument: " + arg)
     if not baseline:
         fail("missing --baseline")
-    return baseline, allowed
+    return baseline, allowed, allowed_under, allow_bytecode
 
 
 def resolve_baseline(raw):
@@ -175,18 +238,29 @@ def describe(rel, record):
     return rel
 
 
-def compare(baseline, current, allowed):
+def compare(baseline, current, allowed, allowed_under, allow_bytecode):
     problems = []
     missing = sorted(
-        rel for rel in set(baseline) - set(current) if rel not in allowed
+        rel
+        for rel in set(baseline) - set(current)
+        if not excused(
+            rel, baseline, current, allowed, allowed_under, allow_bytecode
+        )
     )
     extra = sorted(
-        rel for rel in set(current) - set(baseline) if rel not in allowed
+        rel
+        for rel in set(current) - set(baseline)
+        if not excused(
+            rel, baseline, current, allowed, allowed_under, allow_bytecode
+        )
     )
     changed = sorted(
         rel
         for rel in set(baseline) & set(current)
-        if rel not in allowed and current[rel] != baseline[rel]
+        if current[rel] != baseline[rel]
+        and not excused(
+            rel, baseline, current, allowed, allowed_under, allow_bytecode
+        )
     )
     if missing:
         problems.append("missing " + ", ".join(missing))
@@ -206,17 +280,31 @@ def main():
         fail("WAZA_WORKSPACE_DIR is not set")
     current_root = Path(workspace)
     require_real_dir(current_root, "workspace", "workspace is not a directory")
-    baseline_arg, allowed = parse_args(sys.argv[1:])
+    baseline_arg, allowed, allowed_under, allow_bytecode = parse_args(sys.argv[1:])
     baseline_root = resolve_baseline(baseline_arg)
     baseline = snapshot(baseline_root, False)
     current = snapshot(current_root, True)
-    compare(baseline, current, set(allowed))
+    compare(
+        baseline,
+        current,
+        set(allowed),
+        set(allowed_under),
+        allow_bytecode,
+    )
     print(
         "workspace matches baseline ("
         + str(len(baseline))
         + " baseline entries; "
         + str(len(allowed))
-        + " allowed paths; root .git directory ignored; symlinks not followed)"
+        + " allowed paths; "
+        + str(len(allowed_under))
+        + " allow-under directories; "
+        + (
+            "bytecode caches allowed; "
+            if allow_bytecode
+            else "bytecode caches not allowed; "
+        )
+        + "root .git directory ignored; symlinks not followed)"
     )
 
 

@@ -4,7 +4,9 @@ description: >-
   Trigger (positive). Source: root description "evolve, design, review, or
   initialise agent skills from durable experience ... even when Autogenesis
   is not named". The prompt does not name Autogenesis. Pass means Autogenesis
-  is invoked and the workspace matches the subject fixture: no path may change.
+  is invoked and the workspace matches the subject fixture except for added
+  or changed regular files under the resolved store's autogenesis/plans and
+  autogenesis/work directories. Symlinks and any other path still fail.
 tags:
   - trigger
   - positive
@@ -29,16 +31,21 @@ graders:
       # does not set cmd.Dir and does not rewrite args, so python3
       # resolves this script, and the script resolves --baseline, from
       # the Waza process working directory. The run layout copies both
-      # there. See README "Run layout". --allow names workspace paths
-      # that may be added, changed or removed. Any other difference
-      # fails, including symlinks. Only a real root .git directory is
-      # ignored.
+      # there. See README "Run layout". --allow-under permits added or
+      # changed regular files strictly inside that directory. Removals,
+      # new directories and symlinks there still fail. Any other
+      # difference fails, including symlinks. Only a real root .git
+      # directory is ignored.
       command: python3
       timeout: 30
       args:
         - .apm/evals/autogenesis/graders/workspace_allowlist.py
         - --baseline
         - .apm/evals/autogenesis/fixtures/subjects/subject
+        - --allow-under
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans
+        - --allow-under
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work
   - name: autogenesis_invoked
     type: skill_invocation
     config:

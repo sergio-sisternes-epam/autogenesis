@@ -1261,6 +1261,31 @@ class SourceContractTests(unittest.TestCase):
             check=False,
         )
 
+    def _grade_task_allowlist(
+        self,
+        task_id: str,
+        workspace: Path,
+    ) -> subprocess.CompletedProcess[str]:
+        yaml = self._require_yaml()
+        task = yaml.safe_load(
+            (
+                ROOT / ".apm/evals/autogenesis/tasks" / f"{task_id}.yaml"
+            ).read_text(encoding="utf-8")
+        )
+        grader = next(
+            item
+            for item in task["graders"]
+            if item["name"] == "workspace_allowlist"
+        )
+        return subprocess.run(
+            [grader["config"]["command"], *grader["config"]["args"]],
+            cwd=ROOT,
+            env={**os.environ, "WAZA_WORKSPACE_DIR": str(workspace)},
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
     def _grade_program(
         self,
         task_name: str,
@@ -1308,44 +1333,66 @@ class SourceContractTests(unittest.TestCase):
             ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
             "/work/2026-10-08-retry-backoff-guidance.md"
         )
+        plans_dir = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans"
+        )
+        work_dir = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work"
+        )
         expected = {
             "design-stops-for-approval": (
                 ".apm/evals/autogenesis/fixtures/subjects/subject",
                 (plan, work),
+                (),
+                False,
             ),
             "discussion-has-no-implement-authority": (
                 ".apm/evals/autogenesis/fixtures/subjects/subject",
                 (plan, work),
+                (),
+                False,
             ),
             "implement-blocks-without-approval": (
                 ".apm/evals/autogenesis/fixtures/subjects/subject-designed",
                 (),
+                (),
+                False,
             ),
             "plan-only-in-resolved-atlas": (
                 ".apm/evals/autogenesis/fixtures/subjects/subject-legacy",
                 (plan, work),
+                (),
+                False,
             ),
             "help-does-not-mount": (
                 ".apm/evals/autogenesis/fixtures/subjects/subject-unmounted",
                 (),
+                (),
+                False,
             ),
             "ordinary-refactor-near-miss": (
                 ".apm/evals/autogenesis/fixtures/subjects/python-app",
+                ("app/durations.py",),
                 (),
+                True,
             ),
             "skill-change-should-trigger": (
                 ".apm/evals/autogenesis/fixtures/subjects/subject",
                 (),
+                (plans_dir, work_dir),
+                False,
             ),
             "plan-has-genesis-artifacts": (
                 ".apm/evals/autogenesis/fixtures/subjects/subject",
                 (genesis_plan, genesis_work),
+                (),
+                False,
             ),
         }
         suite = ROOT / ".apm/evals/autogenesis/tasks"
         self.assertEqual({path.stem for path in suite.glob("*.yaml")}, set(expected))
         relative_script = ".apm/evals/autogenesis/graders/workspace_allowlist.py"
-        for task_id, (baseline, allow) in expected.items():
+        for task_id, (baseline, allow, allow_under, bytecode) in expected.items():
             with self.subTest(task=task_id):
                 task = yaml.safe_load(
                     (suite / f"{task_id}.yaml").read_text(encoding="utf-8")
@@ -1364,6 +1411,8 @@ class SourceContractTests(unittest.TestCase):
                 self.assertNotIn("-c", args)
                 parsed_baseline = None
                 parsed_allow = []
+                parsed_under = []
+                parsed_bytecode = False
                 index = 1
                 while index < len(args):
                     if args[index] == "--baseline":
@@ -1375,9 +1424,19 @@ class SourceContractTests(unittest.TestCase):
                         parsed_allow.append(args[index + 1])
                         index += 2
                         continue
+                    if args[index] == "--allow-under":
+                        parsed_under.append(args[index + 1])
+                        index += 2
+                        continue
+                    if args[index] == "--allow-bytecode":
+                        parsed_bytecode = True
+                        index += 1
+                        continue
                     self.fail(f"unexpected allowlist argument {args[index]}")
                 self.assertEqual(parsed_baseline, baseline)
                 self.assertEqual(tuple(parsed_allow), allow)
+                self.assertEqual(tuple(parsed_under), allow_under)
+                self.assertEqual(parsed_bytecode, bytecode)
                 self.assertNotIn(
                     "diff",
                     [item["type"] for item in task["graders"]],
@@ -1386,7 +1445,6 @@ class SourceContractTests(unittest.TestCase):
     def test_shared_allowlist_accepts_references_and_rejects_unrelated_files(
         self,
     ) -> None:
-        yaml = self._require_yaml()
         suite = ROOT / ".apm/evals/autogenesis"
         unrelated = {
             "design-stops-for-approval": "retry-note.md",
@@ -1394,48 +1452,138 @@ class SourceContractTests(unittest.TestCase):
             "implement-blocks-without-approval": "retry-note.md",
         }
         for path in sorted((suite / "tasks").glob("*.yaml")):
-            task = yaml.safe_load(path.read_text(encoding="utf-8"))
-            grader = next(
-                item
-                for item in task["graders"]
-                if item["name"] == "workspace_allowlist"
-            )
-            args = grader["config"]["args"]
-            baseline = args[args.index("--baseline") + 1]
-            allow = []
-            index = 0
-            while index < len(args):
-                if args[index] == "--allow":
-                    allow.append(args[index + 1])
-                index += 1
             reference = suite / "fixtures" / path.stem / "reference"
-            passed = self._grade_allowlist(reference, baseline, tuple(allow))
+            passed = self._grade_task_allowlist(path.stem, reference)
             self.assertEqual(passed.returncode, 0, path.stem + " " + passed.stderr)
         for task_id, marker in unrelated.items():
             with self.subTest(task=task_id):
-                task = yaml.safe_load(
-                    (suite / "tasks" / f"{task_id}.yaml").read_text(encoding="utf-8")
-                )
-                args = next(
-                    item["config"]["args"]
-                    for item in task["graders"]
-                    if item["name"] == "workspace_allowlist"
-                )
-                baseline = args[args.index("--baseline") + 1]
-                allow = []
-                index = 0
-                while index < len(args):
-                    if args[index] == "--allow":
-                        allow.append(args[index + 1])
-                    index += 1
                 variant = suite / "fixtures" / task_id / "negative-unrelated-file"
                 self.assertTrue(variant.is_dir())
                 self.assertTrue(
                     (variant.parent / "negative-unrelated-file.results.json").is_file()
                 )
-                failed = self._grade_allowlist(variant, baseline, tuple(allow))
+                failed = self._grade_task_allowlist(task_id, variant)
                 self.assertNotEqual(failed.returncode, 0, failed.stdout)
                 self.assertIn(marker, failed.stderr)
+
+    def test_trigger_allowlist_accepts_the_correct_change_only(self) -> None:
+        near_miss = (
+            ROOT / ".apm/evals/autogenesis/fixtures/subjects/python-app"
+        )
+        skill = ROOT / ".apm/evals/autogenesis/fixtures/subjects/subject"
+        plans = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans"
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            refactored = root / "refactored"
+            self._copy_fixture(near_miss, refactored)
+            durations = refactored / "app/durations.py"
+            original = durations.read_bytes()
+            durations.write_text(
+                original.decode("utf-8").replace(
+                    "return value * 60",
+                    "return value * 60  # same minute length",
+                ),
+                encoding="utf-8",
+            )
+            self.assertNotEqual(durations.read_bytes(), original)
+            passed = self._grade_task_allowlist(
+                "ordinary-refactor-near-miss", refactored
+            )
+            self.assertEqual(passed.returncode, 0, passed.stderr)
+
+            cached = root / "cached"
+            self._copy_fixture(refactored, cached)
+            cache = cached / "app/__pycache__"
+            cache.mkdir()
+            (cache / "durations.cpython-313.pyc").write_bytes(b"\x00bytecode")
+            cached_passed = self._grade_task_allowlist(
+                "ordinary-refactor-near-miss", cached
+            )
+            self.assertEqual(cached_passed.returncode, 0, cached_passed.stderr)
+
+            extra = root / "extra-file"
+            self._copy_fixture(refactored, extra)
+            (extra / "notes.txt").write_text("unrelated\n", encoding="utf-8")
+            failed_extra = self._grade_task_allowlist(
+                "ordinary-refactor-near-miss", extra
+            )
+            self.assertNotEqual(failed_extra.returncode, 0, failed_extra.stdout)
+            self.assertIn("notes.txt", failed_extra.stderr)
+
+            dirty_cache = root / "dirty-cache"
+            self._copy_fixture(cached, dirty_cache)
+            (dirty_cache / "app/__pycache__/notes.txt").write_text(
+                "not bytecode\n", encoding="utf-8"
+            )
+            failed_cache = self._grade_task_allowlist(
+                "ordinary-refactor-near-miss", dirty_cache
+            )
+            self.assertNotEqual(failed_cache.returncode, 0, failed_cache.stdout)
+            self.assertIn("notes.txt", failed_cache.stderr)
+
+            linked_pyc = root / "linked-pyc"
+            self._copy_fixture(refactored, linked_pyc)
+            outside_pyc = root / "outside.pyc"
+            outside_pyc.write_bytes(b"\x00bytecode")
+            link = linked_pyc / "app/__pycache__"
+            link.mkdir()
+            (link / "durations.cpython-313.pyc").symlink_to(outside_pyc)
+            failed_pyc_link = self._grade_task_allowlist(
+                "ordinary-refactor-near-miss", linked_pyc
+            )
+            self.assertNotEqual(
+                failed_pyc_link.returncode, 0, failed_pyc_link.stdout
+            )
+            self.assertIn("durations.cpython-313.pyc (symlink)", failed_pyc_link.stderr)
+
+            planned = root / "planned"
+            self._copy_fixture(skill, planned)
+            plan = planned / plans / "2026-10-11-agent-chosen.md"
+            plan.write_text(
+                "---\nstatus: designed\n---\n\n# Plan\n", encoding="utf-8"
+            )
+            work = (
+                planned
+                / ".atlas/example.invalid/fixtures/retry-helper-atlas"
+                / "autogenesis/work/2026-10-11-agent-chosen.md"
+            )
+            work.write_text(
+                "---\nstatus: designed\n---\n\n# Work\n", encoding="utf-8"
+            )
+            passed_plan = self._grade_task_allowlist(
+                "skill-change-should-trigger", planned
+            )
+            self.assertEqual(passed_plan.returncode, 0, passed_plan.stderr)
+
+            elsewhere = root / "elsewhere"
+            self._copy_fixture(skill, elsewhere)
+            sibling = (
+                elsewhere
+                / ".atlas/example.invalid/fixtures/retry-helper-atlas"
+                / "autogenesis/plans-extra"
+            )
+            sibling.mkdir()
+            (sibling / "note.md").write_text("not a plan\n", encoding="utf-8")
+            failed_elsewhere = self._grade_task_allowlist(
+                "skill-change-should-trigger", elsewhere
+            )
+            self.assertNotEqual(
+                failed_elsewhere.returncode, 0, failed_elsewhere.stdout
+            )
+            self.assertIn("plans-extra/note.md", failed_elsewhere.stderr)
+
+            linked = root / "linked"
+            self._copy_fixture(skill, linked)
+            outside_plan = root / "outside-plan.md"
+            outside_plan.write_text("not in the store\n", encoding="utf-8")
+            (linked / plans / "linked-plan.md").symlink_to(outside_plan)
+            failed_link = self._grade_task_allowlist(
+                "skill-change-should-trigger", linked
+            )
+            self.assertNotEqual(failed_link.returncode, 0, failed_link.stdout)
+            self.assertIn("linked-plan.md (symlink)", failed_link.stderr)
 
     def test_repository_tracks_no_symlinks(self) -> None:
         listed = subprocess.run(

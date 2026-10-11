@@ -1,4 +1,8 @@
-# suite_version: 8
+# suite_version: 9
+# Reason for 9: the near-miss task may change app/durations.py and bytecode
+# caches, and the skill-change task may add or change regular files under the
+# resolved store's plans and work directories; every other path, including a
+# symlink, still fails.
 # Reason for 8: every task uses one shared whole-workspace allowlist. A path
 # outside that list, including a symlink, fails. plan-has-genesis-artifacts
 # is left entirely to the runner because it contains a prompt grader.
