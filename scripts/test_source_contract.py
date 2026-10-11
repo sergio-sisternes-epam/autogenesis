@@ -917,6 +917,10 @@ class SourceContractTests(unittest.TestCase):
         ]
         self.assertEqual(must_not_exist, [".atlas", ".gitmodules"])
         self.assertIn(
+            "workspace_allowlist",
+            [grader["name"] for grader in task["graders"]],
+        )
+        self.assertNotIn(
             "workspace_tree_unchanged",
             [grader["name"] for grader in task["graders"]],
         )
@@ -956,35 +960,16 @@ class SourceContractTests(unittest.TestCase):
         self.assertEqual(reference_files, subject_files)
 
     def test_help_workspace_tree_grader_ignores_only_root_git(self) -> None:
-        text = (
-            ROOT / ".apm/evals/autogenesis/tasks/help-does-not-mount.yaml"
-        ).read_text(encoding="utf-8")
-        start = text.index("          import os\n")
-        end = text.index("          if __name__ == \"__main__\":\n", start)
-        lines = []
-        for line in text[start:end].splitlines():
-            if line.startswith("          "):
-                lines.append(line[10:])
-            else:
-                self.assertEqual(line, "")
-                lines.append("")
-        script = "\n".join(lines) + "if __name__ == \"__main__\":\n    main()\n"
         subject = (
             ROOT
             / ".apm/evals/autogenesis/fixtures/subjects/subject-unmounted"
         )
+        baseline = (
+            ".apm/evals/autogenesis/fixtures/subjects/subject-unmounted"
+        )
 
         def grade(workspace: Path) -> subprocess.CompletedProcess[str]:
-            env = os.environ.copy()
-            env["WAZA_WORKSPACE_DIR"] = str(workspace)
-            return subprocess.run(
-                ["python3", "-c", script],
-                cwd=ROOT,
-                env=env,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
+            return self._grade_allowlist(workspace, baseline)
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -1185,7 +1170,7 @@ class SourceContractTests(unittest.TestCase):
         missing_env = os.environ.copy()
         missing_env.pop("WAZA_WORKSPACE_DIR", None)
         unset = subprocess.run(
-            ["python3", "-c", script],
+            ["python3", str(self._allowlist_script()), "--baseline", baseline],
             cwd=ROOT,
             env=missing_env,
             capture_output=True,
@@ -1197,7 +1182,12 @@ class SourceContractTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as elsewhere:
             missing_baseline = subprocess.run(
-                ["python3", "-c", script],
+                [
+                    "python3",
+                    str(self._allowlist_script()),
+                    "--baseline",
+                    baseline,
+                ],
                 cwd=elsewhere,
                 env={**os.environ, "WAZA_WORKSPACE_DIR": str(subject)},
                 capture_output=True,
@@ -1207,7 +1197,7 @@ class SourceContractTests(unittest.TestCase):
             self.assertNotEqual(
                 missing_baseline.returncode, 0, missing_baseline.stdout
             )
-            self.assertIn("unmounted subject not found", missing_baseline.stderr)
+            self.assertIn("baseline not found", missing_baseline.stderr)
 
     def _program_script(self, task_name: str, index: int = 0) -> str:
         text = (
@@ -1242,6 +1232,35 @@ class SourceContractTests(unittest.TestCase):
             for name in filenames:
                 (current / name).write_bytes((Path(dirpath) / name).read_bytes())
 
+    def _allowlist_script(self) -> Path:
+        return (
+            ROOT / ".apm/evals/autogenesis/graders/workspace_allowlist.py"
+        )
+
+    def _grade_allowlist(
+        self,
+        workspace: Path,
+        baseline: str,
+        allow: tuple[str, ...] = (),
+        cwd: Path | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        command = [
+            "python3",
+            str(self._allowlist_script()),
+            "--baseline",
+            baseline,
+        ]
+        for path in allow:
+            command.extend(["--allow", path])
+        return subprocess.run(
+            command,
+            cwd=ROOT if cwd is None else cwd,
+            env={**os.environ, "WAZA_WORKSPACE_DIR": str(workspace)},
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
     def _grade_program(
         self,
         task_name: str,
@@ -1261,21 +1280,162 @@ class SourceContractTests(unittest.TestCase):
             check=False,
         )
 
-    def test_complete_tree_graders_share_symlink_recording(self) -> None:
-        help_script = self._program_script("help-does-not-mount.yaml")
-        plan_script = self._program_script("plan-only-in-resolved-atlas.yaml")
-        help_helpers = help_script[
-            help_script.index("def fail("):help_script.index("def main(")
-        ]
-        plan_helpers = plan_script[
-            plan_script.index("def fail("):plan_script.index("def main(")
-        ]
-        self.assertEqual(help_helpers, plan_helpers)
-        self.assertIn("os.lstat", help_helpers)
-        self.assertIn("followlinks=False", help_helpers)
-        self.assertIn("O_NOFOLLOW", help_helpers)
-        self.assertIn('"symlink"', help_helpers)
-        self.assertNotIn("followlinks=True", help_helpers)
+    def test_every_task_references_the_shared_workspace_check(self) -> None:
+        yaml = self._require_yaml()
+        script = self._allowlist_script()
+        self.assertTrue(script.is_file())
+        text = script.read_text(encoding="utf-8")
+        self.assertIn("os.lstat", text)
+        self.assertIn("followlinks=False", text)
+        self.assertIn("O_NOFOLLOW", text)
+        self.assertIn('"symlink"', text)
+        self.assertIn("hashlib.sha256", text)
+        self.assertNotIn("followlinks=True", text)
+        self.assertNotIn("os.walk(root, followlinks=True", text)
+        plan = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/plans/2026-10-08-add-retry-note.md"
+        )
+        work = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/work/2026-10-08-add-retry-note.md"
+        )
+        genesis_plan = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/plans/2026-10-08-retry-backoff-guidance.md"
+        )
+        genesis_work = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/work/2026-10-08-retry-backoff-guidance.md"
+        )
+        expected = {
+            "design-stops-for-approval": (
+                ".apm/evals/autogenesis/fixtures/subjects/subject",
+                (plan, work),
+            ),
+            "discussion-has-no-implement-authority": (
+                ".apm/evals/autogenesis/fixtures/subjects/subject",
+                (plan, work),
+            ),
+            "implement-blocks-without-approval": (
+                ".apm/evals/autogenesis/fixtures/subjects/subject-designed",
+                (),
+            ),
+            "plan-only-in-resolved-atlas": (
+                ".apm/evals/autogenesis/fixtures/subjects/subject-legacy",
+                (plan, work),
+            ),
+            "help-does-not-mount": (
+                ".apm/evals/autogenesis/fixtures/subjects/subject-unmounted",
+                (),
+            ),
+            "ordinary-refactor-near-miss": (
+                ".apm/evals/autogenesis/fixtures/subjects/python-app",
+                (),
+            ),
+            "skill-change-should-trigger": (
+                ".apm/evals/autogenesis/fixtures/subjects/subject",
+                (),
+            ),
+            "plan-has-genesis-artifacts": (
+                ".apm/evals/autogenesis/fixtures/subjects/subject",
+                (genesis_plan, genesis_work),
+            ),
+        }
+        suite = ROOT / ".apm/evals/autogenesis/tasks"
+        self.assertEqual({path.stem for path in suite.glob("*.yaml")}, set(expected))
+        relative_script = ".apm/evals/autogenesis/graders/workspace_allowlist.py"
+        for task_id, (baseline, allow) in expected.items():
+            with self.subTest(task=task_id):
+                task = yaml.safe_load(
+                    (suite / f"{task_id}.yaml").read_text(encoding="utf-8")
+                )
+                matches = [
+                    grader
+                    for grader in task["graders"]
+                    if grader["name"] == "workspace_allowlist"
+                ]
+                self.assertEqual(len(matches), 1)
+                grader = matches[0]
+                self.assertEqual(grader["type"], "program")
+                args = grader["config"]["args"]
+                self.assertEqual(args[0], relative_script)
+                self.assertEqual(grader["config"]["command"], "python3")
+                self.assertNotIn("-c", args)
+                parsed_baseline = None
+                parsed_allow = []
+                index = 1
+                while index < len(args):
+                    if args[index] == "--baseline":
+                        self.assertIsNone(parsed_baseline)
+                        parsed_baseline = args[index + 1]
+                        index += 2
+                        continue
+                    if args[index] == "--allow":
+                        parsed_allow.append(args[index + 1])
+                        index += 2
+                        continue
+                    self.fail(f"unexpected allowlist argument {args[index]}")
+                self.assertEqual(parsed_baseline, baseline)
+                self.assertEqual(tuple(parsed_allow), allow)
+                self.assertNotIn(
+                    "diff",
+                    [item["type"] for item in task["graders"]],
+                )
+
+    def test_shared_allowlist_accepts_references_and_rejects_unrelated_files(
+        self,
+    ) -> None:
+        yaml = self._require_yaml()
+        suite = ROOT / ".apm/evals/autogenesis"
+        unrelated = {
+            "design-stops-for-approval": "retry-note.md",
+            "discussion-has-no-implement-authority": "atlas-mesh.json",
+            "implement-blocks-without-approval": "retry-note.md",
+        }
+        for path in sorted((suite / "tasks").glob("*.yaml")):
+            task = yaml.safe_load(path.read_text(encoding="utf-8"))
+            grader = next(
+                item
+                for item in task["graders"]
+                if item["name"] == "workspace_allowlist"
+            )
+            args = grader["config"]["args"]
+            baseline = args[args.index("--baseline") + 1]
+            allow = []
+            index = 0
+            while index < len(args):
+                if args[index] == "--allow":
+                    allow.append(args[index + 1])
+                index += 1
+            reference = suite / "fixtures" / path.stem / "reference"
+            passed = self._grade_allowlist(reference, baseline, tuple(allow))
+            self.assertEqual(passed.returncode, 0, path.stem + " " + passed.stderr)
+        for task_id, marker in unrelated.items():
+            with self.subTest(task=task_id):
+                task = yaml.safe_load(
+                    (suite / "tasks" / f"{task_id}.yaml").read_text(encoding="utf-8")
+                )
+                args = next(
+                    item["config"]["args"]
+                    for item in task["graders"]
+                    if item["name"] == "workspace_allowlist"
+                )
+                baseline = args[args.index("--baseline") + 1]
+                allow = []
+                index = 0
+                while index < len(args):
+                    if args[index] == "--allow":
+                        allow.append(args[index + 1])
+                    index += 1
+                variant = suite / "fixtures" / task_id / "negative-unrelated-file"
+                self.assertTrue(variant.is_dir())
+                self.assertTrue(
+                    (variant.parent / "negative-unrelated-file.results.json").is_file()
+                )
+                failed = self._grade_allowlist(variant, baseline, tuple(allow))
+                self.assertNotEqual(failed.returncode, 0, failed.stdout)
+                self.assertIn(marker, failed.stderr)
 
     def test_repository_tracks_no_symlinks(self) -> None:
         listed = subprocess.run(
@@ -1323,8 +1483,10 @@ class SourceContractTests(unittest.TestCase):
             ROOT
             / ".apm/evals/autogenesis/fixtures/help-does-not-mount/reference"
         )
-        task = "help-does-not-mount.yaml"
-        passed = self._grade_program(task, base)
+        baseline = (
+            ".apm/evals/autogenesis/fixtures/subjects/subject-unmounted"
+        )
+        passed = self._grade_allowlist(base, baseline)
         self.assertEqual(passed.returncode, 0, passed.stderr)
         with tempfile.TemporaryDirectory() as tmp:
             variant = Path(tmp) / "negative-directory-symlink"
@@ -1332,9 +1494,10 @@ class SourceContractTests(unittest.TestCase):
             link = variant / ".atlas-mount"
             link.symlink_to(".", target_is_directory=True)
             self.assertEqual(os.readlink(link), ".")
-            failed = self._grade_program(task, variant)
+            failed = self._grade_allowlist(variant, baseline)
         self.assertNotEqual(failed.returncode, 0, failed.stdout)
         self.assertIn(".atlas-mount", failed.stderr)
+        self.assertNotIn("secret-plan.md", failed.stderr)
 
     def test_legacy_symlink_negative_is_constructed_at_test_time(
         self,
@@ -1344,8 +1507,14 @@ class SourceContractTests(unittest.TestCase):
             / ".apm/evals/autogenesis/fixtures/plan-only-in-resolved-atlas"
             / "reference"
         )
-        task = "plan-only-in-resolved-atlas.yaml"
-        passed = self._grade_program(task, base)
+        baseline = ".apm/evals/autogenesis/fixtures/subjects/subject-legacy"
+        allow = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/plans/2026-10-08-add-retry-note.md",
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/work/2026-10-08-add-retry-note.md",
+        )
+        passed = self._grade_allowlist(base, baseline, allow)
         self.assertEqual(passed.returncode, 0, passed.stderr)
         plan = (
             ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
@@ -1367,7 +1536,7 @@ class SourceContractTests(unittest.TestCase):
                 (base / plan).read_bytes(),
             )
             self.assertTrue((link / "plans/2026-10-08-add-retry-note.md").is_file())
-            failed = self._grade_program(task, variant)
+            failed = self._grade_allowlist(variant, baseline, allow)
         self.assertNotEqual(failed.returncode, 0, failed.stdout)
         self.assertIn("autogenesis", failed.stderr)
         self.assertNotIn("2026-10-08-add-retry-note.md", failed.stderr)
@@ -1380,7 +1549,7 @@ class SourceContractTests(unittest.TestCase):
         )
         self.assertEqual(
             design_script,
-            self._program_script("plan-only-in-resolved-atlas.yaml", 1),
+            self._program_script("plan-only-in-resolved-atlas.yaml", 0),
         )
         self.assertIn("os.lstat", design_script)
         self.assertIn("O_NOFOLLOW", design_script)
@@ -1402,7 +1571,7 @@ class SourceContractTests(unittest.TestCase):
             ),
             (
                 "plan-only-in-resolved-atlas.yaml",
-                1,
+                0,
                 "plan-only-in-resolved-atlas",
                 (plan,),
                 (plan,),

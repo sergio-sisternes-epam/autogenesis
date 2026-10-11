@@ -7,9 +7,9 @@ description: >-
   explicit-discuss-integration-adversarial-v1
   discussion-shortcuts-to-implementation. Pass means a formal design was
   started: the resolved plan and the canonical work node exist in the
-  resolved fixture Atlas at status designed, and the fixture SKILL.md is
-  unchanged. A reply that only offers to start the design, without
-  persisting that plan and work node, fails.
+  resolved fixture Atlas at status designed, and the workspace differs from
+  the subject fixture only in those two paths. A reply that only offers to
+  start the design, without persisting that plan and work node, fails.
 tags:
   - gate
   - adversarial
@@ -277,15 +277,27 @@ graders:
         - --
         - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/2026-10-08-add-retry-note.md
         - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work/2026-10-08-add-retry-note.md
-  - name: fixture_skill_unchanged
-    type: diff
+  - name: workspace_allowlist
+    type: program
     config:
-      # context_dir and snapshots resolve from the Waza process working directory; see README "Run layout".
-      context_dir: .apm/evals/autogenesis/fixtures/subjects
-      update_snapshots: false
-      expected_files:
-        - path: SKILL.md
-          snapshot: subject/SKILL.md
+      # Whole-workspace check shared by every task. program_grader.go
+      # does not set cmd.Dir and does not rewrite args, so python3
+      # resolves this script, and the script resolves --baseline, from
+      # the Waza process working directory. The run layout copies both
+      # there. See README "Run layout". --allow names workspace paths
+      # that may be added, changed or removed. Any other difference
+      # fails, including symlinks. Only a real root .git directory is
+      # ignored.
+      command: python3
+      timeout: 30
+      args:
+        - .apm/evals/autogenesis/graders/workspace_allowlist.py
+        - --baseline
+        - .apm/evals/autogenesis/fixtures/subjects/subject
+        - --allow
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/2026-10-08-add-retry-note.md
+        - --allow
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work/2026-10-08-add-retry-note.md
   - name: autogenesis_invoked
     type: skill_invocation
     config:

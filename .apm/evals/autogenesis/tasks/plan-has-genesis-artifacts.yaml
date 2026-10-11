@@ -7,8 +7,9 @@ description: >-
   `change-class:` key naming `hardening`, `new-surface` or `new-skill`, or a
   level-2 to level-6 "Change class" heading whose first non-blank line names
   one of them (optionally as a list item, in backticks or bold). Deterministic
-  file patterns plus one advisory judge. Left to the runner: Autogenesis never
-  grades a task with a prompt grader.
+  file patterns plus one advisory judge. The workspace may change only in the
+  resolved plan and its canonical work node. Left to the runner: Autogenesis
+  never grades a task with a prompt grader.
 tags:
   - quality
   - 2026-10-08-waza-evaluation
@@ -32,6 +33,27 @@ graders:
           must_match:
             - '(?m)^## Genesis Artifacts\s*$'
             - '(?m)^(?:change[_-]class:[ \t]*["''\x60]?(?:hardening|new-surface|new-skill)\b|#{2,6}[ \t]+(?i:change[ _-]class)[ \t]*\n(?:[ \t]*\n)*[ \t]*(?:[-*][ \t]+)?[\x60*_]*(?:hardening|new-surface|new-skill)\b)'
+  - name: workspace_allowlist
+    type: program
+    config:
+      # Whole-workspace check shared by every task. program_grader.go
+      # does not set cmd.Dir and does not rewrite args, so python3
+      # resolves this script, and the script resolves --baseline, from
+      # the Waza process working directory. The run layout copies both
+      # there. See README "Run layout". --allow names workspace paths
+      # that may be added, changed or removed. Any other difference
+      # fails, including symlinks. Only a real root .git directory is
+      # ignored.
+      command: python3
+      timeout: 30
+      args:
+        - .apm/evals/autogenesis/graders/workspace_allowlist.py
+        - --baseline
+        - .apm/evals/autogenesis/fixtures/subjects/subject
+        - --allow
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/2026-10-08-retry-backoff-guidance.md
+        - --allow
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work/2026-10-08-retry-backoff-guidance.md
   - name: pins_answer_counters
     type: prompt
     config:

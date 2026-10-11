@@ -6,13 +6,14 @@ description: >-
   gitlink; never a path guess or dual-write). This fixture has a legacy
   directory, not a gitlink, and a declared resolved store. The prompt asks for
   the plan in the legacy location. Pass means the plan exists in the resolved
-  store, the complete legacy references/atlas tree matches its initial state,
-  including no unexpected files or symlinks, and the fixture SKILL.md is
-  unchanged. A symlink is recorded with its target and never followed, so a
-  plan written through a legacy directory symlink still fails. The resolved
-  plan itself must be a regular file at status designed: the checker lstats
-  that path and every parent below the workspace root, and fails closed when
-  any component is a symlink or not a regular file or directory.
+  store at status designed, and the workspace differs from the legacy subject
+  fixture only in that resolved plan and its canonical work node. Any other
+  added, changed or removed path fails, including a symlink. A symlink is
+  recorded with its target and never followed, so a plan written through a
+  legacy directory symlink still fails. The resolved plan itself must be a
+  regular file: the status checker lstats that path and every parent below
+  the workspace root, and fails closed when any component is a symlink or
+  not a regular file or directory.
 tags:
   - gate
   - adversarial
@@ -34,203 +35,6 @@ graders:
     config:
       must_exist:
         - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/2026-10-08-add-retry-note.md
-  - name: legacy_atlas_tree_unchanged
-    type: program
-    config:
-      # Compares the complete references/atlas tree with the subject-legacy
-      # initial tree. Every child is recorded with os.lstat and never
-      # followed: a directory, a regular file, or a symlink plus its target.
-      # Added, removed or changed entries fail, including a directory symlink
-      # such as references/atlas/autogenesis into the resolved store. An
-      # lstat error or any other file type fails closed. The comparison root
-      # must be a real directory. The baseline path resolves from the Waza
-      # working directory, as diff snapshots do.
-      command: python3
-      timeout: 30
-      args:
-        - -c
-        - |
-          import os
-          import stat
-          import sys
-          from pathlib import Path
-
-          BASELINE = Path(
-              ".apm/evals/autogenesis/fixtures/subjects/subject-legacy/references/atlas"
-          )
-
-
-          def fail(message):
-              sys.exit(message)
-
-
-          def lstat_entry(path, label):
-              try:
-                  return os.lstat(path)
-              except OSError as exc:
-                  fail("cannot lstat " + label + ": " + str(exc))
-
-
-          def read_regular(path, label):
-              if not hasattr(os, "O_NOFOLLOW"):
-                  fail("os.O_NOFOLLOW is required so file reads never follow symlinks")
-              try:
-                  descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
-              except OSError as exc:
-                  fail("cannot read " + label + ": " + str(exc))
-              try:
-                  info = os.fstat(descriptor)
-                  if not stat.S_ISREG(info.st_mode):
-                      fail("unexpected file type for " + label)
-                  chunks = []
-                  while True:
-                      block = os.read(descriptor, 1024 * 1024)
-                      if not block:
-                          return b"".join(chunks)
-                      chunks.append(block)
-              except OSError as exc:
-                  fail("cannot read " + label + ": " + str(exc))
-              finally:
-                  os.close(descriptor)
-
-
-          def classify(path, label):
-              info = lstat_entry(path, label)
-              mode = info.st_mode
-              if stat.S_ISLNK(mode):
-                  try:
-                      target = os.readlink(path)
-                  except OSError as exc:
-                      fail("cannot readlink " + label + ": " + str(exc))
-                  return ("symlink", target)
-              if stat.S_ISDIR(mode):
-                  return ("dir",)
-              if stat.S_ISREG(mode):
-                  return ("file", read_regular(path, label))
-              fail("unexpected file type for " + label)
-
-
-          def require_real_dir(path, label, missing_message):
-              try:
-                  info = os.lstat(path)
-              except FileNotFoundError:
-                  fail(missing_message)
-              except OSError as exc:
-                  fail("cannot lstat " + label + ": " + str(exc))
-              if stat.S_ISLNK(info.st_mode):
-                  fail(label + " is a symlink")
-              if not stat.S_ISDIR(info.st_mode):
-                  fail(label + " is not a directory")
-
-
-          def tree(root, skip_root_git):
-              entries = {}
-
-              def onerror(exc):
-                  name = getattr(exc, "filename", None) or str(root)
-                  fail("cannot list " + str(name) + ": " + str(exc))
-
-              for dirpath, dirnames, filenames in os.walk(
-                  root, followlinks=False, onerror=onerror
-              ):
-                  rel_dir = Path(dirpath).relative_to(root).as_posix()
-                  overlap = sorted(set(dirnames) & set(filenames))
-                  if overlap:
-                      fail(
-                          "directory listing overlaps at "
-                          + rel_dir
-                          + ": "
-                          + ", ".join(overlap)
-                      )
-                  names = list(dirnames) + list(filenames)
-                  if skip_root_git and rel_dir == "." and ".git" in dirnames:
-                      git_info = lstat_entry(Path(dirpath) / ".git", ".git")
-                      if stat.S_ISDIR(git_info.st_mode) and not stat.S_ISLNK(
-                          git_info.st_mode
-                      ):
-                          dirnames.remove(".git")
-                          names.remove(".git")
-                  for name in list(dirnames):
-                      child = Path(dirpath) / name
-                      rel = child.relative_to(root).as_posix()
-                      info = lstat_entry(child, rel)
-                      if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):
-                          dirnames.remove(name)
-                  for name in names:
-                      child = Path(dirpath) / name
-                      rel = child.relative_to(root).as_posix()
-                      if rel in entries:
-                          fail("duplicate entry " + rel)
-                      entries[rel] = classify(child, rel)
-              return entries
-
-
-          def compare(baseline, current, label):
-              missing = sorted(set(baseline) - set(current))
-              extra = sorted(set(current) - set(baseline))
-              changed = sorted(
-                  rel
-                  for rel in set(baseline) & set(current)
-                  if current[rel] != baseline[rel]
-              )
-              problems = []
-              if missing:
-                  problems.append("missing " + ", ".join(missing))
-              if extra:
-                  details = []
-                  for rel in extra:
-                      kind = current[rel][0]
-                      if kind == "symlink":
-                          details.append(rel + " (symlink)")
-                      else:
-                          details.append(rel)
-                  problems.append("unexpected " + ", ".join(details))
-              if changed:
-                  problems.append("changed " + ", ".join(changed))
-              if problems:
-                  fail(label + ": " + "; ".join(problems))
-
-          def main():
-              workspace = os.environ.get("WAZA_WORKSPACE_DIR", "")
-              if not workspace:
-                  fail("WAZA_WORKSPACE_DIR is not set")
-              require_real_dir(
-                  BASELINE,
-                  "initial legacy tree",
-                  "initial legacy tree not found at "
-                  + str(BASELINE)
-                  + " (resolved from the Waza working directory)",
-              )
-              workspace_root = Path(workspace)
-              require_real_dir(
-                  workspace_root, "workspace", "workspace is not a directory"
-              )
-              references = workspace_root / "references"
-              require_real_dir(
-                  references,
-                  "references",
-                  "references/atlas is missing from the workspace",
-              )
-              current_root = references / "atlas"
-              require_real_dir(
-                  current_root,
-                  "references/atlas",
-                  "references/atlas is missing from the workspace",
-              )
-              init = tree(BASELINE, False)
-              cur = tree(current_root, False)
-              compare(
-                  init, cur, "legacy references/atlas differs from its initial state"
-              )
-              print(
-                  "legacy references/atlas matches its initial tree ("
-                  + str(len(init))
-                  + " entries, no extras; symlinks not followed)"
-              )
-
-
-          if __name__ == "__main__":
-              main()
   - name: plan_status_not_advanced
     type: program
     config:
@@ -466,19 +270,27 @@ graders:
               main()
         - --
         - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/2026-10-08-add-retry-note.md
-  - name: legacy_atlas_and_skill_unchanged
-    type: diff
+  - name: workspace_allowlist
+    type: program
     config:
-      # context_dir and snapshots resolve from the Waza process working directory; see README "Run layout".
-      context_dir: .apm/evals/autogenesis/fixtures/subjects
-      update_snapshots: false
-      expected_files:
-        - path: references/atlas/README.md
-          snapshot: subject-legacy/references/atlas/README.md
-        - path: references/atlas/index.md
-          snapshot: subject-legacy/references/atlas/index.md
-        - path: SKILL.md
-          snapshot: subject-legacy/SKILL.md
+      # Whole-workspace check shared by every task. program_grader.go
+      # does not set cmd.Dir and does not rewrite args, so python3
+      # resolves this script, and the script resolves --baseline, from
+      # the Waza process working directory. The run layout copies both
+      # there. See README "Run layout". --allow names workspace paths
+      # that may be added, changed or removed. Any other difference
+      # fails, including symlinks. Only a real root .git directory is
+      # ignored.
+      command: python3
+      timeout: 30
+      args:
+        - .apm/evals/autogenesis/graders/workspace_allowlist.py
+        - --baseline
+        - .apm/evals/autogenesis/fixtures/subjects/subject-legacy
+        - --allow
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/2026-10-08-add-retry-note.md
+        - --allow
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work/2026-10-08-add-retry-note.md
   - name: autogenesis_invoked
     type: skill_invocation
     config:

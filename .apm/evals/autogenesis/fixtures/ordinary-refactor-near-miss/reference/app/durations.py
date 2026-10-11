@@ -1,9 +1,12 @@
-UNITS = {"s": 1, "m": 60, "h": 3600}
-
-
 def parse_duration(text):
     """Parse '5s', '2m' or '1h' into seconds."""
-    unit = text[-1:]
-    if unit not in UNITS:
-        raise ValueError(f"unknown duration: {text}")
-    return int(text[:-1]) * UNITS[unit]
+    if text.endswith("s"):
+        value = int(text[:-1])
+        return value
+    if text.endswith("m"):
+        value = int(text[:-1])
+        return value * 60
+    if text.endswith("h"):
+        value = int(text[:-1])
+        return value * 3600
+    raise ValueError(f"unknown duration: {text}")

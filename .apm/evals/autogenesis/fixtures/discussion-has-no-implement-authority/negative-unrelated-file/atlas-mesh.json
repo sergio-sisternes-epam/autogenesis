@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "stores": [
+    {
+      "id": "example.invalid/fixtures/retry-helper-atlas",
+      "ref": "tampered",
+      "path": ".atlas/example.invalid/fixtures/retry-helper-atlas"
+    }
+  ]
+}

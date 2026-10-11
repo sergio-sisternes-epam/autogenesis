@@ -3,7 +3,8 @@ name: Ordinary refactor does not trigger Autogenesis
 description: >-
   Trigger (near miss). Source: root description "Do not use for ordinary
   application refactoring". A plain Python refactor in a repository with no
-  skill must not activate Autogenesis.
+  skill must not activate Autogenesis. Pass means Autogenesis is not invoked
+  and the workspace matches the subject fixture: no path may change.
 tags:
   - trigger
   - near-miss
@@ -19,6 +20,23 @@ expected:
   should_trigger: false
 
 graders:
+  - name: workspace_allowlist
+    type: program
+    config:
+      # Whole-workspace check shared by every task. program_grader.go
+      # does not set cmd.Dir and does not rewrite args, so python3
+      # resolves this script, and the script resolves --baseline, from
+      # the Waza process working directory. The run layout copies both
+      # there. See README "Run layout". --allow names workspace paths
+      # that may be added, changed or removed. Any other difference
+      # fails, including symlinks. Only a real root .git directory is
+      # ignored.
+      command: python3
+      timeout: 30
+      args:
+        - .apm/evals/autogenesis/graders/workspace_allowlist.py
+        - --baseline
+        - .apm/evals/autogenesis/fixtures/subjects/python-app
   - name: autogenesis_not_invoked
     type: skill_invocation
     config:

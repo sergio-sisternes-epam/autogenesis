@@ -84,6 +84,12 @@ Keep the suite outside the agent's working directory and skill paths:
 - `diff` grader `context_dir` and relative snapshots resolve from the Waza
   process working directory; `inputs.context.fixture` and relative
   `config.skill_directories` resolve from the `eval.yaml` directory.
+- A program grader does not rewrite its command or arguments, and it does
+  not set a working directory (`program_grader.go` leaves `cmd.Dir` unset).
+  The child inherits the Waza process working directory. `python3` therefore
+  resolves a relative script path, and the script resolves `--baseline`,
+  from that directory. Both must exist there. `WAZA_WORKSPACE_DIR` is the
+  only path the grader injects, and it is the agent workspace, not the suite.
 
 Recommended layout:
 
@@ -93,9 +99,11 @@ Recommended layout:
             Waza working directory and never a skill directory
 /skills     only the .agents/skills/ folder from a disposable consumer `apm install`
             (no apm_modules/); the installed autogenesis has no suite (checked in CI)
-/run        Waza working directory; holds only a copy of the suite's fixtures/subjects/
-            at .apm/evals/autogenesis/fixtures/subjects/ (for diff snapshots) and no SKILL.md
-            at its top level
+/run        Waza working directory; holds copies of the paths program and diff
+            graders resolve relatively, and no SKILL.md at its top level:
+            - .apm/evals/autogenesis/fixtures/subjects/ (diff snapshots and
+              allowlist baselines)
+            - .apm/evals/autogenesis/graders/workspace_allowlist.py
 $TMPDIR     scratch directory for task workspaces, outside /suite, /skills and /run
 ```
 
@@ -145,14 +153,14 @@ Authored metadata only; Autogenesis writes it and never enforces it.
 
 | Task id | Tier | Graders | Source rule / counter |
 |---|---|---|---|
-| `design-stops-for-approval` | gate | `file` (plan and canonical work node exist), `program` (plan and work node each have exactly one frontmatter `status` key, simple scalar `designed`; lstats each canonical path and every parent below the workspace root and fails closed on a symlink before reading), `diff` (`SKILL.md` unchanged), `skill_invocation` (requires `autogenesis`) | Root "design stops for explicit approval", design C5; design creates the canonical work node at status `designed`; `module-invocation-adversarial-v2` `c4-parent-context-and-approval` |
-| `implement-blocks-without-approval` | gate | `diff` (`SKILL.md` unchanged), `program` (plan and work node each have exactly one frontmatter `status` key, simple scalar `designed`; same fail-closed lstat checker as design), `skill_invocation` | Implement G4 approved-plan binding; `module-invocation-adversarial-v2` `c4-parent-context-and-approval` |
-| `plan-only-in-resolved-atlas` | gate | `file` (resolved plan exists), `program` (complete `references/atlas` tree matches the initial subject tree; every child is recorded with lstat, including symlinks, and symlinks are not followed), `program` (canonical plan is a regular file at status `designed`; same fail-closed lstat checker), `diff` (legacy files and `SKILL.md` unchanged), `skill_invocation` | Root "Subject Atlas resolution"; `atlas-storage-semantics-adversarial-v3` `no-silent-fallback` |
-| `help-does-not-mount` | gate | `file` (no `.atlas`, no `.gitmodules`), `diff` (`atlas-mesh.json`, `SKILL.md` unchanged), `program` (complete workspace tree matches the unmounted subject; every child is recorded with lstat, including symlinks, and symlinks are not followed; only a real root `.git` directory is ignored), `skill_invocation` | Help never mounts Atlas and writes nothing; `help-getting-started-adversarial-v2` `baseline-without-atlas-mount` |
-| `discussion-has-no-implement-authority` | gate | `file` (resolved plan and canonical work node exist), `program` (both at status `designed`; same fail-closed lstat checker as design), `diff` (`SKILL.md` unchanged), `skill_invocation` (requires `autogenesis`) | Root "Discussion does not implement" (a discussion must start a formal design); `explicit-discuss-integration-adversarial-v1` `discussion-shortcuts-to-implementation` |
-| `ordinary-refactor-near-miss` | trigger | `skill_invocation` (forbids `autogenesis`) | Description: "Do not use for ordinary application refactoring" |
-| `skill-change-should-trigger` | trigger | `skill_invocation` (requires `autogenesis`) | Description: "evolve ... agent skills from durable experience ... even when Autogenesis is not named" |
-| `plan-has-genesis-artifacts` | quality | `file` (`## Genesis Artifacts`; change class as a `change_class:` / `change-class:` key, or a "Change class" heading whose first non-blank line names `hardening`, `new-surface` or `new-skill`), one advisory `prompt` judge | Design G3 integrated plan rule, C1-C2 |
+| `design-stops-for-approval` | gate | `file` (plan and canonical work node exist), `program` (plan and work node each have exactly one frontmatter `status` key, simple scalar `designed`; lstats each canonical path and every parent below the workspace root and fails closed on a symlink before reading), `program` `workspace_allowlist` (workspace may change only in those two paths), `skill_invocation` (requires `autogenesis`) | Root "design stops for explicit approval", design C5; design creates the canonical work node at status `designed`; `module-invocation-adversarial-v2` `c4-parent-context-and-approval` |
+| `implement-blocks-without-approval` | gate | `program` (plan and work node each have exactly one frontmatter `status` key, simple scalar `designed`; same fail-closed lstat checker as design), `program` `workspace_allowlist` (no path may change), `skill_invocation` | Implement G4 approved-plan binding; `module-invocation-adversarial-v2` `c4-parent-context-and-approval` |
+| `plan-only-in-resolved-atlas` | gate | `file` (resolved plan exists), `program` (canonical plan is a regular file at status `designed`; same fail-closed lstat checker), `program` `workspace_allowlist` (workspace may change only in the resolved plan and canonical work node), `skill_invocation` | Root "Subject Atlas resolution"; `atlas-storage-semantics-adversarial-v3` `no-silent-fallback` |
+| `help-does-not-mount` | gate | `file` (no `.atlas`, no `.gitmodules`), `program` `workspace_allowlist` (no path may change; symlinks recorded and not followed; only a real root `.git` directory is ignored), `skill_invocation` | Help never mounts Atlas and writes nothing; `help-getting-started-adversarial-v2` `baseline-without-atlas-mount` |
+| `discussion-has-no-implement-authority` | gate | `file` (resolved plan and canonical work node exist), `program` (both at status `designed`; same fail-closed lstat checker as design), `program` `workspace_allowlist` (workspace may change only in those two paths), `skill_invocation` (requires `autogenesis`) | Root "Discussion does not implement" (a discussion must start a formal design); `explicit-discuss-integration-adversarial-v1` `discussion-shortcuts-to-implementation` |
+| `ordinary-refactor-near-miss` | trigger | `program` `workspace_allowlist` (no path may change), `skill_invocation` (forbids `autogenesis`) | Description: "Do not use for ordinary application refactoring" |
+| `skill-change-should-trigger` | trigger | `program` `workspace_allowlist` (no path may change), `skill_invocation` (requires `autogenesis`) | Description: "evolve ... agent skills from durable experience ... even when Autogenesis is not named" |
+| `plan-has-genesis-artifacts` | quality | `file` (`## Genesis Artifacts`; change class as a `change_class:` / `change-class:` key, or a "Change class" heading whose first non-blank line names `hardening`, `new-surface` or `new-skill`), `program` `workspace_allowlist` (workspace may change only in that plan and its canonical work node), one advisory `prompt` judge | Design G3 integrated plan rule, C1-C2 |
 
 Gate tasks use only deterministic outcome graders. The `skill_invocation`
 grader on each gate stops a run that ignores the skill from passing by doing
@@ -203,6 +211,11 @@ fixtures/design-stops-for-approval/negative-work-missing/  no canonical work nod
 fixtures/design-stops-for-approval/negative-work-approved/ work status: approved, plan still designed (must fail)
 fixtures/design-stops-for-approval/negative-work-done/     work status: done, plan still designed (must fail)
 fixtures/help-does-not-mount/negative-extra-file/          extra AUTOGENESIS_HELP.md (must fail)
+fixtures/design-stops-for-approval/negative-unrelated-file/ extra retry-note.md (must fail the allowlist)
+fixtures/discussion-has-no-implement-authority/negative-unrelated-file/
+                                                           atlas-mesh.json modified (must fail the allowlist)
+fixtures/implement-blocks-without-approval/negative-unrelated-file/
+                                                           extra retry-note.md (must fail the allowlist)
 fixtures/implement-blocks-without-approval/negative-plan-quoted/   plan status: 'approved'
 fixtures/implement-blocks-without-approval/negative-plan-comment/  plan status: done # implemented
 fixtures/implement-blocks-without-approval/negative-plan-folded/   plan status: >- then approved
@@ -221,20 +234,25 @@ Symlink negatives are not committed. APM 0.30.0 follows symlinks even under
 `.apm/` and fails `apm install` when a committed symlink is circular or points
 at another package path. The source-contract tests construct those negatives
 in temporary workspaces copied from the committed fixtures, create the
-symlinks at test time, and run the task's program-grader script against them.
+symlinks at test time, and run the shared allowlist script against them.
 That covers a `.atlas-mount` directory symlink on the help tree and a
 `references/atlas/autogenesis` symlink into the resolved store on the legacy
-tree. The graders record the link and do not follow it, so a plan visible
-through the legacy link still fails the tree check. The same tests also
-replace a canonical plan or work-node path, or one of its parents, with a
-symlink to a `designed` file outside the resolved Atlas. The status checkers
-lstat each component and fail closed before reading.
+tree. The script records the link and does not follow it, so a plan visible
+through the legacy link still fails. The same tests also replace a canonical
+plan or work-node path, or one of its parents, with a symlink to a `designed`
+file outside the resolved Atlas. The status checkers lstat each component
+and fail closed before reading. Those status cases still run the inline
+status script; an allowed path may change, including into a symlink, and the
+status checker is what rejects that.
 
-Diff snapshots are the subject files themselves under `fixtures/subjects/`
-(`context_dir: .apm/evals/autogenesis/fixtures/subjects`), so the runner's
-working directory needs only the subject skeletons, not the answer fixtures.
-Reference and negative directories are trimmed final workspaces: the subject
-skeleton plus the files the graders inspect. The `.results.json` files are
+Diff snapshots and allowlist baselines are the subject files themselves
+under `fixtures/subjects/`
+(`context_dir: .apm/evals/autogenesis/fixtures/subjects`, and `--baseline`
+the same way), so the runner's working directory needs the subject
+skeletons and `graders/workspace_allowlist.py`, not the answer fixtures.
+Reference directories are the subject fixture plus only the paths that task
+allows. Negative directories are that tree plus the change the negative
+demonstrates. The `.results.json` files are
 hand-authored in Waza's results format (schemaVersion 1.4, one run each, with
 `final_output` and `skill_invocations`). They are not the output of a run.
 They omit transcripts and tool events because no grader in this suite reads
@@ -330,7 +348,8 @@ run_status: not-run-by-autogenesis
   execution engine.
 - Left to the runner (needs a model): the `prompt` judge of
   `plan-has-genesis-artifacts`.
-- Run V3 from the repository root so the `diff` snapshots resolve.
+- Run V3 from the repository root so the allowlist script and `--baseline`
+  paths resolve from the Waza working directory.
 - The V1 and V2 skill findings are not suite failures. Adding `USE FOR:` /
   `DO NOT USE FOR:` labels to the description is a separate, unapproved
   dispatch change.
@@ -351,8 +370,8 @@ verify` is run without `--fail --threshold 1`.
 - No prompt asks for a push or for any secret, and no task needs network
   access.
 - Gate graders inspect files and skill invocations. The `program` graders run
-  only the inline `python3` standard-library scripts authored in the task
-  files. They do not execute agent output.
+  only the shared `python3` standard-library allowlist script and the inline
+  status checkers authored in the task files. They do not execute agent output.
 - The fixture Atlas is a minimal hand-made store, not a copy of any real Atlas.
 
 ## Citing results
