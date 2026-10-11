@@ -1,4 +1,7 @@
-# suite_version: 7
+# suite_version: 8
+# Reason for 8: every task uses one shared whole-workspace allowlist. A path
+# outside that list, including a symlink, fails. plan-has-genesis-artifacts
+# is left entirely to the runner because it contains a prompt grader.
 # Reason for 7: status graders lstat each canonical path and its parents and
 # fail closed on a symlink; discussion must persist a designed plan and work
 # node; symlink negatives are built by tests because a committed symlink

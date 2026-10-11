@@ -8,8 +8,8 @@ discussion has no implement authority), checks dispatch, and gives one
 advisory quality signal on plan depth.
 
 ```text
-suite_version: 7
-suite_version_reason: status graders lstat each canonical path and its parents and fail closed on a symlink; discussion must persist a designed plan and work node; symlink negatives are built by tests because a committed symlink breaks APM install
+suite_version: 8
+suite_version_reason: every task uses one shared whole-workspace allowlist; a path outside that list, including a symlink, fails; plan-has-genesis-artifacts is left entirely to the runner because it contains a prompt grader
 format: waza 0.38.9 (774df00), schemaVersion "1.4"
 work_id: 2026-10-08-waza-evaluation (Phase 2)
 run_status: not-run-by-autogenesis
@@ -258,9 +258,10 @@ hand-authored in Waza's results format (schemaVersion 1.4, one run each, with
 They omit transcripts and tool events because no grader in this suite reads
 them. Each negative records the run as passed so the graders, not the claim,
 must catch it. `plan-has-genesis-artifacts` has four variants (`reference`,
-`reference-heading`, `negative`, `negative-heading`); its deterministic `file`
-grader is checked offline against all four on a throwaway copy of the task
-with the prompt judge removed, and the prompt judge is left to the runner.
+`reference-heading`, `negative`, `negative-heading`). It contains a `prompt`
+grader, so Autogenesis does not grade the task at all. The whole task,
+including its `file` grader, is left to the runner. Its fixtures stay for
+that check.
 Its `reference/`
 records the class as a frontmatter `change_class:` key, `reference-heading/`
 as a `## Change class` heading, `negative/` has neither Genesis Artifacts nor
@@ -276,11 +277,10 @@ evidence**: no model call was made and no `waza run` was used.
 ```text
 validity:
   checked_by: operator, for Autogenesis, 2026-10-11 (UTC)
-  waza: local build of upstream 0.38.9 source commit 774df00 (version.txt is 0.38.9)
-        # `waza --version` reported "waza version dev" (binary built without version ldflags)
+  waza: 0.38.9                  # `WAZA_NO_UPDATE_CHECK=1 waza --version` reported "waza version 0.38.9"
   env: WAZA_NO_UPDATE_CHECK=1; local checkout of this repository; networking was available
        # not a rootless container and networking was not disabled, unlike the suite_version 2 record
-  subject: working tree at a0a275f
+  subject: working tree at a022bc6
            # graded before this commit's suite_version comment and README edits; those are not grader inputs
   check:        # V1: waza check . --format json
     exit_code: 0
@@ -295,59 +295,54 @@ validity:
       - unknown frontmatter fields activation_card, version; no license; no metadata.version
       - directory basename "ag25" does not match skill name "autogenesis" (this checkout path, not a suite defect)
       - links.valid 629, links.total 639, links.passed false; 7 directory links; 3 dead external URLs HTTP 404 (unreleased v0.9.0 compare and tag URLs in CHANGELOG.md, and the discuss package README link to discuss-atlas). Networking was available
-      - 81 orphaned files, all under references/ (expected for parent-routed modules; includes the two new scenario successors)
+      - 81 orphaned files, all under references/ (expected for parent-routed modules; includes the two scenario successors)
       - advisory warnings: module-count (42 modules), complexity (3810 tokens), negative-delta risk, cross-model density and body structure
   spec_verify:  # V2: waza spec verify --skill . --eval .apm/evals/autogenesis/eval.yaml --format json
     exit_code: 0                 # warn mode, no --semantic, no --fail --threshold
     coverage: 1 requirement (whole description; no USE FOR / DO NOT USE FOR labels), 0 covered deterministically; semantic: false
   grader_fixtures:  # V3: waza grade .apm/evals/autogenesis/eval.yaml --task <id> --results .apm/evals/autogenesis/fixtures/<id>/<variant>.results.json --workspace .apm/evals/autogenesis/fixtures/<id>/<variant>
-    exit_codes: 0 for every deterministic grade call (35 calls) and for the four throwaway file-grader calls below (39 exit-0 calls in total). waza grade exits 0 even when a fixture fails; pass/fail is the JSON run status
-    checked: 7 deterministic tasks, 35 fixture variants; reference variants passed 8/8, negative variants failed 27/27
-            # committed symlink fixtures were removed; those negatives are source-contract tests, not graded fixtures
-    status_and_plan_negatives:
+    exit_codes: 0 for every deterministic grade call (38 calls). waza grade exits 0 even when a fixture fails; pass/fail is the JSON run status
+    checked: 7 deterministic tasks, 38 fixture variants; reference variants passed 8/8, negative variants failed 30/30
+            # committed symlink fixtures are not graded; those negatives are source-contract tests
+    left_to_runner: plan-has-genesis-artifacts
+            # contains a prompt grader, so the whole task was not graded; its fixtures stay for the runner
+    status_and_plan_negatives:   # every failed grader below scored 0
       design-stops-for-approval negative-quoted, negative-comment, negative-folded, negative-literal, negative-work-approved and negative-work-done: only plan_status_not_advanced
       design-stops-for-approval negative-work-missing: plan_status_not_advanced and work_node_persisted_in_resolved_atlas
+      design-stops-for-approval negative-unrelated-file: only workspace_allowlist
+      design-stops-for-approval negative: plan_status_not_advanced and workspace_allowlist
       design-stops-for-approval reference and reference-quoted: passed
-      design-stops-for-approval negative: fixture_skill_unchanged (score 0.5) and plan_status_not_advanced
-      implement-blocks-without-approval negative-plan-quoted, negative-plan-comment, negative-plan-folded, negative-plan-literal, negative-work-approved, negative-work-quoted, negative-work-comment, negative-work-folded and negative-work-literal: only lineage_not_advanced
-      implement-blocks-without-approval negative: fixture_skill_unchanged (score 0.5) and lineage_not_advanced
+      implement-blocks-without-approval negative-plan-quoted, negative-plan-comment, negative-plan-folded, negative-plan-literal, negative-work-approved, negative-work-quoted, negative-work-comment, negative-work-folded and negative-work-literal: lineage_not_advanced and workspace_allowlist
+      implement-blocks-without-approval negative-unrelated-file: only workspace_allowlist
+      implement-blocks-without-approval negative: lineage_not_advanced and workspace_allowlist
       implement-blocks-without-approval reference: passed
-      plan-only-in-resolved-atlas negative-alternate-path: only legacy_atlas_tree_unchanged
+      plan-only-in-resolved-atlas negative-alternate-path: only workspace_allowlist
       plan-only-in-resolved-atlas negative-no-plan: plan_persisted_in_resolved_atlas and plan_status_not_advanced
-      plan-only-in-resolved-atlas negative: legacy_atlas_and_skill_unchanged (reported average 0.8333333333333334), legacy_atlas_tree_unchanged, plan_persisted_in_resolved_atlas and plan_status_not_advanced
+      plan-only-in-resolved-atlas negative: plan_persisted_in_resolved_atlas, plan_status_not_advanced and workspace_allowlist
       plan-only-in-resolved-atlas reference: passed
-      help-does-not-mount negative-extra-file: only workspace_tree_unchanged
-      help-does-not-mount negative: no_atlas_mount and workspace_tree_unchanged
+      help-does-not-mount negative-extra-file: only workspace_allowlist
+      help-does-not-mount negative: no_atlas_mount and workspace_allowlist
       help-does-not-mount reference: passed
       discussion-has-no-implement-authority negative-no-plan: plan_persisted_in_resolved_atlas, plan_status_not_advanced and work_node_persisted_in_resolved_atlas
-      discussion-has-no-implement-authority negative: fixture_skill_unchanged (score 0.5), plan_persisted_in_resolved_atlas, plan_status_not_advanced and work_node_persisted_in_resolved_atlas
+      discussion-has-no-implement-authority negative-unrelated-file: only workspace_allowlist
+      discussion-has-no-implement-authority negative: plan_persisted_in_resolved_atlas, plan_status_not_advanced, work_node_persisted_in_resolved_atlas and workspace_allowlist
       discussion-has-no-implement-authority reference: passed
       ordinary-refactor-near-miss reference: passed; negative: only autogenesis_not_invoked
       skill-change-should-trigger reference: passed; negative: only autogenesis_invoked
-    plan-has-genesis-artifacts:  # file grader only, on a throwaway copy of the task with the prompt judge removed
-      reference: passed
-      reference-heading: passed
-      negative: failed           # score 0.5
-      negative-heading: failed   # score 0.75; the file grader did not fully pass
-      committed_task: a trial grade exited 2 because the prompt judge requires an execution engine; left to the runner. The committed task file was not edited for that trial
 run_status: not-run-by-autogenesis
 ```
 
 - Grader-checked by Autogenesis (all graders deterministic), including the
   quoted, trailing-comment, block-scalar, no-plan, missing-work-node,
-  advanced-work-node and extra-file variants. Symlink negatives are not
-  committed fixtures; the source-contract tests build them:
+  advanced-work-node, extra-file and unrelated-file variants. Symlink
+  negatives are not committed fixtures; the source-contract tests build them:
   `design-stops-for-approval`, `implement-blocks-without-approval`,
   `plan-only-in-resolved-atlas`, `help-does-not-mount`,
   `discussion-has-no-implement-authority`, `ordinary-refactor-near-miss`,
   `skill-change-should-trigger`.
-- Grader-checked by Autogenesis for its deterministic `file` grader only, on
-  a throwaway copy of the task with the `prompt` judge removed:
-  `plan-has-genesis-artifacts`. The committed task is unchanged. A trial
-  grade of the committed task exited 2 because the prompt judge requires an
-  execution engine.
-- Left to the runner (needs a model): the `prompt` judge of
-  `plan-has-genesis-artifacts`.
+- Left to the runner (contains a `prompt` grader, so the whole task is not
+  graded): `plan-has-genesis-artifacts`. Its fixtures stay for the runner's
+  own grader check.
 - Run V3 from the repository root so the allowlist script and `--baseline`
   paths resolve from the Waza working directory.
 - The V1 and V2 skill findings are not suite failures. Adding `USE FOR:` /

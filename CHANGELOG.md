@@ -84,8 +84,12 @@ in `SKILL.md`.
   follows them. `suite_version: 7` makes status graders lstat each canonical
   path and its parents and fail closed on a symlink, requires discussion to
   persist a designed plan and work node, and stops committing symlink
-  fixtures because a committed symlink breaks APM install. The suite README
-  records the model-free validity re-run for suite_version 7.
+  fixtures because a committed symlink breaks APM install.
+  `suite_version: 8` gives every task one shared whole-workspace allowlist:
+  any added, changed or removed path outside that list, including a symlink,
+  fails. The suite README records the model-free validity re-run for
+  suite_version 8, and leaves `plan-has-genesis-artifacts` to the runner
+  because it contains a prompt grader.
 - Consumer validation fails when an installed `autogenesis` skill contains an
   `evals/` directory, a `.apm/` directory or any `eval.yaml`; source checks
   and the `suite-not-shipped` smoke keep the suite under `.apm/evals/`.
