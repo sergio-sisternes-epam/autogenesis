@@ -67,8 +67,11 @@ in `SKILL.md`.
   its initial state, and sets `config.inject_skill_body: false` so trigger
   tasks are not handed the skill body. `suite_version: 4` makes those status
   graders fail closed unless the value is the simple scalar `designed`, and
-  requires the resolved plan file to exist. The suite README records the
-  model-free validity re-run for suite_version 4.
+  requires the resolved plan file to exist. `suite_version: 5` requires the
+  canonical design work node to exist at status `designed`, and compares the
+  help workspace with the unmounted subject, ignoring only the root `.git`
+  directory. The suite README records the model-free validity re-run for
+  suite_version 5.
 - Consumer validation fails when an installed `autogenesis` skill contains an
   `evals/` directory, a `.apm/` directory or any `eval.yaml`; source checks
   and the `suite-not-shipped` smoke keep the suite under `.apm/evals/`.
