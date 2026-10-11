@@ -73,8 +73,10 @@ in `SKILL.md`.
   requires the resolved plan file to exist. `suite_version: 5` requires the
   canonical design work node to exist at status `designed`, and compares the
   help workspace with the unmounted subject, ignoring only the root `.git`
-  directory. The suite README records the model-free validity re-run for
-  suite_version 5.
+  directory. `suite_version: 6` records every child in those complete-tree
+  comparisons with lstat, including directory and file symlinks, and never
+  follows them. The suite README records the model-free validity re-run for
+  suite_version 6.
 - Consumer validation fails when an installed `autogenesis` skill contains an
   `evals/` directory, a `.apm/` directory or any `eval.yaml`; source checks
   and the `suite-not-shipped` smoke keep the suite under `.apm/evals/`.

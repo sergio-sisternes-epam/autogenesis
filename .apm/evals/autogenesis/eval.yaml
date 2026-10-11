@@ -1,4 +1,6 @@
-# suite_version: 5
+# suite_version: 6
+# Reason for 6: complete-tree comparison records every child with lstat,
+# including directory and file symlinks, and never follows them.
 # Reason for 5: the design gate requires the canonical work node at status
 # designed; the help gate compares the complete workspace tree with the
 # unmounted subject and ignores only the root .git directory.
