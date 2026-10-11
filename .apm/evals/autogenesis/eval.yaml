@@ -1,4 +1,8 @@
-# suite_version: 6
+# suite_version: 7
+# Reason for 7: status graders lstat each canonical path and its parents and
+# fail closed on a symlink; discussion must persist a designed plan and work
+# node; symlink negatives are built by tests because a committed symlink
+# breaks APM install.
 # Reason for 6: complete-tree comparison records every child with lstat,
 # including directory and file symlinks, and never follows them.
 # Reason for 5: the design gate requires the canonical work node at status

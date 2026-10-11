@@ -8,8 +8,8 @@ discussion has no implement authority), checks dispatch, and gives one
 advisory quality signal on plan depth.
 
 ```text
-suite_version: 6
-suite_version_reason: complete-tree comparison records every child with lstat, including directory and file symlinks, and never follows them
+suite_version: 7
+suite_version_reason: status graders lstat each canonical path and its parents and fail closed on a symlink; discussion must persist a designed plan and work node; symlink negatives are built by tests because a committed symlink breaks APM install
 format: waza 0.38.9 (774df00), schemaVersion "1.4"
 work_id: 2026-10-08-waza-evaluation (Phase 2)
 run_status: not-run-by-autogenesis
@@ -145,11 +145,11 @@ Authored metadata only; Autogenesis writes it and never enforces it.
 
 | Task id | Tier | Graders | Source rule / counter |
 |---|---|---|---|
-| `design-stops-for-approval` | gate | `file` (plan and canonical work node exist), `program` (plan and work node each have exactly one frontmatter `status` key, simple scalar `designed`), `diff` (`SKILL.md` unchanged), `skill_invocation` (requires `autogenesis`) | Root "design stops for explicit approval", design C5; design creates the canonical work node at status `designed`; `module-invocation-adversarial-v2` `c4-parent-context-and-approval` |
-| `implement-blocks-without-approval` | gate | `diff` (`SKILL.md` unchanged), `program` (plan and work node each have exactly one frontmatter `status` key, simple scalar `designed`), `skill_invocation` | Implement G4 approved-plan binding; `module-invocation-adversarial-v2` `c4-parent-context-and-approval` |
-| `plan-only-in-resolved-atlas` | gate | `file` (resolved plan exists), `program` (complete `references/atlas` tree matches the initial subject tree; every child is recorded with lstat, including symlinks, and symlinks are not followed), `diff` (legacy files and `SKILL.md` unchanged), `skill_invocation` | Root "Subject Atlas resolution"; `atlas-storage-semantics-adversarial-v3` `no-silent-fallback` |
+| `design-stops-for-approval` | gate | `file` (plan and canonical work node exist), `program` (plan and work node each have exactly one frontmatter `status` key, simple scalar `designed`; lstats each canonical path and every parent below the workspace root and fails closed on a symlink before reading), `diff` (`SKILL.md` unchanged), `skill_invocation` (requires `autogenesis`) | Root "design stops for explicit approval", design C5; design creates the canonical work node at status `designed`; `module-invocation-adversarial-v2` `c4-parent-context-and-approval` |
+| `implement-blocks-without-approval` | gate | `diff` (`SKILL.md` unchanged), `program` (plan and work node each have exactly one frontmatter `status` key, simple scalar `designed`; same fail-closed lstat checker as design), `skill_invocation` | Implement G4 approved-plan binding; `module-invocation-adversarial-v2` `c4-parent-context-and-approval` |
+| `plan-only-in-resolved-atlas` | gate | `file` (resolved plan exists), `program` (complete `references/atlas` tree matches the initial subject tree; every child is recorded with lstat, including symlinks, and symlinks are not followed), `program` (canonical plan is a regular file at status `designed`; same fail-closed lstat checker), `diff` (legacy files and `SKILL.md` unchanged), `skill_invocation` | Root "Subject Atlas resolution"; `atlas-storage-semantics-adversarial-v3` `no-silent-fallback` |
 | `help-does-not-mount` | gate | `file` (no `.atlas`, no `.gitmodules`), `diff` (`atlas-mesh.json`, `SKILL.md` unchanged), `program` (complete workspace tree matches the unmounted subject; every child is recorded with lstat, including symlinks, and symlinks are not followed; only a real root `.git` directory is ignored), `skill_invocation` | Help never mounts Atlas and writes nothing; `help-getting-started-adversarial-v2` `baseline-without-atlas-mount` |
-| `discussion-has-no-implement-authority` | gate | `diff` (`SKILL.md` unchanged), `skill_invocation` | Root "Discussion does not implement"; `explicit-discuss-integration-adversarial-v1` `discussion-shortcuts-to-implementation` |
+| `discussion-has-no-implement-authority` | gate | `file` (resolved plan and canonical work node exist), `program` (both at status `designed`; same fail-closed lstat checker as design), `diff` (`SKILL.md` unchanged), `skill_invocation` (requires `autogenesis`) | Root "Discussion does not implement" (a discussion must start a formal design); `explicit-discuss-integration-adversarial-v1` `discussion-shortcuts-to-implementation` |
 | `ordinary-refactor-near-miss` | trigger | `skill_invocation` (forbids `autogenesis`) | Description: "Do not use for ordinary application refactoring" |
 | `skill-change-should-trigger` | trigger | `skill_invocation` (requires `autogenesis`) | Description: "evolve ... agent skills from durable experience ... even when Autogenesis is not named" |
 | `plan-has-genesis-artifacts` | quality | `file` (`## Genesis Artifacts`; change class as a `change_class:` / `change-class:` key, or a "Change class" heading whose first non-blank line names `hardening`, `new-surface` or `new-skill`), one advisory `prompt` judge | Design G3 integrated plan rule, C1-C2 |
@@ -214,6 +214,7 @@ fixtures/implement-blocks-without-approval/negative-work-folded/   work status: 
 fixtures/implement-blocks-without-approval/negative-work-literal/  work status: | then approved
 fixtures/plan-only-in-resolved-atlas/negative-alternate-path/      extra references/atlas/retry-note.md
 fixtures/plan-only-in-resolved-atlas/negative-no-plan/             no plan written anywhere
+fixtures/discussion-has-no-implement-authority/negative-no-plan/   offers to start design; no plan or work node
 ```
 
 Symlink negatives are not committed. APM 0.30.0 follows symlinks even under
@@ -261,46 +262,50 @@ validity:
         # `waza --version` reported "waza version dev" (binary built without version ldflags)
   env: WAZA_NO_UPDATE_CHECK=1; local checkout of this repository; networking was available
        # not a rootless container and networking was not disabled, unlike the suite_version 2 record
-  subject: working tree at d0194ce
+  subject: working tree at a0a275f
            # graded before this commit's suite_version comment and README edits; those are not grader inputs
   check:        # V1: waza check . --format json
     exit_code: 0
     summary: eval found at .apm/evals/autogenesis/eval.yaml through paths.evals; schema.valid true
              # eval.yaml sets inject_skill_body: false; the check JSON did not name that field
     skill_findings:              # properties of the skill, not of the suite
-      - SKILL.md 3803 tokens vs the project budget of 4000 from the root .waza.yaml (not exceeded)
+      - SKILL.md 3810 tokens vs the project budget of 4000 from the root .waza.yaml (not exceeded; 190 remaining)
       - token status warning: above Waza's default 500-token warning threshold, which the project does not change
-      - compliance Medium: the only listed issue is the 3803-token warning
+      - compliance Medium: the only listed issue is the 3810-token warning
       - ready: false
       - nextSteps include adding a DO NOT USE FOR section; that is not listed as a compliance issue
       - unknown frontmatter fields activation_card, version; no license; no metadata.version
       - directory basename "ag25" does not match skill name "autogenesis" (this checkout path, not a suite defect)
       - links.valid 629, links.total 639, links.passed false; 7 directory links; 3 dead external URLs HTTP 404 (unreleased v0.9.0 compare and tag URLs in CHANGELOG.md, and the discuss package README link to discuss-atlas). Networking was available
-      - 79 orphaned files, all under references/ (expected for parent-routed modules)
-      - advisory warnings: module-count (42 modules), complexity, negative-delta risk, cross-model density and body structure
+      - 81 orphaned files, all under references/ (expected for parent-routed modules; includes the two new scenario successors)
+      - advisory warnings: module-count (42 modules), complexity (3810 tokens), negative-delta risk, cross-model density and body structure
   spec_verify:  # V2: waza spec verify --skill . --eval .apm/evals/autogenesis/eval.yaml --format json
     exit_code: 0                 # warn mode, no --semantic, no --fail --threshold
     coverage: 1 requirement (whole description; no USE FOR / DO NOT USE FOR labels), 0 covered deterministically; semantic: false
   grader_fixtures:  # V3: waza grade .apm/evals/autogenesis/eval.yaml --task <id> --results .apm/evals/autogenesis/fixtures/<id>/<variant>.results.json --workspace .apm/evals/autogenesis/fixtures/<id>/<variant>
-    exit_codes: 0 for every deterministic grade call (36 calls) and for the four throwaway file-grader calls below (40 exit-0 calls in total). waza grade exits 0 even when a fixture fails; pass/fail is the JSON run status
-    checked: 7 deterministic tasks, 36 fixture variants; reference variants passed 8/8, negative variants failed 28/28
+    exit_codes: 0 for every deterministic grade call (35 calls) and for the four throwaway file-grader calls below (39 exit-0 calls in total). waza grade exits 0 even when a fixture fails; pass/fail is the JSON run status
+    checked: 7 deterministic tasks, 35 fixture variants; reference variants passed 8/8, negative variants failed 27/27
+            # committed symlink fixtures were removed; those negatives are source-contract tests, not graded fixtures
     status_and_plan_negatives:
       design-stops-for-approval negative-quoted, negative-comment, negative-folded, negative-literal, negative-work-approved and negative-work-done: only plan_status_not_advanced
       design-stops-for-approval negative-work-missing: plan_status_not_advanced and work_node_persisted_in_resolved_atlas
       design-stops-for-approval reference and reference-quoted: passed
-      design-stops-for-approval negative: fixture_skill_unchanged and plan_status_not_advanced
+      design-stops-for-approval negative: fixture_skill_unchanged (score 0.5) and plan_status_not_advanced
       implement-blocks-without-approval negative-plan-quoted, negative-plan-comment, negative-plan-folded, negative-plan-literal, negative-work-approved, negative-work-quoted, negative-work-comment, negative-work-folded and negative-work-literal: only lineage_not_advanced
-      implement-blocks-without-approval negative: fixture_skill_unchanged and lineage_not_advanced
+      implement-blocks-without-approval negative: fixture_skill_unchanged (score 0.5) and lineage_not_advanced
       implement-blocks-without-approval reference: passed
       plan-only-in-resolved-atlas negative-alternate-path: only legacy_atlas_tree_unchanged
-      plan-only-in-resolved-atlas negative-legacy-symlink: only legacy_atlas_tree_unchanged
-      plan-only-in-resolved-atlas negative-no-plan: only plan_persisted_in_resolved_atlas
-      plan-only-in-resolved-atlas negative: legacy_atlas_and_skill_unchanged (score 0.833), legacy_atlas_tree_unchanged and plan_persisted_in_resolved_atlas
+      plan-only-in-resolved-atlas negative-no-plan: plan_persisted_in_resolved_atlas and plan_status_not_advanced
+      plan-only-in-resolved-atlas negative: legacy_atlas_and_skill_unchanged (reported average 0.8333333333333334), legacy_atlas_tree_unchanged, plan_persisted_in_resolved_atlas and plan_status_not_advanced
       plan-only-in-resolved-atlas reference: passed
-      help-does-not-mount negative-directory-symlink: only workspace_tree_unchanged
       help-does-not-mount negative-extra-file: only workspace_tree_unchanged
       help-does-not-mount negative: no_atlas_mount and workspace_tree_unchanged
       help-does-not-mount reference: passed
+      discussion-has-no-implement-authority negative-no-plan: plan_persisted_in_resolved_atlas, plan_status_not_advanced and work_node_persisted_in_resolved_atlas
+      discussion-has-no-implement-authority negative: fixture_skill_unchanged (score 0.5), plan_persisted_in_resolved_atlas, plan_status_not_advanced and work_node_persisted_in_resolved_atlas
+      discussion-has-no-implement-authority reference: passed
+      ordinary-refactor-near-miss reference: passed; negative: only autogenesis_not_invoked
+      skill-change-should-trigger reference: passed; negative: only autogenesis_invoked
     plan-has-genesis-artifacts:  # file grader only, on a throwaway copy of the task with the prompt judge removed
       reference: passed
       reference-heading: passed
@@ -312,7 +317,8 @@ run_status: not-run-by-autogenesis
 
 - Grader-checked by Autogenesis (all graders deterministic), including the
   quoted, trailing-comment, block-scalar, no-plan, missing-work-node,
-  advanced-work-node, extra-file and directory-symlink variants:
+  advanced-work-node and extra-file variants. Symlink negatives are not
+  committed fixtures; the source-contract tests build them:
   `design-stops-for-approval`, `implement-blocks-without-approval`,
   `plan-only-in-resolved-atlas`, `help-does-not-mount`,
   `discussion-has-no-implement-authority`, `ordinary-refactor-near-miss`,

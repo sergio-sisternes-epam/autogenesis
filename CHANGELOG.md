@@ -81,8 +81,11 @@ in `SKILL.md`.
   help workspace with the unmounted subject, ignoring only the root `.git`
   directory. `suite_version: 6` records every child in those complete-tree
   comparisons with lstat, including directory and file symlinks, and never
-  follows them. The suite README records the model-free validity re-run for
-  suite_version 6.
+  follows them. `suite_version: 7` makes status graders lstat each canonical
+  path and its parents and fail closed on a symlink, requires discussion to
+  persist a designed plan and work node, and stops committing symlink
+  fixtures because a committed symlink breaks APM install. The suite README
+  records the model-free validity re-run for suite_version 7.
 - Consumer validation fails when an installed `autogenesis` skill contains an
   `evals/` directory, a `.apm/` directory or any `eval.yaml`; source checks
   and the `suite-not-shipped` smoke keep the suite under `.apm/evals/`.
