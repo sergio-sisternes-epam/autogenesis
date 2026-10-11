@@ -562,25 +562,83 @@ class SourceContractTests(unittest.TestCase):
         self.assertEqual(len(patterns), 2)
         artifacts, change_class = patterns
         self.assertIn("Genesis Artifacts", artifacts)
+        # Waza compiles this with Go RE2. The pattern stays in the subset
+        # Python re accepts unchanged: no lookaround and no backreference.
+        self.assertIsNone(re.search(r"\(\?[=!<]|\\[1-9]", change_class))
         plan = Path(
             ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
             "/plans/2026-10-08-retry-backoff-guidance.md"
         )
-        expected = {
-            "reference": (True, True),
-            "reference-heading": (True, True),
-            "negative": (False, False),
-            "negative-heading": (True, False),
-        }
-        for variant, (has_artifacts, has_class) in expected.items():
+        fixture_root = suite / "fixtures/plan-has-genesis-artifacts"
+        variants = sorted(
+            path.name for path in fixture_root.iterdir() if path.is_dir()
+        )
+        self.assertEqual(
+            variants,
+            [
+                "negative",
+                "negative-heading",
+                "negative-prefix",
+                "negative-prefix-heading",
+                "reference",
+                "reference-heading",
+            ],
+        )
+        for variant in variants:
             with self.subTest(variant=variant):
-                fixture = suite / "fixtures/plan-has-genesis-artifacts" / variant
-                text = (fixture / plan).read_text(encoding="utf-8")
+                text = (fixture_root / variant / plan).read_text(encoding="utf-8")
+                has_artifacts = variant != "negative"
+                has_class = variant.startswith("reference")
                 self.assertEqual(bool(re.search(artifacts, text)), has_artifacts)
                 self.assertEqual(bool(re.search(change_class, text)), has_class)
                 self.assertTrue(
-                    (fixture.parent / f"{variant}.results.json").is_file()
+                    (fixture_root / f"{variant}.results.json").is_file()
                 )
+        accepted = (
+            "change_class: hardening",
+            "change_class: new-surface",
+            "change_class: new-skill",
+            "change-class: hardening",
+            'change_class: "new-skill"',
+            "change_class: 'new-surface'",
+            "change_class: `hardening`",
+            "change_class: hardening # comment",
+            'change_class: "new-skill" # note',
+            "change_class: *hardening*",
+            "change_class: **new-surface**",
+            "change_class: _new-skill_",
+            "change_class: __hardening__",
+            "## Change class\n\n`hardening`",
+            "## Change class\n\nhardening",
+            "### change-class\n\n- new-surface",
+            "#### Change_class\n\n* `new-skill`",
+            "##### CHANGE CLASS\n\n**hardening**",
+            "###### change class\n\n_new-surface_ # note",
+            "## Change class\n\n\nnew-skill",
+        )
+        rejected = (
+            "change_class: hardening-extra",
+            "change_class: new-skill-ish",
+            "change_class: new-surface.v2",
+            'change_class: "hardening-extra"',
+            "change_class: `new-skill-ish`",
+            "change_class: hardening plus more",
+            "change_class: Hardening",
+            'change_class: "hardening\'',
+            "## Change class\n\nhardening plus more",
+            "## Change class\n\nnew-skill-ish",
+            "## Change class\n\nnew-surface.v2",
+            "## Change class\n\n- hardening plus more",
+            "## Change class\n\n`hardening` - revise one existing procedure.",
+            "## Change class\n\nTo be decided.",
+            "# Change class\n\nhardening",
+        )
+        for sample in accepted:
+            with self.subTest(sample=sample):
+                self.assertTrue(re.search(change_class, sample))
+        for sample in rejected:
+            with self.subTest(sample=sample):
+                self.assertFalse(re.search(change_class, sample))
 
     def test_status_fixtures_change_only_the_frontmatter_status(self) -> None:
         plan = (

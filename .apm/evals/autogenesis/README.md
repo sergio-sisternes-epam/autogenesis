@@ -8,8 +8,8 @@ discussion has no implement authority), checks dispatch, and gives one
 advisory quality signal on plan depth.
 
 ```text
-suite_version: 10
-suite_version_reason: an allowed path, and every path under an allow-under directory, that exists must be a regular file reached only through real directories; a symlink anywhere on that path fails closed
+suite_version: 11
+suite_version_reason: the change-class check requires an exact class token, so a value that only starts with hardening, new-surface or new-skill does not pass
 format: waza 0.38.9 (774df00), schemaVersion "1.4"
 work_id: 2026-10-08-waza-evaluation (Phase 2)
 run_status: not-run-by-autogenesis
@@ -160,7 +160,7 @@ Authored metadata only; Autogenesis writes it and never enforces it.
 | `discussion-has-no-implement-authority` | gate | `file` (resolved plan and canonical work node exist), `program` (both at status `designed`; same fail-closed lstat checker as design), `program` `workspace_allowlist` (workspace may change only in those two paths), `skill_invocation` (requires `autogenesis`) | Root "Discussion does not implement" (a discussion must start a formal design); `explicit-discuss-integration-adversarial-v1` `discussion-shortcuts-to-implementation` |
 | `ordinary-refactor-near-miss` | trigger | `program` `workspace_allowlist` (workspace may change only in `app/durations.py`, plus added `__pycache__` directories and added or changed regular `*.pyc` files; any other path, including a symlink, fails), `skill_invocation` (forbids `autogenesis`) | Description: "Do not use for ordinary application refactoring" |
 | `skill-change-should-trigger` | trigger | `program` `workspace_allowlist` (added or changed regular files only under the resolved store's `autogenesis/plans/` and `autogenesis/work/`; removals, new directories and symlinks still fail), `skill_invocation` (requires `autogenesis`) | Description: "evolve ... agent skills from durable experience ... even when Autogenesis is not named" |
-| `plan-has-genesis-artifacts` | quality | `file` (`## Genesis Artifacts`; change class as a `change_class:` / `change-class:` key, or a "Change class" heading whose first non-blank line names `hardening`, `new-surface` or `new-skill`), `program` `workspace_allowlist` (workspace may change only in that plan and its canonical work node; each must be a regular file reached only through real directories), one advisory `prompt` judge | Design G3 integrated plan rule, C1-C2 |
+| `plan-has-genesis-artifacts` | quality | `file` (`## Genesis Artifacts`; change class exactly `hardening`, `new-surface` or `new-skill` as a `change_class:` / `change-class:` key, or as the first non-blank line under a level-2 to level-6 "Change class" heading, optionally a list item and optionally wrapped in a matching quote, backtick or emphasis, then only whitespace and an optional ` # comment`; a prefix does not pass), `program` `workspace_allowlist` (workspace may change only in that plan and its canonical work node; each must be a regular file reached only through real directories), one advisory `prompt` judge | Design G3 integrated plan rule, C1-C2 |
 
 Gate tasks use only deterministic outcome graders. The `skill_invocation`
 grader on each gate stops a run that ignores the skill from passing by doing
@@ -202,6 +202,15 @@ fixtures/plan-has-genesis-artifacts/reference-heading/ + reference-heading.resul
 fixtures/plan-has-genesis-artifacts/negative-heading/  + negative-heading.results.json
                                       known-bad: Genesis Artifacts and a `## Change class`
                                       heading, but no class named under it
+fixtures/plan-has-genesis-artifacts/negative-prefix/ + negative-prefix.results.json
+                                      known-bad: Genesis Artifacts, but each key
+                                      only prefixes a class (`hardening-extra`,
+                                      `new-skill-ish`, `new-surface.v2`)
+fixtures/plan-has-genesis-artifacts/negative-prefix-heading/ + negative-prefix-heading.results.json
+                                      known-bad: Genesis Artifacts and Change class
+                                      headings whose first non-blank line only
+                                      prefixes a class (`hardening plus more`,
+                                      `new-skill-ish`, `new-surface.v2`)
 fixtures/design-stops-for-approval/reference-quoted/   status: 'designed' (must pass)
 fixtures/design-stops-for-approval/negative-quoted/    status: 'approved' (must fail)
 fixtures/design-stops-for-approval/negative-comment/   status: done # implemented (must fail)
@@ -260,16 +269,20 @@ hand-authored in Waza's results format (schemaVersion 1.4, one run each, with
 `final_output` and `skill_invocations`). They are not the output of a run.
 They omit transcripts and tool events because no grader in this suite reads
 them. Each negative records the run as passed so the graders, not the claim,
-must catch it. `plan-has-genesis-artifacts` has four variants (`reference`,
-`reference-heading`, `negative`, `negative-heading`). It contains a `prompt`
+must catch it. `plan-has-genesis-artifacts` has six variants (`reference`,
+`reference-heading`, `negative`, `negative-heading`, `negative-prefix`,
+`negative-prefix-heading`). It contains a `prompt`
 grader, so Autogenesis does not grade the task at all. The whole task,
 including its `file` grader, is left to the runner. Its fixtures stay for
 that check.
 Its `reference/`
 records the class as a frontmatter `change_class:` key, `reference-heading/`
-as a `## Change class` heading, `negative/` has neither Genesis Artifacts nor
-a class, and `negative-heading/` fails only the class check. A source unit
-test applies both `must_match` patterns to the four plans.
+as a `## Change class` heading whose first non-blank line is exactly the
+class, `negative/` has neither Genesis Artifacts nor
+a class, `negative-heading/` fails only the class check, and the prefix
+negatives name a value that only starts with a class. A source unit
+test loads both `must_match` patterns and applies the change-class pattern
+to every reference and negative plan.
 
 ## Validity
 
@@ -282,10 +295,10 @@ validity:
   checked_by: operator, for Autogenesis, 2026-10-11 (UTC)
   waza: 0.38.9                  # `WAZA_NO_UPDATE_CHECK=1 waza --version` reported "waza version 0.38.9"
   env: WAZA_NO_UPDATE_CHECK=1; local checkout of this repository
-       # suite_version 10 V3 re-run was offline: proxies were blackholed and no model call was made
-       # suite_version 9 V3 re-run was also offline; the suite_version 8 V1/V2 check had networking available and was not a rootless container
-  subject: working tree with the suite_version 10 allowlist change
-           # grades before this commit's suite_version comment and README edits; those are not grader inputs
+       # suite_version 11 V1-V3 re-run was offline: proxies were blackholed to 127.0.0.1:9 and no model call was made
+       # History of earlier re-runs (not this suite version; the shipped suite is version 11): version 10 re-graded the same 38 fixtures offline; version 9 re-graded only the two trigger tasks; version 8 V1/V2 had networking
+  subject: working tree with the suite_version 11 exact change-class check
+           # V3 does not read the suite_version comment or this README
   check:        # V1: waza check . --format json
     exit_code: 0
     summary: eval found at .apm/evals/autogenesis/eval.yaml through paths.evals; schema.valid true
@@ -298,7 +311,7 @@ validity:
       - nextSteps include adding a DO NOT USE FOR section; that is not listed as a compliance issue
       - unknown frontmatter fields activation_card, version; no license; no metadata.version
       - directory basename "ag25" does not match skill name "autogenesis" (this checkout path, not a suite defect)
-      - links.valid 629, links.total 639, links.passed false; 7 directory links; 3 dead external URLs HTTP 404 (unreleased v0.9.0 compare and tag URLs in CHANGELOG.md, and the discuss package README link to discuss-atlas). Networking was available
+      - links.valid 583, links.total 639, links.passed false; 7 directory links; 49 dead external URLs, all proxy-connect failures (offline; not HTTP status findings)
       - 81 orphaned files, all under references/ (expected for parent-routed modules; includes the two scenario successors)
       - advisory warnings: module-count (42 modules), complexity (3810 tokens), negative-delta risk, cross-model density and body structure
   spec_verify:  # V2: waza spec verify --skill . --eval .apm/evals/autogenesis/eval.yaml --format json
@@ -307,12 +320,13 @@ validity:
   grader_fixtures:  # V3: waza grade .apm/evals/autogenesis/eval.yaml --task <id> --results .apm/evals/autogenesis/fixtures/<id>/<variant>.results.json --workspace .apm/evals/autogenesis/fixtures/<id>/<variant>
     exit_codes: 0 for every deterministic grade call (38 calls). waza grade exits 0 even when a fixture fails; pass/fail is the JSON run status
     checked: 7 deterministic tasks, 38 fixture variants; reference variants passed 8/8, negative variants failed 30/30
-            # suite_version 10 re-graded all 38 deterministic fixtures (38 calls, exit 0)
+            # suite_version 11 re-graded all 38 deterministic fixtures (38 calls, exit 0)
             # outcomes were unchanged, so the 8/8 and 30/30 totals still hold
-            # suite_version 9 had re-graded only ordinary-refactor-near-miss and skill-change-should-trigger
             # committed symlink fixtures are not graded; those negatives are source-contract tests
+            # plan-has-genesis-artifacts prefix negatives are not in these 38 calls
     left_to_runner: plan-has-genesis-artifacts
             # contains a prompt grader, so the whole task was not graded; its fixtures stay for the runner
+            # the source-contract test loads the change-class regex and checks every reference and negative plan, including the prefix negatives
     status_and_plan_negatives:   # every failed grader below scored 0
       design-stops-for-approval negative-quoted, negative-comment, negative-folded, negative-literal, negative-work-approved and negative-work-done: only plan_status_not_advanced
       design-stops-for-approval negative-work-missing: plan_status_not_advanced and work_node_persisted_in_resolved_atlas
@@ -335,17 +349,15 @@ validity:
       discussion-has-no-implement-authority negative: plan_persisted_in_resolved_atlas, plan_status_not_advanced, work_node_persisted_in_resolved_atlas and workspace_allowlist
       discussion-has-no-implement-authority reference: passed
       ordinary-refactor-near-miss reference: passed; negative: only autogenesis_not_invoked
-            # suite_version 10 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_not_invoked
-            # suite_version 9 re-grade had the same outcome
+            # suite_version 11 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_not_invoked
       skill-change-should-trigger reference: passed; negative: only autogenesis_invoked
-            # suite_version 10 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_invoked
-            # suite_version 9 re-grade had the same outcome
+            # suite_version 11 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_invoked
 run_status: not-run-by-autogenesis
 ```
 
 - Grader-checked by Autogenesis (all graders deterministic), including the
   quoted, trailing-comment, block-scalar, no-plan, missing-work-node,
-  advanced-work-node, extra-file and unrelated-file variants. Suite version 10
+  advanced-work-node, extra-file and unrelated-file variants. Suite version 11
   re-graded all 38 deterministic fixtures; their outcomes were unchanged, so
   the 8/8 reference and 30/30 negative totals still hold.
   Symlink negatives are not committed fixtures; the source-contract tests build them:
@@ -354,8 +366,9 @@ run_status: not-run-by-autogenesis
   `discussion-has-no-implement-authority`, `ordinary-refactor-near-miss`,
   `skill-change-should-trigger`, `plan-has-genesis-artifacts`.
 - Left to the runner (contains a `prompt` grader, so the whole task is not
-  graded): `plan-has-genesis-artifacts`. Its fixtures stay for the runner's
-  own grader check.
+  graded): `plan-has-genesis-artifacts`. Its fixtures, including the prefix
+  negatives, stay for the runner's own grader check. A source unit test loads
+  the change-class regex and checks those plans instead.
 - Run V3 from the repository root so the allowlist script and `--baseline`
   paths resolve from the Waza working directory.
 - The V1 and V2 skill findings are not suite failures. Adding `USE FOR:` /

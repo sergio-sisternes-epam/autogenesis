@@ -16,7 +16,7 @@ Designed; awaiting explicit approval.
 
 ## Change class
 
-`hardening` - revise one existing procedure without adding a new surface.
+`hardening`
 
 ## Genesis Artifacts
 

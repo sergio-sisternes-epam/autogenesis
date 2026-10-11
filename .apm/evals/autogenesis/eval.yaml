@@ -1,4 +1,5 @@
-# suite_version: 10
+# suite_version: 11
+# Reason for 11: the change-class check requires an exact class token, so a value that only starts with hardening, new-surface or new-skill does not pass.
 # Reason for 10: an allowed path, and every path under an allow-under
 # directory, that exists must be a regular file reached only through real
 # directories; a symlink anywhere on that path fails closed.
