@@ -11,6 +11,12 @@ in `SKILL.md`.
 
 ### Changed
 
+- Bound the source audit by a 720-second wall-clock deadline instead of
+  shrinking each file's timeout by the tracked-file count. Each file is
+  limited to the minimum of the 300-second command cap, a 60-second
+  per-file cap, and the time remaining before the deadline. A file that
+  cannot start before the deadline fails as not audited, and a timed-out
+  file fails closed with no retry.
 - Cut behavioural evaluation over from the agent-spec/Gherkin gate to
   authored upstream Waza eval suites (work_id `2026-10-08-waza-evaluation`).
   Autogenesis designs and authors suites in the Waza 0.38.9 format

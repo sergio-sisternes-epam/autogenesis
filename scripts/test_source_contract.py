@@ -6,8 +6,11 @@ import os
 import re
 import subprocess
 import tempfile
+import threading
 import unittest
+from collections.abc import Callable
 from pathlib import Path
+from unittest.mock import patch
 
 import store_contract
 
@@ -2965,6 +2968,181 @@ class SourceContractTests(unittest.TestCase):
         for path in live_paths:
             with self.subTest(path=path.relative_to(ROOT)):
                 self.assertIsNone(binding.search(path.read_text(encoding="utf-8")))
+
+
+class SourceAuditBudgetTests(unittest.TestCase):
+    def _timeouts(
+        self,
+        count: int,
+        workers: int,
+        *,
+        monotonic: Callable[[], float] | None = None,
+    ) -> list[float]:
+        import audit_source
+
+        timeouts: list[float] = []
+        lock = threading.Lock()
+
+        def fake_audit(
+            path: str,
+            root: Path,
+            timeout: float,
+        ) -> audit_source.AuditResult:
+            del root
+            with lock:
+                timeouts.append(timeout)
+            return audit_source.AuditResult(path, 0, "")
+
+        clock = monotonic if monotonic is not None else (lambda: 0.0)
+        results = audit_source.audit_files(
+            [f"file-{index}.md" for index in range(count)],
+            root=Path("."),
+            max_workers=workers,
+            monotonic=clock,
+            audit=fake_audit,
+        )
+        self.assertEqual(len(results), count)
+        self.assertTrue(all(result.returncode == 0 for result in results))
+        return timeouts
+
+    def test_per_file_timeout_is_not_shrunk_by_file_count(self) -> None:
+        import audit_source
+
+        expected = min(
+            audit_source.AUDIT_TIMEOUT_SECONDS,
+            audit_source.AUDIT_FILE_TIMEOUT_SECONDS,
+        )
+        waves = (900 + 8 - 1) // 8
+        shrunk = audit_source.AUDIT_DEADLINE_SECONDS // waves
+        self.assertEqual(shrunk, 6)
+        self.assertGreater(expected, shrunk)
+
+        one = self._timeouts(1, 1)
+        many = self._timeouts(900, 8)
+        self.assertEqual(one, [expected])
+        self.assertEqual(set(many), {expected})
+        self.assertEqual(len(many), 900)
+        self.assertEqual(
+            audit_source.file_audit_timeout(
+                audit_source.AUDIT_DEADLINE_SECONDS
+            ),
+            expected,
+        )
+
+        originals = (
+            audit_source.AUDIT_TIMEOUT_SECONDS,
+            audit_source.AUDIT_FILE_TIMEOUT_SECONDS,
+        )
+        try:
+            audit_source.AUDIT_TIMEOUT_SECONDS = 40
+            audit_source.AUDIT_FILE_TIMEOUT_SECONDS = 90
+            self.assertEqual(set(self._timeouts(3, 2)), {40})
+            self.assertEqual(audit_source.file_audit_timeout(12.5), 12.5)
+        finally:
+            (
+                audit_source.AUDIT_TIMEOUT_SECONDS,
+                audit_source.AUDIT_FILE_TIMEOUT_SECONDS,
+            ) = originals
+
+    def test_remaining_deadline_caps_per_file_timeout(self) -> None:
+        import audit_source
+
+        remaining = 12.5
+        reads = {"count": 0}
+
+        def monotonic() -> float:
+            reads["count"] += 1
+            if reads["count"] == 1:
+                return 10.0
+            return 10.0 + audit_source.AUDIT_DEADLINE_SECONDS - remaining
+
+        seen = self._timeouts(1, 4, monotonic=monotonic)
+        self.assertEqual(seen, [remaining])
+        self.assertLess(remaining, audit_source.AUDIT_FILE_TIMEOUT_SECONDS)
+        self.assertLess(remaining, audit_source.AUDIT_TIMEOUT_SECONDS)
+        self.assertEqual(audit_source.file_audit_timeout(remaining), remaining)
+
+    def _assert_not_started_after_deadline(self, seconds_past: float) -> None:
+        import audit_source
+
+        reads = {"count": 0}
+        calls: list[str] = []
+
+        def monotonic() -> float:
+            reads["count"] += 1
+            if reads["count"] == 1:
+                return 0.0
+            return audit_source.AUDIT_DEADLINE_SECONDS + seconds_past
+
+        def fake_audit(
+            path: str,
+            root: Path,
+            timeout: float,
+        ) -> audit_source.AuditResult:
+            del root, timeout
+            calls.append(path)
+            raise AssertionError(path)
+
+        results = audit_source.audit_files(
+            ["first.md", "second.md"],
+            root=Path("."),
+            max_workers=2,
+            monotonic=monotonic,
+            audit=fake_audit,
+        )
+        self.assertEqual(calls, [])
+        self.assertEqual(
+            [result.path for result in results],
+            ["first.md", "second.md"],
+        )
+        for result in results:
+            self.assertNotEqual(result.returncode, 0)
+            self.assertEqual(result.output, "not audited before the deadline")
+
+    def test_files_not_started_after_the_deadline_fail(self) -> None:
+        for seconds_past in (0, 5):
+            with self.subTest(seconds_past=seconds_past):
+                self._assert_not_started_after_deadline(seconds_past)
+
+    def test_timeout_fails_closed(self) -> None:
+        import audit_source
+
+        calls: list[float] = []
+
+        def fake_run(
+            args: list[str],
+            *,
+            cwd: Path,
+            timeout: float,
+            label: str,
+            check: bool,
+        ) -> None:
+            del args, cwd, check
+            calls.append(timeout)
+            raise audit_source.CommandError(
+                f"{label} timed out after {timeout}s"
+            )
+
+        with patch("audit_source.run_command", fake_run):
+            results = audit_source.audit_files(
+                ["one.md", "two.md"],
+                root=Path("."),
+                max_workers=1,
+                monotonic=lambda: 0.0,
+            )
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(
+            calls,
+            [
+                audit_source.AUDIT_FILE_TIMEOUT_SECONDS,
+                audit_source.AUDIT_FILE_TIMEOUT_SECONDS,
+            ],
+        )
+        self.assertEqual([result.returncode for result in results], [124, 124])
+        for result in results:
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("timed out", result.output)
+            self.assertNotIn("not audited before the deadline", result.output)
 
 
 if __name__ == "__main__":
