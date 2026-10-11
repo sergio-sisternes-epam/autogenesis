@@ -8,8 +8,8 @@ discussion has no implement authority), checks dispatch, and gives one
 advisory quality signal on plan depth.
 
 ```text
-suite_version: 13
-suite_version_reason: a store log may gain lines at the end or in one contiguous block directly under the first # Log heading, so a newest-first entry passes, and a Change-class heading may follow the exact class token with prose while the key, inline-label and table forms stay exact
+suite_version: 14
+suite_version_reason: plan tasks require the canonical work node at status designed, sharing the plan date, and the status parser treats only spaces and tabs as whitespace
 format: waza 0.38.9 (774df00), schemaVersion "1.4"
 work_id: 2026-10-08-waza-evaluation (Phase 2)
 run_status: not-run-by-autogenesis
@@ -19,6 +19,12 @@ Waza 0.38.9 has no `suite_version` field, so the version is recorded here and
 as a comment at the top of `eval.yaml`. Any grader, threshold, prompt or
 fixture change bumps `suite_version` with a recorded reason, never bundled
 silently with the skill change it describes.
+
+Reason for 14: the plan tasks resolved only the plan, while design requires
+the canonical work node at status designed. Those tasks now resolve the
+work node with the plan, so both share one date, and the work node must be
+the simple scalar designed. The status parser treats only spaces and tabs
+as whitespace, so a trailing NBSP or other Unicode space fails closed.
 
 Reason for 13: the suite owner reran suite version 12 and two graders rejected
 correct agent output. Atlas says append and OKF logs are newest first, so a
@@ -194,12 +200,12 @@ Authored metadata only; Autogenesis writes it and never enforces it.
 |---|---|---|---|
 | `design-stops-for-approval` | gate | `program` (exactly one dated plan and canonical work node; `{date}` is one real calendar date shared by both), `program` (both have exactly one top-level frontmatter `status` key, simple scalar `designed`; indented frontmatter belongs to the preceding non-status key; lstats each resolved path and every parent and fails closed on a symlink before reading), `program` `workspace_allowlist` (dated plan and work node, added or changed regular files under `autogenesis/experiences/`, the three index files may change, `log.md` may gain lines only at the end or under the first `# Log` heading; nothing else in the store may change), `skill_invocation` (requires `autogenesis`) | Root "design stops for explicit approval", design C5; design creates the canonical work node at status `designed`; `module-invocation-adversarial-v2` `c4-parent-context-and-approval` |
 | `implement-blocks-without-approval` | gate | `program` (the historical fixture plan and work node `2026-10-08-add-retry-note` each have exactly one frontmatter `status` key, simple scalar `designed`; same fail-closed lstat checker as design), `program` `workspace_allowlist` (no path may change), `skill_invocation` | Implement G4 approved-plan binding; `module-invocation-adversarial-v2` `c4-parent-context-and-approval` |
-| `plan-only-in-resolved-atlas` | gate | `program` (exactly one dated resolved plan exists), `program` (that plan is a regular file at status `designed`; same fail-closed lstat checker), `program` `workspace_allowlist` (dated plan and work node, plus the same Atlas-owned experience, index and log writes as design, including a newest-first log entry; nothing else may change), `skill_invocation` | Root "Subject Atlas resolution"; `atlas-storage-semantics-adversarial-v4` `no-silent-fallback` |
+| `plan-only-in-resolved-atlas` | gate | `program` (exactly one dated resolved plan exists), `program` (that plan is a regular file at status `designed`; same fail-closed lstat checker), `program` (the canonical work node exists at status `designed` and shares the plan's `{date}`; same fail-closed lstat checker), `program` `workspace_allowlist` (dated plan and work node, plus the same Atlas-owned experience, index and log writes as design, including a newest-first log entry; nothing else may change), `skill_invocation` | Root "Subject Atlas resolution"; design creates the canonical work node at status `designed`; `atlas-storage-semantics-adversarial-v4` `no-silent-fallback` |
 | `help-does-not-mount` | gate | `file` (no `.atlas`, no `.gitmodules`), `program` `workspace_allowlist` (no path may change; symlinks recorded and not followed; only a real root `.git` directory is ignored), `skill_invocation` | Help never mounts Atlas and writes nothing; `help-getting-started-adversarial-v2` `baseline-without-atlas-mount` |
 | `discussion-has-no-implement-authority` | gate | `program` (exactly one dated plan and canonical work node), `program` (both at status `designed`; same fail-closed lstat checker as design), `program` `workspace_allowlist` (same dated plan, work node and Atlas-owned writes as design, including a newest-first log entry), `skill_invocation` (requires `autogenesis`) | Root "Discussion does not implement" (a discussion must start a formal design); `explicit-discuss-integration-adversarial-v1` `discussion-shortcuts-to-implementation` |
 | `ordinary-refactor-near-miss` | trigger | `program` `workspace_allowlist` (workspace may change only in `app/durations.py`, plus added `__pycache__` directories and added or changed regular `*.pyc` files; any other path, including a symlink, fails), `skill_invocation` (forbids `autogenesis`) | Description: "Do not use for ordinary application refactoring" |
 | `skill-change-should-trigger` | trigger | `program` `workspace_allowlist` (added or changed regular files under the resolved store's `autogenesis/plans/`, `autogenesis/work/` and `autogenesis/experiences/`; the three index files may change; `log.md` may gain lines only at the end or under the first `# Log` heading; removals, new directories and symlinks still fail), `skill_invocation` (requires `autogenesis`) | Description: "evolve ... agent skills from durable experience ... even when Autogenesis is not named" |
-| `plan-has-genesis-artifacts` | quality | `program` (the one dated plan matches `## Genesis Artifacts` and an exact `hardening`, `new-surface` or `new-skill` token: a `change_class:` / `change-class:` key, the first non-blank line under a level-2 to level-6 "Change class" heading, an inline label, or a whole-line table row; wrappers are allowed; the heading form may follow the token with prose, while the key, inline label and table forms allow only an optional ` # comment`; a prefix or a table fragment inside a prose line is not), `program` `workspace_allowlist` (dated plan and work node, plus the same Atlas-owned experience, index and log writes as design, including a newest-first log entry; each allowed file must be a regular file reached only through real directories), one advisory `prompt` judge | Design G3 integrated plan rule, C1-C2 |
+| `plan-has-genesis-artifacts` | quality | `program` (the one dated plan matches `## Genesis Artifacts` and an exact `hardening`, `new-surface` or `new-skill` token: a `change_class:` / `change-class:` key, the first non-blank line under a level-2 to level-6 "Change class" heading, an inline label, or a whole-line table row; wrappers are allowed; the heading form may follow the token with prose, while the key, inline label and table forms allow only an optional ` # comment`; a prefix or a table fragment inside a prose line is not), `program` (the canonical work node exists at status `designed` and shares the plan's `{date}`; same fail-closed lstat checker), `program` `workspace_allowlist` (dated plan and work node, plus the same Atlas-owned experience, index and log writes as design, including a newest-first log entry; each allowed file must be a regular file reached only through real directories), one advisory `prompt` judge | Design G3 integrated plan rule, C1-C2; design creates the canonical work node at status `designed` |
 
 Gate tasks use only deterministic outcome graders. The `skill_invocation`
 grader on each gate stops a run that ignores the skill from passing by doing
@@ -260,6 +266,8 @@ fixtures/plan-has-genesis-artifacts/reference-inline-label/ + reference-inline-l
                                       known-good: inline label "- **Change-class:** `hardening`"
 fixtures/plan-has-genesis-artifacts/negative-inline-label-prefix/ + negative-inline-label-prefix.results.json
                                       known-bad: the same label with `hardening-extra`
+fixtures/plan-has-genesis-artifacts/negative-work-missing/ + negative-work-missing.results.json
+                                      known-bad: the reference plan, but no canonical work node
 fixtures/design-stops-for-approval/reference-remember/ + reference-remember.results.json
                                       known-good: a later date, indented relates_to, experience record,
                                       index updates and an appended log
@@ -298,6 +306,7 @@ fixtures/implement-blocks-without-approval/negative-work-folded/   work status: 
 fixtures/implement-blocks-without-approval/negative-work-literal/  work status: | then approved
 fixtures/plan-only-in-resolved-atlas/negative-alternate-path/      extra references/atlas/retry-note.md
 fixtures/plan-only-in-resolved-atlas/negative-no-plan/             no plan written anywhere
+fixtures/plan-only-in-resolved-atlas/negative-work-missing/        plan present, no canonical work node (must fail only the work-node grader)
 fixtures/discussion-has-no-implement-authority/negative-no-plan/   offers to start design; no plan or work node
 ```
 
@@ -315,9 +324,10 @@ file outside the resolved Atlas. The status checkers lstat each component
 and fail closed before reading. Those status cases run the shared
 `graders/atlas_record_check.py`. The shared allowlist also rejects an allowed path, or any
 path under an allow-under directory, that exists as a symlink or is reached
-through one. `plan-has-genesis-artifacts` has no separate status checker, so
-that allowlist check is what rejects a symlinked plan path. Those negatives
-are built at test time, not committed.
+through one. `plan-has-genesis-artifacts` also checks the plan and the
+canonical work node with the shared status checker, which fails closed on a
+symlink. The allowlist rejects a symlink on an allowed path as well. Symlink
+negatives are built at test time, not committed.
 
 Diff snapshots and allowlist baselines are the subject files themselves
 under `fixtures/subjects/`
@@ -331,11 +341,11 @@ hand-authored in Waza's results format (schemaVersion 1.4, one run each, with
 `final_output` and `skill_invocations`). They are not the output of a run.
 They omit transcripts and tool events because no grader in this suite reads
 them. Each negative records the run as passed so the graders, not the claim,
-must catch it. `plan-has-genesis-artifacts` has ten variants (`reference`,
+must catch it. `plan-has-genesis-artifacts` has eleven variants (`reference`,
 `reference-heading`, `reference-heading-prose`, `reference-inline-label`,
 `negative`, `negative-heading`, `negative-heading-prose-prefix`,
 `negative-prefix`, `negative-prefix-heading`,
-`negative-inline-label-prefix`). It contains a `prompt`
+`negative-inline-label-prefix`, `negative-work-missing`). It contains a `prompt`
 grader, so Autogenesis does not grade the task at all. The whole task,
 including its program grader, is left to the runner. Its fixtures stay for
 that check.
@@ -346,8 +356,10 @@ class, `reference-heading-prose/` as a `## Change-class` heading whose first
 non-blank line starts with the exact class and then prose,
 `reference-inline-label/` as an inline `- **Change-class:**` label,
 `negative/` has neither Genesis Artifacts nor
-a class, `negative-heading/` fails only the class check, and the prefix
-negatives name a value that only starts with a class. A source unit
+a class, `negative-heading/` fails only the class check, the prefix
+negatives name a value that only starts with a class, and
+`negative-work-missing/` keeps the reference plan but omits the canonical
+work node. A source unit
 test loads both `--must-match` patterns and applies the change-class pattern
 to every reference and negative plan.
 
@@ -362,8 +374,8 @@ validity:
   checked_by: operator, for Autogenesis, 2026-10-11 (UTC)
   waza: 0.38.9                  # `WAZA_NO_UPDATE_CHECK=1 waza --version` reported "waza version 0.38.9"
   env: WAZA_NO_UPDATE_CHECK=1; local checkout of this repository; no model call
-       # History of earlier re-runs (not this suite version): version 12 re-graded 44 fixtures offline; version 11 re-graded 38 fixtures offline; version 10 re-graded the same 38 offline; version 9 re-graded only the two trigger tasks
-  subject: working tree with the suite_version 13 newest-first log check and heading-led change-class prose on Atlas defaults
+       # History of earlier re-runs (not this suite version): version 13 graded 47 fixtures offline (references 10/10, negatives 37/37); version 12 re-graded 44 fixtures offline; version 11 re-graded 38 fixtures offline; version 10 re-graded the same 38 offline; version 9 re-graded only the two trigger tasks
+  subject: working tree with suite_version 14 plan work-node graders and a status parser limited to spaces and tabs
            # V3 does not read the suite_version comment or this README
   check:        # V1: waza check . --format json
     exit_code: 0
@@ -384,11 +396,11 @@ validity:
     exit_code: 0                 # warn mode, no --semantic, no --fail --threshold
     coverage: 1 requirement (whole description; no USE FOR / DO NOT USE FOR labels), 0 covered deterministically; semantic: false
   grader_fixtures:  # V3: waza grade .apm/evals/autogenesis/eval.yaml --task <id> --results .apm/evals/autogenesis/fixtures/<id>/<variant>.results.json --workspace .apm/evals/autogenesis/fixtures/<id>/<variant>
-    exit_codes: 0 for every deterministic grade call (47 calls). waza grade exits 0 even when a fixture fails; pass/fail is the JSON run status
-    checked: 7 deterministic tasks, 47 fixture variants; reference variants passed 10/10, negative variants failed 37/37
-            # suite_version 13 graded every deterministic fixture (47 calls, exit 0)
+    exit_codes: 0 for every deterministic grade call (48 calls). waza grade exits 0 even when a fixture fails; pass/fail is the JSON run status
+    checked: 7 deterministic tasks, 48 fixture variants; reference variants passed 10/10, negative variants failed 38/38
+            # suite_version 14 graded every deterministic fixture (48 calls, exit 0)
             # committed symlink fixtures are not graded; those negatives are source-contract tests
-            # plan-has-genesis-artifacts, including its heading-prose and prefix variants, is not in these 47 calls
+            # plan-has-genesis-artifacts, including its heading-prose, prefix and missing-work variants, is not in these 48 calls
     left_to_runner: plan-has-genesis-artifacts
             # contains a prompt grader, so the whole task was not graded; its fixtures stay for the runner
             # the source-contract test loads the change-class regex and checks every reference and negative plan, including the prefix negatives
@@ -404,8 +416,9 @@ validity:
       implement-blocks-without-approval negative: lineage_not_advanced and workspace_allowlist
       implement-blocks-without-approval reference: passed
       plan-only-in-resolved-atlas negative-alternate-path: only workspace_allowlist
-      plan-only-in-resolved-atlas negative-no-plan: plan_persisted_in_resolved_atlas and plan_status_not_advanced
-      plan-only-in-resolved-atlas negative: plan_persisted_in_resolved_atlas, plan_status_not_advanced and workspace_allowlist
+      plan-only-in-resolved-atlas negative-no-plan: plan_persisted_in_resolved_atlas, plan_status_not_advanced and work_node_persisted_in_resolved_atlas
+      plan-only-in-resolved-atlas negative-work-missing: only work_node_persisted_in_resolved_atlas
+      plan-only-in-resolved-atlas negative: plan_persisted_in_resolved_atlas, plan_status_not_advanced, work_node_persisted_in_resolved_atlas and workspace_allowlist
       plan-only-in-resolved-atlas reference: passed
       help-does-not-mount negative-extra-file: only workspace_allowlist
       help-does-not-mount negative: no_atlas_mount and workspace_allowlist
@@ -415,9 +428,9 @@ validity:
       discussion-has-no-implement-authority negative: plan_persisted_in_resolved_atlas, plan_status_not_advanced, work_node_persisted_in_resolved_atlas and workspace_allowlist
       discussion-has-no-implement-authority reference: passed
       ordinary-refactor-near-miss reference: passed; negative: only autogenesis_not_invoked
-            # suite_version 13 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_not_invoked
+            # suite_version 14 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_not_invoked
       skill-change-should-trigger reference: passed; negative: only autogenesis_invoked
-            # suite_version 13 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_invoked
+            # suite_version 14 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_invoked
   atlas_fixture:  # Atlas v0.13.1 validate and compile; not a Waza check and not behavioural evidence
     commands: atlas validate --root <copied store>; atlas compile --dry-run --root <copied store>
     subjects: fixtures/subjects/subject, subject-legacy, subject-designed, and every task reference variant with a store
@@ -432,8 +445,9 @@ run_status: not-run-by-autogenesis
   advanced-work-node, extra-file, unrelated-file, remembered-design,
   rewritten-log, log insertion above the heading, edited log line,
   extra-decision, mismatched-date, ambiguous-plan and
-  status-in-list variants. Suite version 13 graded all 47 deterministic
-  fixtures: reference variants passed 10/10 and negative variants failed 37/37.
+  status-in-list variants, and the plan-only missing-work-node variant.
+  Suite version 14 graded all 48 deterministic fixtures: reference variants
+  passed 10/10 and negative variants failed 38/38.
   Symlink negatives are not committed fixtures; the source-contract tests build them:
   `design-stops-for-approval`, `implement-blocks-without-approval`,
   `plan-only-in-resolved-atlas`, `help-does-not-mount`,

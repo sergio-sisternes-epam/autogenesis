@@ -55,9 +55,9 @@ in `SKILL.md`.
 ### Added
 
 - Autogenesis dogfood eval suite at `.apm/evals/autogenesis/`
-  (final `suite_version: 13`, Waza 0.38.9 format, `schemaVersion: "1.4"`):
+  (final `suite_version: 14`, Waza 0.38.9 format, `schemaVersion: "1.4"`):
   five gate tasks with deterministic outcome graders, two trigger tasks and
-  one advisory quality task. The shipped suite is version 13. It ships
+  one advisory quality task. The shipped suite is version 14. It ships
   minimal fixture subject repositories, reference and negative fixtures with
   hand-authored results files for every deterministic task, and a README with
   run instructions, required skills and the recommended pass rule. Authored
@@ -96,8 +96,11 @@ in `SKILL.md`.
   fails. The suite README records the model-free validity re-run and leaves
   `plan-has-genesis-artifacts` to the runner because it contains a prompt
   grader.
+  Plan tasks require the canonical work node at status designed, sharing
+  the plan date. Status whitespace is only spaces and tabs, so a trailing
+  Unicode space fails closed.
   History of `suite_version` bumps (not the shipped version; the shipped
-  suite is version 13): version 2 placed the suite under `.apm/evals/` and
+  suite is version 14): version 2 placed the suite under `.apm/evals/` and
   accepted a "Change class" heading; version 3 parsed status and set
   `inject_skill_body: false`; version 4 failed closed on a non-scalar status
   and required the resolved plan; version 5 required the designed work node
@@ -111,7 +114,8 @@ in `SKILL.md`.
   Atlas-owned experience, index and log writes on the design tasks, and
   gives the fixture SCHEMA a minimal compile block that Atlas v0.13.1 accepts;
   version 13 accepts a newest-first log entry under `# Log` and heading-led
-  change-class prose.
+  change-class prose; version 14 requires the canonical work node on the
+  plan tasks and keeps status whitespace to spaces and tabs.
 - Consumer validation fails when an installed `autogenesis` skill contains an
   `evals/` directory, a `.apm/` directory or any `eval.yaml`; source checks
   and the `suite-not-shipped` smoke keep the suite under `.apm/evals/`.

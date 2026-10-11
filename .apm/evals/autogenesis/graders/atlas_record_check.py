@@ -13,9 +13,11 @@ more is ambiguous.
 Otherwise exactly one top-level status key must be the simple plain or
 quoted scalar given by --status (default designed). A trailing `#` comment
 counts only when at least one space or tab separates it from the scalar.
-`#` glued to a closing quote is not a comment, and a plain token such as
-`designed#x` is that whole token, not `designed`. A nested status key is
-not that top-level key. --must-match applies each expression to the first
+Only a space or a tab is whitespace in this parser. A NBSP or other
+Unicode space is not stripped and is not a comment separator, so the
+value fails closed. `#` glued to a closing quote is not a comment, and a
+plain token such as `designed#x` is that whole token, not `designed`. A
+nested status key is not that top-level key. --must-match applies each expression to the first
 resolved path with Python re.search.
 
 os.lstat every component below the workspace root. A symlink, or the wrong
@@ -94,10 +96,11 @@ def quoted_scalar(raw):
             i += 2
             continue
         if ch == quote:
-            # YAML requires whitespace before a comment. Optional trailing
-            # whitespace is fine; `#` glued to the closing quote is not.
+            # A comment needs a space or tab before `#`. Optional trailing
+            # spaces and tabs are fine. A Unicode space, or `#` glued to
+            # the closing quote, is not a comment.
             rest = raw[i + 1 :]
-            if rest.strip() == "":
+            if rest.strip(" \t") == "":
                 return "".join(out)
             if rest[0] in " \t" and rest.lstrip(" \t").startswith("#"):
                 return "".join(out)
@@ -110,21 +113,21 @@ def quoted_scalar(raw):
 def plain_scalar(raw):
     if not raw or raw[0] in "!&*{[}]|>%@`'\"?-":
         return None
-    # A comment needs whitespace before `#`. `designed#x` is one plain
-    # scalar, not `designed` plus a comment.
+    # A comment needs a space or tab before `#`. `designed#x` is one
+    # plain scalar, and a NBSP before `#` is not a comment separator.
     cut = len(raw)
     for i, ch in enumerate(raw):
-        if ch == "#" and (i == 0 or raw[i - 1].isspace()):
+        if ch == "#" and (i == 0 or raw[i - 1] in " \t"):
             cut = i
             break
-    value = raw[:cut].rstrip()
+    value = raw[:cut].rstrip(" \t")
     if not value or any(ch in value for ch in ":{}[],&*!|>"):
         return None
     return value
 
 
 def simple_scalar(raw):
-    text = raw.strip()
+    text = raw.strip(" \t")
     if not text:
         return None
     if text[0] in "'\"":
@@ -133,7 +136,7 @@ def simple_scalar(raw):
 
 
 def line_kind(line):
-    if line.strip() == "":
+    if line.strip(" \t") == "":
         return "blank"
     if line[:1] == "\t":
         return "tab"
@@ -189,7 +192,7 @@ def status_of_text(text, label):
             empty = True
             raw = ""
         elif rest[0] in (" ", "\t"):
-            empty = rest.strip() == ""
+            empty = rest.strip(" \t") == ""
             raw = rest
         else:
             fail("frontmatter line not understood: " + line)

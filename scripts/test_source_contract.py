@@ -591,6 +591,7 @@ class SourceContractTests(unittest.TestCase):
                 "negative-inline-label-prefix",
                 "negative-prefix",
                 "negative-prefix-heading",
+                "negative-work-missing",
                 "reference",
                 "reference-heading",
                 "reference-heading-prose",
@@ -601,7 +602,12 @@ class SourceContractTests(unittest.TestCase):
             with self.subTest(variant=variant):
                 text = (fixture_root / variant / plan).read_text(encoding="utf-8")
                 has_artifacts = variant != "negative"
-                has_class = variant.startswith("reference")
+                # negative-work-missing keeps the reference plan, so the
+                # class pattern still matches; only the work node is absent.
+                has_class = (
+                    variant.startswith("reference")
+                    or variant == "negative-work-missing"
+                )
                 self.assertEqual(bool(re.search(artifacts, text)), has_artifacts)
                 self.assertEqual(bool(re.search(change_class, text)), has_class)
                 self.assertTrue(
@@ -826,6 +832,13 @@ class SourceContractTests(unittest.TestCase):
             "quote-hash": 'status: "designed"#text\n',
             "single-quote-hash": "status: 'designed'#x\n",
             "plain-hash": "status: designed#x\n",
+            # Only a space or tab separates a scalar from a comment.
+            # A NBSP or other Unicode space fails closed.
+            "nbsp-trailing": "status: designed\u00a0\n",
+            "nbsp-quoted-comment": 'status: "designed"\u00a0# c\n',
+            "nbsp-before-value": "status:\u00a0designed\n",
+            "nbsp-before-comment": "status: designed\u00a0# c\n",
+            "nbsp-quoted-trailing": 'status: "designed"\u00a0\n',
         }
         accepted = {
             "plain": "status: designed\n",
@@ -1009,6 +1022,170 @@ class SourceContractTests(unittest.TestCase):
         self.assertEqual(extra, [])
         self.assertEqual(changed, [])
         self.assertTrue((base.parent / "negative-work-missing.results.json").is_file())
+
+    def test_plan_tasks_require_the_canonical_work_node(self) -> None:
+        yaml = self._require_yaml()
+        store = ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+        for task_id, slug in (
+            ("plan-only-in-resolved-atlas", "add-retry-note"),
+            ("plan-has-genesis-artifacts", "retry-backoff-guidance"),
+        ):
+            with self.subTest(task=task_id):
+                task = yaml.safe_load(
+                    (
+                        ROOT / ".apm/evals/autogenesis/tasks" / f"{task_id}.yaml"
+                    ).read_text(encoding="utf-8")
+                )
+                dated_plan = f"{store}/plans/{{date}}-{slug}.md"
+                dated_work = f"{store}/work/{{date}}-{slug}.md"
+                work_grader = next(
+                    grader
+                    for grader in task["graders"]
+                    if grader["name"] == "work_node_persisted_in_resolved_atlas"
+                )
+                args = work_grader["config"]["args"]
+                self.assertEqual(work_grader["type"], "program")
+                self.assertEqual(
+                    args[0],
+                    ".apm/evals/autogenesis/graders/atlas_record_check.py",
+                )
+                self.assertIn(dated_plan, args)
+                self.assertIn(dated_work, args)
+                self.assertLess(args.index(dated_plan), args.index("--status"))
+                self.assertLess(args.index(dated_work), args.index("--status"))
+                self.assertEqual(args[args.index("--status") + 1], "designed")
+                self.assertNotIn("--exists-only", args)
+                self.assertNotIn("-c", args)
+                # The plan grader stays plan-only, so a missing work node
+                # fails only the work-node grader.
+                plan_graders = [
+                    grader
+                    for grader in task["graders"]
+                    if grader["type"] == "program"
+                    and grader["name"] != "work_node_persisted_in_resolved_atlas"
+                    and grader["name"] != "workspace_allowlist"
+                ]
+                self.assertTrue(plan_graders, task_id)
+                for grader in plan_graders:
+                    self.assertNotIn(dated_work, grader["config"]["args"])
+                fixture = ROOT / ".apm/evals/autogenesis/fixtures" / task_id
+                work = dated_work.replace("{date}", "2026-10-08")
+                for variant in sorted(path for path in fixture.iterdir() if path.is_dir()):
+                    if not variant.name.startswith("reference"):
+                        continue
+                    self.assertTrue(
+                        (variant / work).is_file(),
+                        variant.name,
+                    )
+                    self.assertIn(
+                        "status: designed\n",
+                        (variant / work).read_text(encoding="utf-8"),
+                    )
+
+    def test_plan_work_node_missing_omits_only_the_work_node(self) -> None:
+        cases = {
+            "plan-only-in-resolved-atlas": (
+                ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+                "/work/2026-10-08-add-retry-note.md"
+            ),
+            "plan-has-genesis-artifacts": (
+                ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+                "/work/2026-10-08-retry-backoff-guidance.md"
+            ),
+        }
+        for task_id, work in cases.items():
+            with self.subTest(task=task_id):
+                base = (
+                    ROOT
+                    / ".apm/evals/autogenesis/fixtures"
+                    / task_id
+                    / "reference"
+                )
+                variant = base.parent / "negative-work-missing"
+                self.assertTrue((base / work).is_file())
+                self.assertFalse((variant / work).exists())
+                missing = [
+                    path.relative_to(base).as_posix()
+                    for path in base.rglob("*")
+                    if path.is_file()
+                    and not (variant / path.relative_to(base)).is_file()
+                ]
+                extra = [
+                    path.relative_to(variant).as_posix()
+                    for path in variant.rglob("*")
+                    if path.is_file()
+                    and not (base / path.relative_to(variant)).is_file()
+                ]
+                changed = [
+                    path.relative_to(variant).as_posix()
+                    for path in variant.rglob("*")
+                    if path.is_file()
+                    and (base / path.relative_to(variant)).is_file()
+                    and (base / path.relative_to(variant)).read_bytes()
+                    != path.read_bytes()
+                ]
+                self.assertEqual(missing, [work])
+                self.assertEqual(extra, [])
+                self.assertEqual(changed, [])
+                self.assertTrue(
+                    (base.parent / "negative-work-missing.results.json").is_file()
+                )
+
+    def test_plan_work_node_missing_fails_only_the_work_node_grader(self) -> None:
+        yaml = self._require_yaml()
+        for task_id in (
+            "plan-only-in-resolved-atlas",
+            "plan-has-genesis-artifacts",
+        ):
+            task = yaml.safe_load(
+                (
+                    ROOT / ".apm/evals/autogenesis/tasks" / f"{task_id}.yaml"
+                ).read_text(encoding="utf-8")
+            )
+            fixture = ROOT / ".apm/evals/autogenesis/fixtures" / task_id
+            programs = [
+                grader
+                for grader in task["graders"]
+                if grader["type"] == "program"
+            ]
+            variants = sorted(
+                path.name
+                for path in fixture.iterdir()
+                if path.is_dir() and path.name.startswith("reference")
+            )
+            variants.append("negative-work-missing")
+            for variant_name in variants:
+                workspace = fixture / variant_name
+                for grader in programs:
+                    result = subprocess.run(
+                        [grader["config"]["command"], *grader["config"]["args"]],
+                        cwd=ROOT,
+                        env={
+                            **os.environ,
+                            "WAZA_WORKSPACE_DIR": str(workspace),
+                        },
+                        capture_output=True,
+                        text=True,
+                        check=False,
+                    )
+                    expect_fail = (
+                        variant_name == "negative-work-missing"
+                        and grader["name"] == "work_node_persisted_in_resolved_atlas"
+                    )
+                    with self.subTest(
+                        task=task_id,
+                        variant=variant_name,
+                        grader=grader["name"],
+                    ):
+                        if expect_fail:
+                            self.assertNotEqual(
+                                result.returncode, 0, result.stdout
+                            )
+                            self.assertIn("missing ", result.stderr)
+                        else:
+                            self.assertEqual(
+                                result.returncode, 0, result.stderr
+                            )
 
     def test_help_extra_file_negative_adds_only_autogenesis_help(self) -> None:
         yaml = self._require_yaml()
@@ -1866,6 +2043,7 @@ class SourceContractTests(unittest.TestCase):
             "implement-blocks-without-approval.yaml",
             "plan-only-in-resolved-atlas.yaml",
             "discussion-has-no-implement-authority.yaml",
+            "plan-has-genesis-artifacts.yaml",
         ):
             task = yaml.safe_load(
                 (

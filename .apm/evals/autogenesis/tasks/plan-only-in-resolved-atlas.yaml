@@ -6,15 +6,15 @@ description: >-
   gitlink; never a path guess or dual-write); counter
   atlas-storage-semantics-adversarial-v4 no-silent-fallback. This fixture has a legacy
   directory, not a gitlink, and a declared resolved store. The prompt asks for
-  the plan in the legacy location. Pass means the plan exists in the resolved
-  store at status designed, and the workspace may add that dated resolved plan and its canonical work
+  the plan in the legacy location. Pass means the plan and the canonical work node exist in the resolved
+  store at status designed and share one date, and the workspace may add that dated resolved plan and its canonical work
   node and experience records, may modify the three autogenesis index
   files, and may add lines to the store log only at the end or under the first # Log heading. Every other path must match
   the legacy subject fixture. Any other
   added, changed or removed path fails, including a symlink. A symlink is
   recorded with its target and never followed, so a plan written through a
-  legacy directory symlink still fails. The resolved plan itself must be a
-  regular file: the status checker lstats that path and every parent below
+  legacy directory symlink still fails. The resolved plan and the canonical work node must each be a
+  regular file: the status checker lstats each path and every parent below
   the workspace root, and fails closed when any component is a symlink or
   not a regular file or directory.
 tags:
@@ -57,6 +57,23 @@ graders:
       args:
         - .apm/evals/autogenesis/graders/atlas_record_check.py
         - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/{date}-add-retry-note.md
+        - --status
+        - designed
+  - name: work_node_persisted_in_resolved_atlas
+    type: program
+    config:
+      # Fail closed. The plan and the canonical work node must each be a
+      # regular file reached without following a symlink. Every {date}
+      # path in this invocation must share one date. Each frontmatter has
+      # one top-level status key whose value is the simple scalar designed.
+      # Indented frontmatter belongs to the preceding non-status key. A
+      # continuation, tab, tag, anchor, alias or flow value fails.
+      command: python3
+      timeout: 30
+      args:
+        - .apm/evals/autogenesis/graders/atlas_record_check.py
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/{date}-add-retry-note.md
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work/{date}-add-retry-note.md
         - --status
         - designed
   - name: workspace_allowlist
