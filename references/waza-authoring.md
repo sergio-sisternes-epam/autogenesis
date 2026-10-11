@@ -42,7 +42,11 @@ and are never read at skill runtime:
 - The runner points Waza at installed skills with `config.skill_directories`
   in a local copy of `eval.yaml`, and starts Waza from a working directory with
   no `SKILL.md` and none of the suite's answer fixtures, because Waza adds its
-  working directory to the agent's skill directories.
+  working directory to the agent's skill directories. Set
+  `config.inject_skill_body: false` (the 0.38.9 default is true, which pastes
+  the skill body into the prompt and does not measure natural dispatch). The
+  candidate stays discoverable through those skill directories. Do not set
+  `trigger_skill_routing`.
 - The README states how the runner installs the candidate skill and every
   required skill, so any runner can run the suite without asking Autogenesis.
 

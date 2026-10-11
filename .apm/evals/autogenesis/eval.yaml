@@ -1,4 +1,7 @@
-# suite_version: 2
+# suite_version: 3
+# Reason for 3: plan and work-node status is parsed, not matched as YAML text;
+# the complete legacy references/atlas tree is compared with its initial state;
+# config.inject_skill_body is false so trigger tasks are not handed the skill body.
 # Reason for 2: suite moved under .apm/evals/ so it is not shipped; diff context
 # narrowed to subjects; change-class pattern accepts a heading; new heading fixtures.
 # Waza 0.38.9 (774df00) has no suite_version field; the README records it too.
@@ -14,6 +17,11 @@ config:
   timeout_seconds: 900
   parallel: false
   executor: copilot-sdk
+  # Waza 0.38.9 defaults this to true and pastes the skill body into the
+  # prompt, so trigger tasks do not measure natural dispatch. False suppresses
+  # that body. The candidate stays discoverable through skill directories.
+  # Do not set trigger_skill_routing; that coaches dispatch.
+  inject_skill_body: false
   # Placeholder only: the runner chooses the agent model (waza run --model ...)
   # and the judge model (--judge-model). No judge model is pinned here.
   model: claude-sonnet-4.6

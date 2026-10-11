@@ -57,8 +57,12 @@ in `SKILL.md`.
   `negative-heading` fixtures. The suite README adds a run layout that keeps
   the suite outside the agent's working directory and skill paths, recommends
   `config.skill_directories` over `paths.skills`, explains how to read
-  `skill_invocation` scores, and requires `python3` in the runner image. The
-  recorded validity result is pending re-run for `suite_version: 2`.
+  `skill_invocation` scores, and requires `python3` in the runner image.
+  `suite_version: 3` parses plan and work-node status instead of matching
+  YAML spelling, compares the complete legacy `references/atlas` tree with
+  its initial state, and sets `config.inject_skill_body: false` so trigger
+  tasks are not handed the skill body. The suite README records the
+  model-free validity re-run for that version.
 - Consumer validation fails when an installed `autogenesis` skill contains an
   `evals/` directory, a `.apm/` directory or any `eval.yaml`; source checks
   and the `suite-not-shipped` smoke keep the suite under `.apm/evals/`.
