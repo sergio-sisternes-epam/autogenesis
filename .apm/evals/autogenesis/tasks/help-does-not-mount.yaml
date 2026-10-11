@@ -5,8 +5,10 @@ description: >-
   counter help-getting-started-adversarial-v2 baseline-without-atlas-mount.
   The fixture declares an Atlas store that is not mounted. Pass means no
   `.atlas` or `.gitmodules` appears and the complete workspace tree matches
-  the unmounted subject. Files added, removed or changed all fail. Only the
-  root `.git` directory created by the setup `git init -q` is ignored.
+  the unmounted subject. Files, directories and symlinks that are added,
+  removed or changed all fail. Symlinks are recorded with their target and
+  never followed, including directory symlinks and dangling symlinks. Only
+  the root `.git` directory created by the setup `git init -q` is ignored.
 tags:
   - gate
   - adversarial
@@ -43,17 +45,22 @@ graders:
   - name: workspace_tree_unchanged
     type: program
     config:
-      # Compares the complete workspace with subject-unmounted. Added,
-      # removed and changed files fail, as do directory differences. Only
-      # the root .git directory from the setup git init -q is ignored.
-      # The baseline path resolves from the Waza working directory, as diff
-      # snapshots do. The script is inline for the same reason.
+      # Compares the complete workspace with subject-unmounted. Every child
+      # is recorded with os.lstat and never followed: a directory, a regular
+      # file, or a symlink plus its target. Added, removed or changed
+      # entries fail, including directory symlinks, file symlinks and
+      # dangling symlinks. An lstat error or any other file type fails
+      # closed. Only a real root .git directory from the setup git init -q
+      # is ignored. The baseline path resolves from the Waza working
+      # directory, as diff snapshots do. The script is inline for the same
+      # reason.
       command: python3
       timeout: 30
       args:
         - -c
         - |
           import os
+          import stat
           import sys
           from pathlib import Path
 
@@ -66,69 +73,155 @@ graders:
               sys.exit(message)
 
 
-          def tree(root, skip_root_git):
-              files = {}
-              dirs = set()
-              for dirpath, dirnames, filenames in os.walk(root):
-                  rel_dir = Path(dirpath).relative_to(root).as_posix()
-                  if skip_root_git and rel_dir == "." and ".git" in dirnames:
-                      dirnames.remove(".git")
-                  if rel_dir != ".":
-                      dirs.add(rel_dir)
-                  for name in filenames:
-                      path = Path(dirpath) / name
-                      rel = path.relative_to(root).as_posix()
-                      try:
-                          files[rel] = path.read_bytes()
-                      except OSError as exc:
-                          fail("cannot read " + rel + ": " + str(exc))
-              return files, dirs
+          def lstat_entry(path, label):
+              try:
+                  return os.lstat(path)
+              except OSError as exc:
+                  fail("cannot lstat " + label + ": " + str(exc))
 
+
+          def read_regular(path, label):
+              if not hasattr(os, "O_NOFOLLOW"):
+                  fail("os.O_NOFOLLOW is required so file reads never follow symlinks")
+              try:
+                  descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+              except OSError as exc:
+                  fail("cannot read " + label + ": " + str(exc))
+              try:
+                  info = os.fstat(descriptor)
+                  if not stat.S_ISREG(info.st_mode):
+                      fail("unexpected file type for " + label)
+                  chunks = []
+                  while True:
+                      block = os.read(descriptor, 1024 * 1024)
+                      if not block:
+                          return b"".join(chunks)
+                      chunks.append(block)
+              except OSError as exc:
+                  fail("cannot read " + label + ": " + str(exc))
+              finally:
+                  os.close(descriptor)
+
+
+          def classify(path, label):
+              info = lstat_entry(path, label)
+              mode = info.st_mode
+              if stat.S_ISLNK(mode):
+                  try:
+                      target = os.readlink(path)
+                  except OSError as exc:
+                      fail("cannot readlink " + label + ": " + str(exc))
+                  return ("symlink", target)
+              if stat.S_ISDIR(mode):
+                  return ("dir",)
+              if stat.S_ISREG(mode):
+                  return ("file", read_regular(path, label))
+              fail("unexpected file type for " + label)
+
+
+          def require_real_dir(path, label, missing_message):
+              try:
+                  info = os.lstat(path)
+              except FileNotFoundError:
+                  fail(missing_message)
+              except OSError as exc:
+                  fail("cannot lstat " + label + ": " + str(exc))
+              if stat.S_ISLNK(info.st_mode):
+                  fail(label + " is a symlink")
+              if not stat.S_ISDIR(info.st_mode):
+                  fail(label + " is not a directory")
+
+
+          def tree(root, skip_root_git):
+              entries = {}
+
+              def onerror(exc):
+                  name = getattr(exc, "filename", None) or str(root)
+                  fail("cannot list " + str(name) + ": " + str(exc))
+
+              for dirpath, dirnames, filenames in os.walk(
+                  root, followlinks=False, onerror=onerror
+              ):
+                  rel_dir = Path(dirpath).relative_to(root).as_posix()
+                  overlap = sorted(set(dirnames) & set(filenames))
+                  if overlap:
+                      fail(
+                          "directory listing overlaps at "
+                          + rel_dir
+                          + ": "
+                          + ", ".join(overlap)
+                      )
+                  names = list(dirnames) + list(filenames)
+                  if skip_root_git and rel_dir == "." and ".git" in dirnames:
+                      git_info = lstat_entry(Path(dirpath) / ".git", ".git")
+                      if stat.S_ISDIR(git_info.st_mode) and not stat.S_ISLNK(
+                          git_info.st_mode
+                      ):
+                          dirnames.remove(".git")
+                          names.remove(".git")
+                  for name in list(dirnames):
+                      child = Path(dirpath) / name
+                      rel = child.relative_to(root).as_posix()
+                      info = lstat_entry(child, rel)
+                      if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):
+                          dirnames.remove(name)
+                  for name in names:
+                      child = Path(dirpath) / name
+                      rel = child.relative_to(root).as_posix()
+                      if rel in entries:
+                          fail("duplicate entry " + rel)
+                      entries[rel] = classify(child, rel)
+              return entries
+
+
+          def compare(baseline, current, label):
+              missing = sorted(set(baseline) - set(current))
+              extra = sorted(set(current) - set(baseline))
+              changed = sorted(
+                  rel
+                  for rel in set(baseline) & set(current)
+                  if current[rel] != baseline[rel]
+              )
+              problems = []
+              if missing:
+                  problems.append("missing " + ", ".join(missing))
+              if extra:
+                  details = []
+                  for rel in extra:
+                      kind = current[rel][0]
+                      if kind == "symlink":
+                          details.append(rel + " (symlink)")
+                      else:
+                          details.append(rel)
+                  problems.append("unexpected " + ", ".join(details))
+              if changed:
+                  problems.append("changed " + ", ".join(changed))
+              if problems:
+                  fail(label + ": " + "; ".join(problems))
 
           def main():
               workspace = os.environ.get("WAZA_WORKSPACE_DIR", "")
               if not workspace:
                   fail("WAZA_WORKSPACE_DIR is not set")
               current_root = Path(workspace)
-              if not current_root.is_dir():
-                  fail("workspace is not a directory")
-              if not BASELINE.is_dir():
-                  fail(
-                      "unmounted subject not found at "
-                      + str(BASELINE)
-                      + " (resolved from the Waza working directory)"
-                  )
-              init_files, init_dirs = tree(BASELINE, False)
-              cur_files, cur_dirs = tree(current_root, True)
-              missing = sorted(set(init_files) - set(cur_files))
-              extra = sorted(set(cur_files) - set(init_files))
-              changed = sorted(
-                  rel
-                  for rel in set(init_files) & set(cur_files)
-                  if cur_files[rel] != init_files[rel]
+              require_real_dir(
+                  current_root, "workspace", "workspace is not a directory"
               )
-              extra_dirs = sorted(cur_dirs - init_dirs)
-              missing_dirs = sorted(init_dirs - cur_dirs)
-              problems = []
-              if missing:
-                  problems.append("missing " + ", ".join(missing))
-              if extra:
-                  problems.append("unexpected files " + ", ".join(extra))
-              if changed:
-                  problems.append("changed " + ", ".join(changed))
-              if extra_dirs:
-                  problems.append("unexpected directories " + ", ".join(extra_dirs))
-              if missing_dirs:
-                  problems.append("missing directories " + ", ".join(missing_dirs))
-              if problems:
-                  fail(
-                      "workspace differs from subject-unmounted: "
-                      + "; ".join(problems)
-                  )
+              require_real_dir(
+                  BASELINE,
+                  "unmounted subject",
+                  "unmounted subject not found at "
+                  + str(BASELINE)
+                  + " (resolved from the Waza working directory)",
+              )
+              init = tree(BASELINE, False)
+              cur = tree(current_root, True)
+              compare(init, cur, "workspace differs from subject-unmounted")
               print(
                   "workspace matches subject-unmounted ("
-                  + str(len(init_files))
-                  + " files, no extras; root .git directory ignored)"
+                  + str(len(init))
+                  + " entries, no extras; root .git directory ignored; "
+                  + "symlinks not followed)"
               )
 
 

@@ -51,7 +51,21 @@ def tracked_files(root: Path = ROOT) -> list[str]:
             continue
         candidate = resolved_root / path
         if candidate.is_symlink():
-            raise SourceAuditError(f"{path}: tracked symbolic links are not auditable")
+            # Dogfood fixtures under .apm/evals/ record directory symlinks as
+            # git symlinks so complete-tree graders can be checked against
+            # them. They are not package source, and apm audit cannot read a
+            # symlink as a file. Any other tracked symlink is still an error.
+            if not path.startswith(".apm/evals/"):
+                raise SourceAuditError(
+                    f"{path}: tracked symbolic links are not auditable"
+                )
+            try:
+                candidate.resolve().relative_to(resolved_root)
+            except (OSError, ValueError) as error:
+                raise SourceAuditError(
+                    f"{path}: tracked symbolic link escapes the repository"
+                ) from error
+            continue
         try:
             candidate.resolve().relative_to(resolved_root)
         except ValueError as error:
