@@ -1583,7 +1583,49 @@ class SourceContractTests(unittest.TestCase):
                 "skill-change-should-trigger", linked
             )
             self.assertNotEqual(failed_link.returncode, 0, failed_link.stdout)
-            self.assertIn("linked-plan.md (symlink)", failed_link.stderr)
+            self.assertIn("linked-plan.md is a symlink", failed_link.stderr)
+
+    def test_allowlist_rejects_a_symlink_on_an_allowed_plan_path(self) -> None:
+        task_id = "plan-has-genesis-artifacts"
+        suite = ROOT / ".apm/evals/autogenesis/fixtures" / task_id
+        plan = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/plans/2026-10-08-retry-backoff-guidance.md"
+        )
+        for variant in ("reference", "reference-heading"):
+            with self.subTest(variant=variant, kind="reference"):
+                passed = self._grade_task_allowlist(task_id, suite / variant)
+                self.assertEqual(
+                    passed.returncode, 0, variant + " " + passed.stderr
+                )
+        for kind in ("leaf", "parent"):
+            with self.subTest(kind=kind):
+                with tempfile.TemporaryDirectory() as tmp:
+                    root = Path(tmp)
+                    variant = root / "workspace"
+                    self._copy_fixture(suite / "reference", variant)
+                    source = variant / plan
+                    self.assertTrue(source.is_file())
+                    self.assertFalse(source.is_symlink())
+                    if kind == "leaf":
+                        outside = root / "outside-plan.md"
+                        outside.write_bytes(source.read_bytes())
+                        source.unlink()
+                        source.symlink_to(outside)
+                        expected = plan
+                    else:
+                        replaced = source.parent
+                        expected = Path(plan).parent.as_posix()
+                        relocated = root / "outside-plans"
+                        replaced.rename(relocated)
+                        replaced.symlink_to(
+                            relocated, target_is_directory=True
+                        )
+                    followed = (variant / plan).read_text(encoding="utf-8")
+                    self.assertIn("## Genesis Artifacts", followed)
+                    failed = self._grade_task_allowlist(task_id, variant)
+                self.assertNotEqual(failed.returncode, 0, failed.stdout)
+                self.assertIn(expected + " is a symlink", failed.stderr)
 
     def test_repository_tracks_no_symlinks(self) -> None:
         listed = subprocess.run(

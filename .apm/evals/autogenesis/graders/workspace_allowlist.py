@@ -6,14 +6,19 @@ Every child is recorded with os.lstat and never followed: a directory, a
 regular file plus its content hash, or a symlink plus its target. An lstat
 error or any other file type fails closed.
 
-Paths passed with --allow may be added, changed or removed. --allow-under
-permits added or changed regular files strictly inside that directory;
-removals, new directories and symlinks there still fail. --allow-bytecode
-permits only added real directories named __pycache__ and added or changed
-regular *.pyc files. Any other difference fails, including symlinks of any
-kind. The only ignored entry is a real directory named .git at the workspace
-root, which setup creates with git init -q. A .git symlink or file is not
-ignored. Nested .git is not ignored.
+Paths passed with --allow may be added, changed or removed. An allowed
+path that exists must be a regular file reached only through real
+directories: lstat each component below the workspace root, and fail closed
+if any component is a symlink. --allow-under permits added or changed
+regular files strictly inside that directory. Every path under an
+allow-under directory that exists must likewise be a regular file reached
+only through real directories; a symlink anywhere on that path fails
+closed. Removals, new directories and symlinks there still fail.
+--allow-bytecode permits only added real directories named __pycache__ and
+added or changed regular *.pyc files. Any other difference fails, including
+symlinks of any kind. The only ignored entry is a real directory named .git
+at the workspace root, which setup creates with git init -q. A .git symlink
+or file is not ignored. Nested .git is not ignored.
 
 program_grader.go does not set the child working directory and does not
 rewrite arguments. python3 therefore resolves this script, and this script
@@ -175,6 +180,9 @@ def bytecode_covers(rel, baseline, current):
 
 
 def excused(rel, baseline, current, allowed, allowed_under, allow_bytecode):
+    # Diff exemption only. An allowed path, and every path under an
+    # allow-under directory, is checked separately and must be a regular
+    # file reached only through real directories.
     if rel in allowed:
         return True
     if allow_under_covers(rel, baseline, current, allowed_under):
@@ -238,6 +246,49 @@ def describe(rel, record):
     return rel
 
 
+def require_real_path(root, rel, leaf_kind):
+    """If rel exists, it must be a real leaf reached only through real directories.
+
+    lstat each component below the workspace root. Absence is allowed, so a
+    removed --allow path still passes this check. A symlink anywhere on the
+    path fails closed. leaf_kind is "file" or "dir".
+    """
+    candidate = Path(rel)
+    if candidate.is_absolute() or not candidate.parts:
+        fail("path escapes the workspace: " + rel)
+    current = root
+    for index, part in enumerate(candidate.parts):
+        if part in ("", ".", ".."):
+            fail("path escapes the workspace: " + rel)
+        current = current / part
+        label = Path(*candidate.parts[: index + 1]).as_posix()
+        try:
+            info = os.lstat(current)
+        except FileNotFoundError:
+            return
+        except OSError as exc:
+            fail("cannot lstat " + label + ": " + str(exc))
+        if stat.S_ISLNK(info.st_mode):
+            fail(label + " is a symlink")
+        leaf = index == len(candidate.parts) - 1
+        if leaf and leaf_kind == "file":
+            if not stat.S_ISREG(info.st_mode):
+                fail(label + " is not a regular file")
+        elif not stat.S_ISDIR(info.st_mode):
+            fail(label + " is not a directory")
+
+
+def enforce_real_allowed_paths(root, current, allowed, allowed_under):
+    for rel in sorted(allowed):
+        require_real_path(root, rel, "file")
+    for directory in sorted(allowed_under):
+        require_real_path(root, directory, "dir")
+        prefix = directory + "/"
+        for rel in sorted(current):
+            if rel.startswith(prefix):
+                require_real_path(root, rel, "file")
+
+
 def compare(baseline, current, allowed, allowed_under, allow_bytecode):
     problems = []
     missing = sorted(
@@ -284,6 +335,9 @@ def main():
     baseline_root = resolve_baseline(baseline_arg)
     baseline = snapshot(baseline_root, False)
     current = snapshot(current_root, True)
+    enforce_real_allowed_paths(
+        current_root, current, set(allowed), set(allowed_under)
+    )
     compare(
         baseline,
         current,

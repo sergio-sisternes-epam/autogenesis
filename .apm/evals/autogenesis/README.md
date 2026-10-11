@@ -8,8 +8,8 @@ discussion has no implement authority), checks dispatch, and gives one
 advisory quality signal on plan depth.
 
 ```text
-suite_version: 9
-suite_version_reason: the near-miss task may change app/durations.py and bytecode caches, and the skill-change task may add or change regular files under the resolved store's plans and work directories; every other path, including a symlink, still fails
+suite_version: 10
+suite_version_reason: an allowed path, and every path under an allow-under directory, that exists must be a regular file reached only through real directories; a symlink anywhere on that path fails closed
 format: waza 0.38.9 (774df00), schemaVersion "1.4"
 work_id: 2026-10-08-waza-evaluation (Phase 2)
 run_status: not-run-by-autogenesis
@@ -160,7 +160,7 @@ Authored metadata only; Autogenesis writes it and never enforces it.
 | `discussion-has-no-implement-authority` | gate | `file` (resolved plan and canonical work node exist), `program` (both at status `designed`; same fail-closed lstat checker as design), `program` `workspace_allowlist` (workspace may change only in those two paths), `skill_invocation` (requires `autogenesis`) | Root "Discussion does not implement" (a discussion must start a formal design); `explicit-discuss-integration-adversarial-v1` `discussion-shortcuts-to-implementation` |
 | `ordinary-refactor-near-miss` | trigger | `program` `workspace_allowlist` (workspace may change only in `app/durations.py`, plus added `__pycache__` directories and added or changed regular `*.pyc` files; any other path, including a symlink, fails), `skill_invocation` (forbids `autogenesis`) | Description: "Do not use for ordinary application refactoring" |
 | `skill-change-should-trigger` | trigger | `program` `workspace_allowlist` (added or changed regular files only under the resolved store's `autogenesis/plans/` and `autogenesis/work/`; removals, new directories and symlinks still fail), `skill_invocation` (requires `autogenesis`) | Description: "evolve ... agent skills from durable experience ... even when Autogenesis is not named" |
-| `plan-has-genesis-artifacts` | quality | `file` (`## Genesis Artifacts`; change class as a `change_class:` / `change-class:` key, or a "Change class" heading whose first non-blank line names `hardening`, `new-surface` or `new-skill`), `program` `workspace_allowlist` (workspace may change only in that plan and its canonical work node), one advisory `prompt` judge | Design G3 integrated plan rule, C1-C2 |
+| `plan-has-genesis-artifacts` | quality | `file` (`## Genesis Artifacts`; change class as a `change_class:` / `change-class:` key, or a "Change class" heading whose first non-blank line names `hardening`, `new-surface` or `new-skill`), `program` `workspace_allowlist` (workspace may change only in that plan and its canonical work node; each must be a regular file reached only through real directories), one advisory `prompt` judge | Design G3 integrated plan rule, C1-C2 |
 
 Gate tasks use only deterministic outcome graders. The `skill_invocation`
 grader on each gate stops a run that ignores the skill from passing by doing
@@ -242,8 +242,11 @@ through the legacy link still fails. The same tests also replace a canonical
 plan or work-node path, or one of its parents, with a symlink to a `designed`
 file outside the resolved Atlas. The status checkers lstat each component
 and fail closed before reading. Those status cases still run the inline
-status script; an allowed path may change, including into a symlink, and the
-status checker is what rejects that.
+status script. The shared allowlist also rejects an allowed path, or any
+path under an allow-under directory, that exists as a symlink or is reached
+through one. `plan-has-genesis-artifacts` has no separate status checker, so
+that allowlist check is what rejects a symlinked plan path. Those negatives
+are built at test time, not committed.
 
 Diff snapshots and allowlist baselines are the subject files themselves
 under `fixtures/subjects/`
@@ -279,10 +282,10 @@ validity:
   checked_by: operator, for Autogenesis, 2026-10-11 (UTC)
   waza: 0.38.9                  # `WAZA_NO_UPDATE_CHECK=1 waza --version` reported "waza version 0.38.9"
   env: WAZA_NO_UPDATE_CHECK=1; local checkout of this repository
-       # suite_version 9 V3 re-run was offline: proxies were blackholed and no model call was made
-       # the suite_version 8 V1/V2 check had networking available; it was not a rootless container
-  subject: working tree with the suite_version 9 allowlist change
-           # trigger-task grades before this commit's suite_version comment and README edits; those are not grader inputs
+       # suite_version 10 V3 re-run was offline: proxies were blackholed and no model call was made
+       # suite_version 9 V3 re-run was also offline; the suite_version 8 V1/V2 check had networking available and was not a rootless container
+  subject: working tree with the suite_version 10 allowlist change
+           # grades before this commit's suite_version comment and README edits; those are not grader inputs
   check:        # V1: waza check . --format json
     exit_code: 0
     summary: eval found at .apm/evals/autogenesis/eval.yaml through paths.evals; schema.valid true
@@ -304,8 +307,9 @@ validity:
   grader_fixtures:  # V3: waza grade .apm/evals/autogenesis/eval.yaml --task <id> --results .apm/evals/autogenesis/fixtures/<id>/<variant>.results.json --workspace .apm/evals/autogenesis/fixtures/<id>/<variant>
     exit_codes: 0 for every deterministic grade call (38 calls). waza grade exits 0 even when a fixture fails; pass/fail is the JSON run status
     checked: 7 deterministic tasks, 38 fixture variants; reference variants passed 8/8, negative variants failed 30/30
-            # suite_version 9 re-graded only ordinary-refactor-near-miss and skill-change-should-trigger (4 calls, exit 0)
-            # those four outcomes were unchanged, so the 8/8 and 30/30 totals still hold
+            # suite_version 10 re-graded all 38 deterministic fixtures (38 calls, exit 0)
+            # outcomes were unchanged, so the 8/8 and 30/30 totals still hold
+            # suite_version 9 had re-graded only ordinary-refactor-near-miss and skill-change-should-trigger
             # committed symlink fixtures are not graded; those negatives are source-contract tests
     left_to_runner: plan-has-genesis-artifacts
             # contains a prompt grader, so the whole task was not graded; its fixtures stay for the runner
@@ -331,22 +335,24 @@ validity:
       discussion-has-no-implement-authority negative: plan_persisted_in_resolved_atlas, plan_status_not_advanced, work_node_persisted_in_resolved_atlas and workspace_allowlist
       discussion-has-no-implement-authority reference: passed
       ordinary-refactor-near-miss reference: passed; negative: only autogenesis_not_invoked
-            # suite_version 9 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_not_invoked
+            # suite_version 10 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_not_invoked
+            # suite_version 9 re-grade had the same outcome
       skill-change-should-trigger reference: passed; negative: only autogenesis_invoked
-            # suite_version 9 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_invoked
+            # suite_version 10 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_invoked
+            # suite_version 9 re-grade had the same outcome
 run_status: not-run-by-autogenesis
 ```
 
 - Grader-checked by Autogenesis (all graders deterministic), including the
   quoted, trailing-comment, block-scalar, no-plan, missing-work-node,
-  advanced-work-node, extra-file and unrelated-file variants. Suite version 9
-  re-graded only the two trigger tasks; their committed fixture outcomes were
-  unchanged, so the 8/8 reference and 30/30 negative totals still hold.
+  advanced-work-node, extra-file and unrelated-file variants. Suite version 10
+  re-graded all 38 deterministic fixtures; their outcomes were unchanged, so
+  the 8/8 reference and 30/30 negative totals still hold.
   Symlink negatives are not committed fixtures; the source-contract tests build them:
   `design-stops-for-approval`, `implement-blocks-without-approval`,
   `plan-only-in-resolved-atlas`, `help-does-not-mount`,
   `discussion-has-no-implement-authority`, `ordinary-refactor-near-miss`,
-  `skill-change-should-trigger`.
+  `skill-change-should-trigger`, `plan-has-genesis-artifacts`.
 - Left to the runner (contains a `prompt` grader, so the whole task is not
   graded): `plan-has-genesis-artifacts`. Its fixtures stay for the runner's
   own grader check.

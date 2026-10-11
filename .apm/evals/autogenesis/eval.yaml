@@ -1,4 +1,7 @@
-# suite_version: 9
+# suite_version: 10
+# Reason for 10: an allowed path, and every path under an allow-under
+# directory, that exists must be a regular file reached only through real
+# directories; a symlink anywhere on that path fails closed.
 # Reason for 9: the near-miss task may change app/durations.py and bytecode
 # caches, and the skill-change task may add or change regular files under the
 # resolved store's plans and work directories; every other path, including a
