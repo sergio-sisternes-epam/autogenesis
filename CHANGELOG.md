@@ -55,45 +55,55 @@ in `SKILL.md`.
 ### Added
 
 - Autogenesis dogfood eval suite at `.apm/evals/autogenesis/`
-  (`suite_version: 2`, Waza 0.38.9 format, `schemaVersion: "1.4"`): five
-  gate tasks with deterministic outcome graders, two trigger tasks and one
-  advisory quality task. It ships minimal fixture subject repositories, reference and negative
-  fixtures with hand-authored results files for every deterministic task, and
-  a README with run instructions, required skills and the recommended pass
-  rule. Authored and never run by Autogenesis
-  (`run_status: not-run-by-autogenesis`); a structural unit test checks it.
-  `suite_version: 2` moves the suite under `.apm/evals/` so it is not shipped
-  in the installed skill (the root `.waza.yaml` sets `paths.evals`), narrows
-  `diff` grader context to `fixtures/subjects`, lets the
-  `plan-has-genesis-artifacts` change-class check accept a "Change class"
-  heading as well as a `change_class:` key, and adds `reference-heading` and
-  `negative-heading` fixtures. The suite README adds a run layout that keeps
-  the suite outside the agent's working directory and skill paths, recommends
+  (final `suite_version: 11`, Waza 0.38.9 format, `schemaVersion: "1.4"`):
+  five gate tasks with deterministic outcome graders, two trigger tasks and
+  one advisory quality task. The shipped suite is version 11. It ships
+  minimal fixture subject repositories, reference and negative fixtures with
+  hand-authored results files for every deterministic task, and a README with
+  run instructions, required skills and the recommended pass rule. Authored
+  and never run by Autogenesis (`run_status: not-run-by-autogenesis`); a
+  structural unit test checks it. It lives under `.apm/evals/` so it is not
+  shipped in the installed skill (the root `.waza.yaml` sets `paths.evals`).
+  Diff-grader context is `fixtures/subjects`. A change class is accepted only
+  as an exact `hardening`, `new-surface` or `new-skill` token on a
+  `change_class:` / `change-class:` key, or on the first non-blank line under
+  a "Change class" heading. The suite README adds a run layout that keeps the
+  suite outside the agent's working directory and skill paths, recommends
   `config.skill_directories` over `paths.skills`, explains how to read
   `skill_invocation` scores, and requires `python3` in the runner image.
-  `suite_version: 3` parses plan and work-node status instead of matching
-  YAML spelling, compares the complete legacy `references/atlas` tree with
-  its initial state, and sets `config.inject_skill_body: false` so trigger
-  tasks are not handed the skill body. `suite_version: 4` makes those status
-  graders fail closed unless the value is the simple scalar `designed`, and
-  requires the resolved plan file to exist. `suite_version: 5` requires the
-  canonical design work node to exist at status `designed`, and compares the
-  help workspace with the unmounted subject, ignoring only the root `.git`
-  directory. `suite_version: 6` records every child in those complete-tree
-  comparisons with lstat, including directory and file symlinks, and never
-  follows them. `suite_version: 7` makes status graders lstat each canonical
-  path and its parents and fail closed on a symlink, requires discussion to
-  persist a designed plan and work node, and stops committing symlink
-  fixtures because a committed symlink breaks APM install.
-  `suite_version: 8` gives every task one shared whole-workspace allowlist:
-  any added, changed or removed path outside that list, including a symlink,
-  fails. The suite README records the model-free validity re-run for
-  suite_version 8, and leaves `plan-has-genesis-artifacts` to the runner
-  because it contains a prompt grader. `suite_version: 9` lets the near-miss
-  trigger task change `app/durations.py` and Python bytecode caches, and lets
-  the skill-change trigger task add or change regular files under the resolved
-  store's plans and work directories. Any other path, including a symlink,
-  still fails. Committed fixture grades are unchanged.
+  Plan and work-node status is parsed rather than matched as YAML spelling.
+  The complete legacy `references/atlas` tree is compared with its initial
+  state. `config.inject_skill_body` is false, so trigger tasks are not handed
+  the skill body. Status graders fail closed unless the value is the simple
+  scalar `designed`, and the resolved plan file must exist. The canonical
+  design work node must exist at status `designed`. The help workspace is
+  compared with the unmounted subject, ignoring only the root `.git`
+  directory. Complete-tree comparisons record every child with lstat,
+  including directory and file symlinks, and never follow them. Status
+  graders lstat each canonical path and its parents and fail closed on a
+  symlink. Discussion must persist a designed plan and work node. Symlink
+  fixtures are not committed, because a committed symlink breaks APM install.
+  Every task uses one shared whole-workspace allowlist: any added, changed or
+  removed path outside that list, including a symlink, fails. An allowed
+  path, and every path under an allow-under directory, must be a regular file
+  reached only through real directories. The near-miss trigger task may
+  change `app/durations.py` and Python bytecode caches, and the skill-change
+  trigger task may add or change regular files under the resolved store's
+  plans and work directories. Any other path, including a symlink, still
+  fails. The suite README records the model-free validity re-run and leaves
+  `plan-has-genesis-artifacts` to the runner because it contains a prompt
+  grader.
+  History of `suite_version` bumps (not the shipped version; the shipped
+  suite is version 11): version 2 placed the suite under `.apm/evals/` and
+  accepted a "Change class" heading; version 3 parsed status and set
+  `inject_skill_body: false`; version 4 failed closed on a non-scalar status
+  and required the resolved plan; version 5 required the designed work node
+  and compared the help tree; version 6 recorded symlink children without
+  following them; version 7 lstat-checked status paths, required a discussion
+  plan and work node, and stopped committing symlink fixtures; version 8
+  introduced the shared allowlist; version 9 widened the two trigger
+  allowlists; version 10 rejected a symlink on an allowed path; version 11
+  requires an exact change-class token.
 - Consumer validation fails when an installed `autogenesis` skill contains an
   `evals/` directory, a `.apm/` directory or any `eval.yaml`; source checks
   and the `suite-not-shipped` smoke keep the suite under `.apm/evals/`.
