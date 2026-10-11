@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
+import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -633,6 +636,147 @@ class SourceContractTests(unittest.TestCase):
                     self.assertTrue(
                         (variant_root.parent / f"{variant}.results.json").is_file()
                     )
+
+    def test_block_scalar_status_fixtures_replace_only_the_status_line(self) -> None:
+        plan = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/plans/2026-10-08-add-retry-note.md"
+        )
+        work = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/work/2026-10-08-add-retry-note.md"
+        )
+        folded = "status: >-\n  approved\n"
+        literal = "status: |\n  approved\n"
+        cases = {
+            "design-stops-for-approval": {
+                "negative-folded": (plan, folded),
+                "negative-literal": (plan, literal),
+            },
+            "implement-blocks-without-approval": {
+                "negative-plan-folded": (plan, folded),
+                "negative-plan-literal": (plan, literal),
+                "negative-work-folded": (work, folded),
+                "negative-work-literal": (work, literal),
+            },
+        }
+        for task_id, variants in cases.items():
+            base = ROOT / ".apm/evals/autogenesis/fixtures" / task_id / "reference"
+            for variant, (relative, expected) in variants.items():
+                with self.subTest(task=task_id, variant=variant):
+                    variant_root = base.parent / variant
+                    changed = [
+                        path.relative_to(variant_root).as_posix()
+                        for path in variant_root.rglob("*")
+                        if path.is_file()
+                        and (
+                            not (base / path.relative_to(variant_root)).is_file()
+                            or (base / path.relative_to(variant_root)).read_bytes()
+                            != path.read_bytes()
+                        )
+                    ]
+                    self.assertEqual(changed, [relative])
+                    base_text = (base / relative).read_text(encoding="utf-8")
+                    self.assertEqual(base_text.count("status: designed\n"), 1)
+                    self.assertEqual(
+                        (variant_root / relative).read_text(encoding="utf-8"),
+                        base_text.replace("status: designed\n", expected, 1),
+                    )
+                    self.assertTrue(
+                        (variant_root.parent / f"{variant}.results.json").is_file()
+                    )
+
+    def test_status_grader_fails_closed_on_non_simple_scalars(self) -> None:
+        scripts = []
+        for name in (
+            "design-stops-for-approval",
+            "implement-blocks-without-approval",
+        ):
+            text = (
+                ROOT / ".apm/evals/autogenesis/tasks" / f"{name}.yaml"
+            ).read_text(encoding="utf-8")
+            start = text.index("          import os\n")
+            end = text.index("        - --\n", start)
+            lines = []
+            for line in text[start:end].splitlines():
+                if line.startswith("          "):
+                    lines.append(line[10:])
+                else:
+                    self.assertEqual(line, "")
+                    lines.append("")
+            scripts.append("\n".join(lines) + "\n")
+        self.assertEqual(scripts[0], scripts[1])
+        plan = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/plans/2026-10-08-add-retry-note.md"
+        )
+        base = (
+            ROOT
+            / ".apm/evals/autogenesis/fixtures/design-stops-for-approval"
+            / "reference"
+            / plan
+        ).read_text(encoding="utf-8")
+        self.assertIn("status: designed\n", base)
+        rejected = {
+            "folded": "status: >-\n  approved\n",
+            "literal": "status: |\n  approved\n",
+            "literal-strip": "status: |-\n  approved\n",
+            "folded-designed": "status: >-\n  designed\n",
+            "anchor": "status: &a approved\n",
+            "alias": "alias: &a approved\nstatus: *a\n",
+            "tag": "status: !!str approved\n",
+            "tag-designed": "status: !!str designed\n",
+            "duplicate": "status: approved\nstatus: designed\n",
+            "multiline": "status: designed\n  approved\n",
+            "flow": "status: [approved]\n",
+            "proposed": "status: proposed\n",
+        }
+        accepted = {
+            "plain": "status: designed\n",
+            "single": "status: 'designed'\n",
+            "double": 'status: "designed"\n',
+            "comment": "status: designed # awaiting approval\n",
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            script = Path(tmp) / "status_check.py"
+            script.write_text(scripts[0], encoding="utf-8")
+            for name, replacement in {**rejected, **accepted}.items():
+                workspace = Path(tmp) / name
+                dest = workspace / plan
+                dest.parent.mkdir(parents=True)
+                dest.write_text(
+                    base.replace("status: designed\n", replacement, 1),
+                    encoding="utf-8",
+                )
+                env = os.environ.copy()
+                env["WAZA_WORKSPACE_DIR"] = str(workspace)
+                result = subprocess.run(
+                    ["python3", str(script), "--", plan],
+                    env=env,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                with self.subTest(case=name):
+                    if name in accepted:
+                        self.assertEqual(result.returncode, 0, result.stderr)
+                    else:
+                        self.assertNotEqual(result.returncode, 0, result.stdout)
+            missing_fence = Path(tmp) / "unterminated"
+            dest = missing_fence / plan
+            dest.parent.mkdir(parents=True)
+            dest.write_text(base.replace("\n---\n", "\n", 1), encoding="utf-8")
+            env = os.environ.copy()
+            env["WAZA_WORKSPACE_DIR"] = str(missing_fence)
+            result = subprocess.run(
+                ["python3", str(script), "--", plan],
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0, result.stdout)
+            self.assertIn("unterminated frontmatter", result.stderr)
 
     def test_legacy_atlas_negative_adds_only_an_unexpected_file(self) -> None:
         base = (
