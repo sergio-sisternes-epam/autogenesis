@@ -902,6 +902,224 @@ class SourceContractTests(unittest.TestCase):
         self.assertEqual(changed, [])
         self.assertTrue((base.parent / "negative-work-missing.results.json").is_file())
 
+    def test_help_extra_file_negative_adds_only_autogenesis_help(self) -> None:
+        yaml = self._require_yaml()
+        task = yaml.safe_load(
+            (
+                ROOT / ".apm/evals/autogenesis/tasks/help-does-not-mount.yaml"
+            ).read_text(encoding="utf-8")
+        )
+        must_not_exist = [
+            path
+            for grader in task["graders"]
+            if grader["type"] == "file"
+            for path in grader["config"].get("must_not_exist", [])
+        ]
+        self.assertEqual(must_not_exist, [".atlas", ".gitmodules"])
+        self.assertIn(
+            "workspace_tree_unchanged",
+            [grader["name"] for grader in task["graders"]],
+        )
+        base = (
+            ROOT
+            / ".apm/evals/autogenesis/fixtures/help-does-not-mount/reference"
+        )
+        variant = base.parent / "negative-extra-file"
+        extra_name = "AUTOGENESIS_HELP.md"
+        changed = [
+            path.relative_to(variant).as_posix()
+            for path in variant.rglob("*")
+            if path.is_file()
+            and (
+                not (base / path.relative_to(variant)).is_file()
+                or (base / path.relative_to(variant)).read_bytes() != path.read_bytes()
+            )
+        ]
+        self.assertEqual(changed, [extra_name])
+        self.assertTrue((variant / extra_name).is_file())
+        self.assertFalse((base / extra_name).exists())
+        self.assertTrue((base.parent / "negative-extra-file.results.json").is_file())
+        subject = (
+            ROOT
+            / ".apm/evals/autogenesis/fixtures/subjects/subject-unmounted"
+        )
+        reference_files = {
+            path.relative_to(base).as_posix(): path.read_bytes()
+            for path in base.rglob("*")
+            if path.is_file()
+        }
+        subject_files = {
+            path.relative_to(subject).as_posix(): path.read_bytes()
+            for path in subject.rglob("*")
+            if path.is_file()
+        }
+        self.assertEqual(reference_files, subject_files)
+
+    def test_help_workspace_tree_grader_ignores_only_root_git(self) -> None:
+        text = (
+            ROOT / ".apm/evals/autogenesis/tasks/help-does-not-mount.yaml"
+        ).read_text(encoding="utf-8")
+        start = text.index("          import os\n")
+        end = text.index("          if __name__ == \"__main__\":\n", start)
+        lines = []
+        for line in text[start:end].splitlines():
+            if line.startswith("          "):
+                lines.append(line[10:])
+            else:
+                self.assertEqual(line, "")
+                lines.append("")
+        script = "\n".join(lines) + "if __name__ == \"__main__\":\n    main()\n"
+        subject = (
+            ROOT
+            / ".apm/evals/autogenesis/fixtures/subjects/subject-unmounted"
+        )
+
+        def grade(workspace: Path) -> subprocess.CompletedProcess[str]:
+            env = os.environ.copy()
+            env["WAZA_WORKSPACE_DIR"] = str(workspace)
+            return subprocess.run(
+                ["python3", "-c", script],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            clean = root / "clean"
+            clean.mkdir()
+            for path in subject.rglob("*"):
+                if path.is_file():
+                    dest = clean / path.relative_to(subject)
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    dest.write_bytes(path.read_bytes())
+            passed = grade(clean)
+            self.assertEqual(passed.returncode, 0, passed.stderr)
+
+            git_dir = root / "with-git"
+            git_dir.mkdir()
+            for path in subject.rglob("*"):
+                if path.is_file():
+                    dest = git_dir / path.relative_to(subject)
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    dest.write_bytes(path.read_bytes())
+            (git_dir / ".git").mkdir()
+            (git_dir / ".git" / "HEAD").write_text("ref: refs/heads/main\n", encoding="utf-8")
+            ignored = grade(git_dir)
+            self.assertEqual(ignored.returncode, 0, ignored.stderr)
+
+            extra = root / "extra"
+            extra.mkdir()
+            for path in subject.rglob("*"):
+                if path.is_file():
+                    dest = extra / path.relative_to(subject)
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    dest.write_bytes(path.read_bytes())
+            (extra / "AUTOGENESIS_HELP.md").write_text("extra\n", encoding="utf-8")
+            extra_result = grade(extra)
+            self.assertNotEqual(extra_result.returncode, 0, extra_result.stdout)
+            self.assertIn("AUTOGENESIS_HELP.md", extra_result.stderr)
+
+            removed = root / "removed"
+            removed.mkdir()
+            (removed / "atlas-mesh.json").write_bytes(
+                (subject / "atlas-mesh.json").read_bytes()
+            )
+            removed_result = grade(removed)
+            self.assertNotEqual(removed_result.returncode, 0, removed_result.stdout)
+            self.assertIn("SKILL.md", removed_result.stderr)
+
+            changed = root / "changed"
+            changed.mkdir()
+            for path in subject.rglob("*"):
+                if path.is_file():
+                    dest = changed / path.relative_to(subject)
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    dest.write_bytes(path.read_bytes())
+            (changed / "SKILL.md").write_text("changed\n", encoding="utf-8")
+            changed_result = grade(changed)
+            self.assertNotEqual(changed_result.returncode, 0, changed_result.stdout)
+            self.assertIn("SKILL.md", changed_result.stderr)
+
+            nested = root / "nested-git"
+            nested.mkdir()
+            for path in subject.rglob("*"):
+                if path.is_file():
+                    dest = nested / path.relative_to(subject)
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    dest.write_bytes(path.read_bytes())
+            (nested / "notes").mkdir()
+            (nested / "notes" / ".git").mkdir()
+            (nested / "notes" / ".git" / "config").write_text("x\n", encoding="utf-8")
+            nested_result = grade(nested)
+            self.assertNotEqual(nested_result.returncode, 0, nested_result.stdout)
+            self.assertIn(".git", nested_result.stderr)
+
+            git_file = root / "git-file"
+            git_file.mkdir()
+            for path in subject.rglob("*"):
+                if path.is_file():
+                    dest = git_file / path.relative_to(subject)
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    dest.write_bytes(path.read_bytes())
+            (git_file / ".git").write_text("not a directory\n", encoding="utf-8")
+            git_file_result = grade(git_file)
+            self.assertNotEqual(git_file_result.returncode, 0, git_file_result.stdout)
+            self.assertIn(".git", git_file_result.stderr)
+
+            gitignore = root / "gitignore"
+            gitignore.mkdir()
+            for path in subject.rglob("*"):
+                if path.is_file():
+                    dest = gitignore / path.relative_to(subject)
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    dest.write_bytes(path.read_bytes())
+            (gitignore / ".gitignore").write_text("*\n", encoding="utf-8")
+            gitignore_result = grade(gitignore)
+            self.assertNotEqual(gitignore_result.returncode, 0, gitignore_result.stdout)
+            self.assertIn(".gitignore", gitignore_result.stderr)
+
+            empty_dir = root / "empty-dir"
+            empty_dir.mkdir()
+            for path in subject.rglob("*"):
+                if path.is_file():
+                    dest = empty_dir / path.relative_to(subject)
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    dest.write_bytes(path.read_bytes())
+            (empty_dir / "notes").mkdir()
+            empty_result = grade(empty_dir)
+            self.assertNotEqual(empty_result.returncode, 0, empty_result.stdout)
+            self.assertIn("notes", empty_result.stderr)
+
+        missing_env = os.environ.copy()
+        missing_env.pop("WAZA_WORKSPACE_DIR", None)
+        unset = subprocess.run(
+            ["python3", "-c", script],
+            cwd=ROOT,
+            env=missing_env,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertNotEqual(unset.returncode, 0, unset.stdout)
+        self.assertIn("WAZA_WORKSPACE_DIR", unset.stderr)
+
+        with tempfile.TemporaryDirectory() as elsewhere:
+            missing_baseline = subprocess.run(
+                ["python3", "-c", script],
+                cwd=elsewhere,
+                env={**os.environ, "WAZA_WORKSPACE_DIR": str(subject)},
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertNotEqual(
+                missing_baseline.returncode, 0, missing_baseline.stdout
+            )
+            self.assertIn("unmounted subject not found", missing_baseline.stderr)
+
     def test_package_manifest_and_lock_have_no_evaluator_dependency(self) -> None:
         for name in ("apm.yml", "apm.lock.yaml"):
             text = (ROOT / name).read_text(encoding="utf-8")

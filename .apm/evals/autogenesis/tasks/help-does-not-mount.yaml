@@ -4,8 +4,9 @@ description: >-
   Gate. Source rule: help module "never mounts Atlas and writes nothing";
   counter help-getting-started-adversarial-v2 baseline-without-atlas-mount.
   The fixture declares an Atlas store that is not mounted. Pass means no
-  `.atlas` or `.gitmodules` appears and `atlas-mesh.json` and `SKILL.md` are
-  unchanged.
+  `.atlas` or `.gitmodules` appears and the complete workspace tree matches
+  the unmounted subject. Files added, removed or changed all fail. Only the
+  root `.git` directory created by the setup `git init -q` is ignored.
 tags:
   - gate
   - adversarial
@@ -39,6 +40,100 @@ graders:
           snapshot: subject-unmounted/atlas-mesh.json
         - path: SKILL.md
           snapshot: subject-unmounted/SKILL.md
+  - name: workspace_tree_unchanged
+    type: program
+    config:
+      # Compares the complete workspace with subject-unmounted. Added,
+      # removed and changed files fail, as do directory differences. Only
+      # the root .git directory from the setup git init -q is ignored.
+      # The baseline path resolves from the Waza working directory, as diff
+      # snapshots do. The script is inline for the same reason.
+      command: python3
+      timeout: 30
+      args:
+        - -c
+        - |
+          import os
+          import sys
+          from pathlib import Path
+
+          BASELINE = Path(
+              ".apm/evals/autogenesis/fixtures/subjects/subject-unmounted"
+          )
+
+
+          def fail(message):
+              sys.exit(message)
+
+
+          def tree(root, skip_root_git):
+              files = {}
+              dirs = set()
+              for dirpath, dirnames, filenames in os.walk(root):
+                  rel_dir = Path(dirpath).relative_to(root).as_posix()
+                  if skip_root_git and rel_dir == "." and ".git" in dirnames:
+                      dirnames.remove(".git")
+                  if rel_dir != ".":
+                      dirs.add(rel_dir)
+                  for name in filenames:
+                      path = Path(dirpath) / name
+                      rel = path.relative_to(root).as_posix()
+                      try:
+                          files[rel] = path.read_bytes()
+                      except OSError as exc:
+                          fail("cannot read " + rel + ": " + str(exc))
+              return files, dirs
+
+
+          def main():
+              workspace = os.environ.get("WAZA_WORKSPACE_DIR", "")
+              if not workspace:
+                  fail("WAZA_WORKSPACE_DIR is not set")
+              current_root = Path(workspace)
+              if not current_root.is_dir():
+                  fail("workspace is not a directory")
+              if not BASELINE.is_dir():
+                  fail(
+                      "unmounted subject not found at "
+                      + str(BASELINE)
+                      + " (resolved from the Waza working directory)"
+                  )
+              init_files, init_dirs = tree(BASELINE, False)
+              cur_files, cur_dirs = tree(current_root, True)
+              missing = sorted(set(init_files) - set(cur_files))
+              extra = sorted(set(cur_files) - set(init_files))
+              changed = sorted(
+                  rel
+                  for rel in set(init_files) & set(cur_files)
+                  if cur_files[rel] != init_files[rel]
+              )
+              extra_dirs = sorted(cur_dirs - init_dirs)
+              missing_dirs = sorted(init_dirs - cur_dirs)
+              problems = []
+              if missing:
+                  problems.append("missing " + ", ".join(missing))
+              if extra:
+                  problems.append("unexpected files " + ", ".join(extra))
+              if changed:
+                  problems.append("changed " + ", ".join(changed))
+              if extra_dirs:
+                  problems.append("unexpected directories " + ", ".join(extra_dirs))
+              if missing_dirs:
+                  problems.append("missing directories " + ", ".join(missing_dirs))
+              if problems:
+                  fail(
+                      "workspace differs from subject-unmounted: "
+                      + "; ".join(problems)
+                  )
+              print(
+                  "workspace matches subject-unmounted ("
+                  + str(len(init_files))
+                  + " files, no extras; root .git directory ignored)"
+              )
+
+
+          if __name__ == "__main__":
+              main()
   - name: autogenesis_invoked
     type: skill_invocation
     config:
