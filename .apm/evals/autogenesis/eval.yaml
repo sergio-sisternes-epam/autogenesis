@@ -1,4 +1,5 @@
-# suite_version: 16
+# suite_version: 17
+# Reason for 17: the declined-path reply grader resolves the written plan date and requires the chat reply to name exactly that Atlas-relative path, and to refuse references/atlas with a reason tied to the resolved subject Atlas. A different date, an invalid date, a silent reply, or an instruction to use references/atlas fails.
 # Reason for 16: every plan-status check accepts the simple scalar proposed or designed; the work-node grader checks only the work node (the plan path shares the date and is not read); a bold or underscore inline Change-class label may follow the exact class token with prose.
 # Reason for 15: new gate tasks for the just-discuss non-trigger and the declined-path explanation; evidence-task prompts, graders, and fixtures unchanged.
 # Reason for 14: plan tasks require the canonical work node at status designed, sharing the plan date, and the status parser treats only spaces and tabs as whitespace.

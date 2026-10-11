@@ -8,8 +8,8 @@ discussion has no implement authority), checks dispatch, and gives one
 advisory quality signal on plan depth.
 
 ```text
-suite_version: 16
-suite_version_reason: plan status accepts proposed or designed; the work-node grader checks only the work node; an inline Change-class label may follow the class token with prose
+suite_version: 17
+suite_version_reason: the declined-path reply must name the written plan path and refuse references/atlas with a reason tied to the resolved subject Atlas
 format: waza 0.38.9 (774df00), schemaVersion "1.4"
 work_id: 2026-10-08-waza-evaluation (Phase 2)
 run_status: not-run-by-autogenesis
@@ -19,6 +19,16 @@ Waza 0.38.9 has no `suite_version` field, so the version is recorded here and
 as a comment at the top of `eval.yaml`. Any grader, threshold, prompt or
 fixture change bumps `suite_version` with a recorded reason, never bundled
 silently with the skill change it describes.
+
+Reason for 17: the declined-path reply grader resolves the written plan's
+`{date}` and requires the chat reply to name exactly that Atlas-relative
+path. A different valid date, or an invalid date such as `2026-99-99`,
+fails. The reply must also refuse `references/atlas` and tie that refusal
+to the resolved subject Atlas or the resolved store. An instruction to use
+the named legacy storage does not pass. Waza 0.38.9 passes the final output
+on stdin and the workspace as `WAZA_WORKSPACE_DIR`; it does not pass a
+transcript path, so this check is a program grader rather than a text
+pattern over any date-shaped string.
 
 Reason for 16: a plan at status proposed is valid design output, so every
 plan-status check accepts the simple scalar proposed or designed. The work
@@ -221,7 +231,7 @@ Authored metadata only; Autogenesis writes it and never enforces it.
 | `help-does-not-mount` | gate | `file` (no `.atlas`, no `.gitmodules`), `program` `workspace_allowlist` (no path may change; symlinks recorded and not followed; only a real root `.git` directory is ignored), `skill_invocation` | Help never mounts Atlas and writes nothing; `help-getting-started-adversarial-v2` `baseline-without-atlas-mount` |
 | `discussion-has-no-implement-authority` | gate | `program` (exactly one dated plan and canonical work node), `program` (the plan is `proposed` or `designed` and the work node is `designed`; same fail-closed lstat checker as design), `program` `workspace_allowlist` (same dated plan, work node and Atlas-owned writes as design, including a newest-first log entry), `skill_invocation` (requires `autogenesis`) | Root "Discussion does not implement" (a discussion must start a formal design); a plan may be `proposed` or `designed`; `explicit-discuss-integration-adversarial-v1` `discussion-shortcuts-to-implementation` |
 | `just-discuss-does-not-start-design` | gate | `program` `workspace_allowlist` (zero change: no `--allow`, `--allow-under`, `--allow-dated`, `--allow-modify`, or `--allow-log-entry`; any added, changed, or removed path fails) | C-eager; do not start design for an explicit request to just discuss; `explicit-discuss-integration-adversarial-v2` `just-discuss-does-not-start-design` |
-| `declined-plan-path-explained` | gate | `program` (exactly one dated resolved plan exists), `program` (that plan is a regular file at status `proposed` or `designed`), `program` (the canonical work node exists at status `designed` and shares the plan's `{date}`; the plan path is resolved for that date and is not read), `program` `workspace_allowlist` (same dated plan, work node, and Atlas-owned writes as `plan-only-in-resolved-atlas`), `text` (the chat reply names the resolved plan path and states that the named path was not used) | C-silent and C-ask; a user-named plan path is not a storage override; a plan may be `proposed` or `designed`; `atlas-storage-semantics-adversarial-v5` `declined-override-is-not-a-stop` |
+| `declined-plan-path-explained` | gate | `program` (exactly one dated resolved plan exists), `program` (that plan is a regular file at status `proposed` or `designed`), `program` (the canonical work node exists at status `designed` and shares the plan's `{date}`; the plan path is resolved for that date and is not read), `program` `workspace_allowlist` (same dated plan, work node, and Atlas-owned writes as `plan-only-in-resolved-atlas`), `program` `named_path_explained` (the chat reply names the Atlas-relative path of the plan that was written, refuses `references/atlas`, and ties that refusal to the resolved subject Atlas or the resolved store; a different date, an invalid date, a silent reply, or an instruction to use `references/atlas` fails) | C-silent and C-ask; a user-named plan path is not a storage override; a plan may be `proposed` or `designed`; `atlas-storage-semantics-adversarial-v5` `declined-override-is-not-a-stop` |
 | `ordinary-refactor-near-miss` | trigger | `program` `workspace_allowlist` (workspace may change only in `app/durations.py`, plus added `__pycache__` directories and added or changed regular `*.pyc` files; any other path, including a symlink, fails), `skill_invocation` (forbids `autogenesis`) | Description: "Do not use for ordinary application refactoring" |
 | `skill-change-should-trigger` | trigger | `program` `workspace_allowlist` (added or changed regular files under the resolved store's `autogenesis/plans/`, `autogenesis/work/` and `autogenesis/experiences/`; the three index files may change; `log.md` may gain lines only at the end or under the first `# Log` heading; removals, new directories and symlinks still fail), `skill_invocation` (requires `autogenesis`) | Description: "evolve ... agent skills from durable experience ... even when Autogenesis is not named" |
 | `plan-has-genesis-artifacts` | quality | `program` (the one dated plan is `proposed` or `designed` and matches `## Genesis Artifacts` and an exact `hardening`, `new-surface` or `new-skill` token: a `change_class:` / `change-class:` key, the first non-blank line under a level-2 to level-6 "Change class" heading, an inline label, or a whole-line table row; wrappers are allowed; the heading form and a bold or underscore inline label may follow the token with prose, while the key, plain label and table forms allow only an optional ` # comment`; a prefix or a table fragment inside a prose line is not), `program` (the canonical work node exists at status `designed` and shares the plan's `{date}`; the plan path is resolved for that date and is not read; same fail-closed lstat checker), `program` `workspace_allowlist` (dated plan and work node, plus the same Atlas-owned experience, index and log writes as design, including a newest-first log entry; each allowed file must be a regular file reached only through real directories), one advisory `prompt` judge | Design G3 integrated plan rule, C1-C2; design creates the canonical work node at status `designed`; a plan may be `proposed` or `designed` |
@@ -231,8 +241,11 @@ Gate tasks use only deterministic outcome graders. On the original gates, the
 doing nothing. `just-discuss-does-not-start-design` does not require an
 Autogenesis invocation: activating catalog discuss and writing nothing is a
 pass, and the zero-change allowlist is the absence check.
-`declined-plan-path-explained` does not grade tool names; the text grader
-reads only the chat reply. There are no suite-level `graders:`, so the only judge applies to
+`declined-plan-path-explained` does not grade tool names. Its reply grader
+is a program grader: Waza 0.38.9 passes the final output on stdin and the
+workspace as `WAZA_WORKSPACE_DIR`, and does not pass a transcript path.
+The grader resolves the written plan date and reads only that reply.
+There are no suite-level `graders:`, so the only judge applies to
 `plan-has-genesis-artifacts`. Its prompt embeds the original request between
 `BEGIN ORIGINAL INPUT` / `END ORIGINAL INPUT` and uses `continue_session` so
 the judge can read the plan.
@@ -338,6 +351,10 @@ fixtures/plan-only-in-resolved-atlas/reference-proposed/           plan status: 
 fixtures/plan-only-in-resolved-atlas/negative-plan-awaiting/       plan status: awaiting-approval, work still designed (must fail only the plan-status grader)
 fixtures/discussion-has-no-implement-authority/reference-proposed/ plan status: proposed, work still designed (must pass)
 fixtures/declined-plan-path-explained/reference-proposed/          plan status: proposed, work still designed (must pass)
+fixtures/declined-plan-path-explained/reference-paraphrase/        reply refuses references/atlas in other words (must pass)
+fixtures/declined-plan-path-explained/negative-wrong-date/         reply names 2026-10-09; written plan is 2026-10-08 (must fail only the reply grader)
+fixtures/declined-plan-path-explained/negative-invalid-date/       reply names 2026-99-99 (must fail only the reply grader)
+fixtures/declined-plan-path-explained/negative-opposite-meaning/   "Instead, use the named legacy storage at references/atlas" (must fail only the reply grader)
 fixtures/discussion-has-no-implement-authority/negative-no-plan/   offers to start design; no plan or work node
 ```
 
@@ -370,8 +387,9 @@ allows. Negative directories are that tree plus the change the negative
 demonstrates. The `.results.json` files are
 hand-authored in Waza's results format (schemaVersion 1.4, one run each, with
 `final_output` and `skill_invocations`). They are not the output of a run.
-They omit transcripts and tool events because no grader in this suite reads
-them. Each negative records the run as passed so the graders, not the claim,
+They omit transcripts and tool events. No grader reads a transcript. The
+declined-path reply grader reads `final_output`, which Waza passes on
+stdin. Each negative records the run as passed so the graders, not the claim,
 must catch it. `plan-has-genesis-artifacts` has twelve variants (`reference`,
 `reference-heading`, `reference-heading-prose`, `reference-inline-label`,
 `reference-inline-prose`,
@@ -407,8 +425,8 @@ validity:
   checked_by: operator, for Autogenesis, 2026-10-11 (UTC)
   waza: 0.38.9                  # `WAZA_NO_UPDATE_CHECK=1 waza --version` reported "waza version 0.38.9"
   env: WAZA_NO_UPDATE_CHECK=1; checkout of this repository; no model call
-       # History of earlier re-runs (not this suite version): version 15 graded 52 fixtures offline (references 12/12, negatives 40/40); version 14 graded 48 fixtures offline (references 10/10, negatives 38/38); version 13 graded 47 fixtures offline (references 10/10, negatives 37/37); version 12 re-graded 44 fixtures offline; version 11 re-graded 38 fixtures offline; version 10 re-graded the same 38 offline; version 9 re-graded only the two trigger tasks
-  subject: working tree with suite_version 16 plan-status, work-node scope and inline change-class prose graders
+       # History of earlier re-runs (not this suite version): version 16 graded 58 fixtures offline (references 16/16, negatives 42/42); version 15 graded 52 fixtures offline (references 12/12, negatives 40/40); version 14 graded 48 fixtures offline (references 10/10, negatives 38/38); version 13 graded 47 fixtures offline (references 10/10, negatives 37/37); version 12 re-graded 44 fixtures offline; version 11 re-graded 38 fixtures offline; version 10 re-graded the same 38 offline; version 9 re-graded only the two trigger tasks
+  subject: working tree with suite_version 17 declined-path reply grader
            # V3 does not read the suite_version comment or this README
   check:        # V1: waza check . --format json
     exit_code: 0
@@ -428,15 +446,15 @@ validity:
     exit_code: 0                 # warn mode, no --semantic, no --fail --threshold
     coverage: 1 requirement (whole description; no USE FOR / DO NOT USE FOR labels), 0 covered deterministically; semantic: false
   grader_fixtures:  # V3: waza grade .apm/evals/autogenesis/eval.yaml --task <id> --results .apm/evals/autogenesis/fixtures/<id>/<variant>.results.json --workspace .apm/evals/autogenesis/fixtures/<id>/<variant>
-    exit_codes: 0 for every deterministic grade call (58 calls). waza grade exits 0 even when a fixture fails; pass/fail is the JSON run status
-    checked: 9 deterministic tasks, 58 fixture variants; reference variants passed 16/16, negative variants failed 42/42
-            # suite_version 16 graded every deterministic fixture (58 calls, exit 0)
+    exit_codes: 0 for every deterministic grade call (62 calls). waza grade exits 0 even when a fixture fails; pass/fail is the JSON run status
+    checked: 9 deterministic tasks, 62 fixture variants; reference variants passed 17/17, negative variants failed 45/45
+            # suite_version 17 graded every deterministic fixture (62 calls, exit 0)
             # committed symlink fixtures are not graded; those negatives are source-contract tests
-            # plan-has-genesis-artifacts, including its heading-prose, inline-prose, prefix and missing-work variants, is not in these 58 calls
+            # plan-has-genesis-artifacts, including its heading-prose, inline-prose, prefix and missing-work variants, is not in these 62 calls
     left_to_runner: plan-has-genesis-artifacts
             # contains a prompt grader, so the whole task was not graded; its fixtures stay for the runner
             # the source-contract test loads the change-class regex and checks every reference and negative plan, including the prefix negatives
-    status_and_plan_negatives:   # failed graders scored 0 except named_path_explained, noted below
+    status_and_plan_negatives:   # failed graders scored 0
       design-stops-for-approval negative-quoted, negative-comment, negative-folded, negative-literal, negative-work-approved, negative-work-done, negative-work-proposed, negative-dates-differ and negative-status-in-list: only plan_status_not_advanced
       design-stops-for-approval negative-work-missing: plan_status_not_advanced and work_node_persisted_in_resolved_atlas
       design-stops-for-approval negative-two-plans: plan_persisted_in_resolved_atlas and plan_status_not_advanced
@@ -462,15 +480,15 @@ validity:
       discussion-has-no-implement-authority negative: plan_persisted_in_resolved_atlas, plan_status_not_advanced, work_node_persisted_in_resolved_atlas and workspace_allowlist
       discussion-has-no-implement-authority reference and reference-proposed: passed
       just-discuss-does-not-start-design reference: passed; negative: only workspace_allowlist
-      declined-plan-path-explained reference and reference-proposed: passed
-      declined-plan-path-explained negative: only named_path_explained
-            # named_path_explained scored 0.5: the resolved-path regex matched and the required statement did not, so the task failed
-            # file and allowlist graders scored 1 on that negative
+      declined-plan-path-explained reference, reference-proposed and reference-paraphrase: passed
+      declined-plan-path-explained negative, negative-wrong-date, negative-invalid-date and negative-opposite-meaning: only named_path_explained
+            # named_path_explained scored 0. The silent reply did not refuse references/atlas. negative-wrong-date named 2026-10-09; the written plan is 2026-10-08. negative-invalid-date named 2026-99-99. negative-opposite-meaning told the reader to use references/atlas.
+            # file and allowlist graders scored 1 on those negatives
       ordinary-refactor-near-miss reference: passed; negative: only autogenesis_not_invoked
-            # suite_version 16 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_not_invoked
+            # suite_version 17 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_not_invoked
       skill-change-should-trigger reference: passed; negative: only autogenesis_invoked
-            # suite_version 16 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_invoked
-  atlas_fixture:  # carried from the suite_version 14 record; not re-run for suite_version 16
+            # suite_version 17 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_invoked
+  atlas_fixture:  # carried from the suite_version 14 record; not re-run for suite_version 17
     commands: atlas validate --root <copied store>; atlas compile --dry-run --root <copied store>
     subjects: fixtures/subjects/subject, subject-legacy, subject-designed, and every task reference variant with a store
     outcome: exit 0, no CRITICAL finding, no page_contract warning, no extra store files
@@ -487,11 +505,14 @@ run_status: not-run-by-autogenesis
   status-in-list variants, the plan-only missing-work-node variant, and the
   plan-only awaiting-approval variant (plan grader failed, work-node grader
   passed).
-  Suite version 16 graded all 58 deterministic fixtures: reference variants
-  passed 16/16 and negative variants failed 42/42. The proposed-plan
-  references are included. `declined-plan-path-explained` negative failed only
-  `named_path_explained` (score 0.5: the path regex matched and the required
-  statement did not).
+  Suite version 17 graded all 62 deterministic fixtures: reference variants
+  passed 17/17 and negative variants failed 45/45. The proposed-plan
+  references and the declined-path paraphrase are included.
+  `declined-plan-path-explained` negatives failed only `named_path_explained`
+  (score 0). The silent reply did not refuse `references/atlas`. The
+  wrong-date reply named `2026-10-09` while the written plan is
+  `2026-10-08`. The invalid-date reply named `2026-99-99`. The
+  opposite-meaning reply told the reader to use `references/atlas`.
   Symlink negatives are not committed fixtures; the source-contract tests build them:
   `design-stops-for-approval`, `implement-blocks-without-approval`,
   `plan-only-in-resolved-atlas`, `help-does-not-mount`,
@@ -524,8 +545,9 @@ verify` is run without `--fail --threshold 1`.
   access.
 - Gate graders inspect files and skill invocations. The `program` graders run
   only the shared `python3` standard-library scripts
-  `graders/workspace_allowlist.py` and `graders/atlas_record_check.py`.
-  They do not execute agent output.
+  `graders/workspace_allowlist.py`, `graders/atlas_record_check.py`, and
+  `graders/reply_path_check.py`. They do not execute agent output. The reply
+  check reads the final output as text.
 - The fixture Atlas is a minimal hand-made store, not a copy of any real Atlas.
 
 ## Citing results

@@ -536,7 +536,8 @@ class SourceContractTests(unittest.TestCase):
             "waza-evaluation-adversarial-v1",
         }
         for path in sorted((ROOT / ".apm/evals").rglob("*")):
-            if path.is_file():
+            # Grader imports may leave ignored bytecode beside the scripts.
+            if path.is_file() and "__pycache__" not in path.parts:
                 text = path.read_text(encoding="utf-8")
                 for match in re.finditer(r"\bwaza-[a-z][a-z0-9-]*", text):
                     self.assertIn(
@@ -2840,6 +2841,157 @@ class SourceContractTests(unittest.TestCase):
                 self.assertNotEqual(failed.returncode, 0, failed.stdout)
                 self.assertIn("not an allowed log change: " + log, failed.stderr)
                 self.assertTrue((suite / f"{variant}.results.json").is_file())
+
+    def test_declined_path_reply_names_the_written_plan_and_refuses(self) -> None:
+        yaml = self._require_yaml()
+        task = yaml.safe_load(
+            (
+                ROOT
+                / ".apm/evals/autogenesis/tasks/declined-plan-path-explained.yaml"
+            ).read_text(encoding="utf-8")
+        )
+        grader = next(
+            item for item in task["graders"] if item["name"] == "named_path_explained"
+        )
+        self.assertEqual(grader["type"], "program")
+        self.assertEqual(grader["config"]["command"], "python3")
+        self.assertEqual(grader["config"]["timeout"], 30)
+        args = grader["config"]["args"]
+        self.assertEqual(
+            args[0], ".apm/evals/autogenesis/graders/reply_path_check.py"
+        )
+        self.assertNotIn("-c", args)
+        self.assertNotIn("import os", "\n".join(args))
+        script = ROOT / args[0]
+        source = script.read_text(encoding="utf-8")
+        self.assertIn("sys.stdin.buffer.read", source)
+        self.assertIn("WAZA_WORKSPACE_DIR", source)
+        import importlib.util
+        import sys
+
+        write_bytecode = sys.dont_write_bytecode
+        sys.dont_write_bytecode = True
+        try:
+            loaded = importlib.util.spec_from_file_location(
+                "reply_path_check", script
+            )
+            self.assertIsNotNone(loaded)
+            self.assertIsNotNone(loaded.loader)
+            module = importlib.util.module_from_spec(loaded)
+            loaded.loader.exec_module(module)
+        finally:
+            sys.dont_write_bytecode = write_bytecode
+            cache = script.parent / "__pycache__"
+            if cache.exists():
+                for child in cache.iterdir():
+                    child.unlink()
+                cache.rmdir()
+        patterns = (
+            *module.REFUSAL_PATTERNS,
+            module.REASON_PATTERN,
+            module.POSITIVE_USE_PATTERN,
+        )
+        for pattern in patterns:
+            self.assertNotIn("(?=", pattern)
+            self.assertNotIn("(?!", pattern)
+            self.assertNotIn("(?<", pattern)
+            self.assertIsNone(re.search(r"\\[1-9]", pattern))
+            re.compile(pattern, re.IGNORECASE)
+
+        fixture = (
+            ROOT / ".apm/evals/autogenesis/fixtures/declined-plan-path-explained"
+        )
+        reference = fixture / "reference"
+        expect_pass = {
+            "reference",
+            "reference-proposed",
+            "reference-paraphrase",
+        }
+        expect_fail = {
+            "negative": "reply does not refuse references/atlas",
+            "negative-wrong-date": (
+                "reply names autogenesis/plans/2026-10-09-add-retry-note.md, "
+                "not autogenesis/plans/2026-10-08-add-retry-note.md"
+            ),
+            "negative-invalid-date": (
+                "reply names autogenesis/plans/2026-99-99-add-retry-note.md, "
+                "not autogenesis/plans/2026-10-08-add-retry-note.md"
+            ),
+            "negative-opposite-meaning": (
+                "reply tells the reader to use references/atlas"
+            ),
+        }
+        results_names = {
+            path.name.removesuffix(".results.json")
+            for path in fixture.glob("*.results.json")
+        }
+        self.assertEqual(results_names, expect_pass | set(expect_fail))
+        for name in sorted(results_names):
+            with self.subTest(variant=name):
+                payload = json.loads(
+                    (fixture / f"{name}.results.json").read_text(encoding="utf-8")
+                )
+                output = payload["tasks"][0]["runs"][0]["final_output"]
+                result = subprocess.run(
+                    ["python3", *args],
+                    cwd=ROOT,
+                    input=output,
+                    env={**os.environ, "WAZA_WORKSPACE_DIR": str(fixture / name)},
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                if name in expect_pass:
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertIn("2026-10-08-add-retry-note.md", result.stdout)
+                else:
+                    self.assertNotEqual(result.returncode, 0, result.stdout)
+                    self.assertIn(expect_fail[name], result.stderr)
+                if name != "reference-proposed":
+                    self.assertEqual(
+                        self._fixture_bytes(fixture / name),
+                        self._fixture_bytes(reference),
+                    )
+        paraphrase = json.loads(
+            (fixture / "reference-paraphrase.results.json").read_text(
+                encoding="utf-8"
+            )
+        )["tasks"][0]["runs"][0]["final_output"]
+        self.assertNotIn("named path was not used", paraphrase.casefold())
+        self.assertIn("did not use references/atlas", paraphrase.casefold())
+        self.assertIn("resolved store", paraphrase.casefold())
+        opposite = json.loads(
+            (fixture / "negative-opposite-meaning.results.json").read_text(
+                encoding="utf-8"
+            )
+        )["tasks"][0]["runs"][0]["final_output"]
+        self.assertIn(
+            "Instead, use the named legacy storage at references/atlas",
+            opposite,
+        )
+        combined = subprocess.run(
+            ["python3", *args],
+            cwd=ROOT,
+            input=(
+                "The named path was not used. Instead, use the named legacy "
+                "storage at references/atlas. The plan is at "
+                "autogenesis/plans/2026-10-08-add-retry-note.md in the "
+                "resolved subject Atlas."
+            ),
+            env={**os.environ, "WAZA_WORKSPACE_DIR": str(reference)},
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertNotEqual(combined.returncode, 0, combined.stdout)
+        self.assertIn("reply tells the reader to use references/atlas", combined.stderr)
+
+    def _fixture_bytes(self, root: Path) -> dict[str, bytes]:
+        return {
+            path.relative_to(root).as_posix(): path.read_bytes()
+            for path in root.rglob("*")
+            if path.is_file()
+        }
 
     def test_package_manifest_and_lock_have_no_evaluator_dependency(self) -> None:
         for name in ("apm.yml", "apm.lock.yaml"):
