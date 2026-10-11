@@ -1,5 +1,5 @@
 # suite_version: 12
-# Reason for 12: design tasks accept any real plan-creation date, the shared status checker parses indented frontmatter, design may write Atlas experience and index records, the change-class check accepts an inline label or table row with an exact class token, and the fixture SCHEMA carries a minimal compile block so Atlas v0.13.1 can validate it.
+# Reason for 12: design tasks accept any real plan-creation date, the shared status checker parses indented frontmatter, design may write Atlas experience and index records, the change-class check accepts an inline label or table row with an exact class token, and the fixture SCHEMA compile block keeps Atlas defaults rather than a weakened body minimum or page contract, so Atlas v0.13.1 can validate it.
 # Reason for 11: the change-class check requires an exact class token, so a value that only starts with hardening, new-surface or new-skill does not pass.
 # Reason for 10: an allowed path, and every path under an allow-under
 # directory, that exists must be a regular file reached only through real

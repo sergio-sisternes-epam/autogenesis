@@ -9,7 +9,7 @@ advisory quality signal on plan depth.
 
 ```text
 suite_version: 12
-suite_version_reason: design tasks accept any real plan-creation date, the shared status checker parses indented frontmatter, design may write Atlas experience and index records, the change-class check accepts an inline label or table row with an exact class token, and the fixture SCHEMA carries a minimal compile block so Atlas v0.13.1 can validate it
+suite_version_reason: design tasks accept any real plan-creation date, the shared status checker parses indented frontmatter, design may write Atlas experience and index records, the change-class check accepts an inline label or table row with an exact class token, and the fixture SCHEMA compile block keeps Atlas defaults rather than a weakened body minimum or page contract, so Atlas v0.13.1 can validate it
 format: waza 0.38.9 (774df00), schemaVersion "1.4"
 work_id: 2026-10-08-waza-evaluation (Phase 2)
 run_status: not-run-by-autogenesis
@@ -32,8 +32,9 @@ three index files and an append to `log.md`; those writes are allowed
 narrowly, and a rewritten log, a decision file, or any other store path
 still fails. The change-class check accepts an inline label or a table row
 as well as the existing key and heading forms, and still rejects a value
-that only starts with a class. The fixture `SCHEMA.json` carries a minimal
-`compile` block so Atlas v0.13.1 can validate and compile the store.
+that only starts with a class. The fixture `SCHEMA.json` compile block keeps
+Atlas defaults rather than a weakened body minimum or page contract, so Atlas
+v0.13.1 can validate and compile the store.
 
 ## Run boundary
 
@@ -149,16 +150,18 @@ cd /run && WAZA_NO_UPDATE_CHECK=1 waza run /suite/.apm/evals/autogenesis/eval.ru
   before it persists a plan.
 - The fixture Atlas store at `.atlas/example.invalid/fixtures/retry-helper-atlas`
   is a minimal, pre-checked-out directory with no remote and no git history.
-  Its `SCHEMA.json` includes a minimal `compile` block that Atlas v0.13.1
-  accepts, and it keeps the `autogenesis_space` block. Copied subject,
-  subject-legacy and subject-designed stores pass `atlas validate --root` and
-  `atlas compile --root` (exit 0, no CRITICAL finding, and compile writes no
-  extra store files). A realistic design output on that store — a dated plan
-  with a `relates_to` list, a matching work node, an experience record, the
-  three `index.md` updates and an append to `log.md` — stays green and
-  likewise writes nothing else; the only finding is an informational
-  `missing_gist`. Prompts tell the agent to treat the directory as the
-  resolved store and not to mount anything over the network. A run where
+  Its `SCHEMA.json` compile block keeps Atlas defaults rather than a weakened
+  body minimum or page contract, and it keeps the `autogenesis_space` block.
+  Copied subject, subject-legacy, subject-designed and task reference stores
+  pass `atlas validate --root` and `atlas compile --dry-run --root` (exit 0,
+  no CRITICAL finding, no page_contract warning, and neither command writes
+  extra store files). A realistic design output on a copy of the subject
+  store — a dated plan with a `relates_to` list including `kind: implements`,
+  a matching work node, an experience record, the three `index.md` updates
+  and an append to `log.md` — stays green and writes nothing else; the only
+  finding is an informational `missing_gist`. Prompts tell the agent to treat
+  the directory as the resolved store and not to mount anything over the
+  network. A run where
   Atlas tooling still insists on a network mount is an environment or fixture
   limit to report, not a gate pass.
 - `example.invalid` is a reserved name, so the store id can never resolve to a
@@ -337,7 +340,7 @@ validity:
   waza: 0.38.9                  # `WAZA_NO_UPDATE_CHECK=1 waza --version` reported "waza version 0.38.9"
   env: WAZA_NO_UPDATE_CHECK=1; local checkout of this repository; no model call
        # History of earlier re-runs (not this suite version): version 11 re-graded 38 fixtures offline; version 10 re-graded the same 38 offline; version 9 re-graded only the two trigger tasks
-  subject: working tree with the suite_version 12 date-agnostic checkers and fixture SCHEMA compile block
+  subject: working tree with the suite_version 12 date-agnostic checkers and fixture SCHEMA compile block on Atlas defaults
            # V3 does not read the suite_version comment or this README
   check:        # V1: waza check . --format json
     exit_code: 0
@@ -393,10 +396,10 @@ validity:
       skill-change-should-trigger reference: passed; negative: only autogenesis_invoked
             # suite_version 12 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_invoked
   atlas_fixture:  # Atlas v0.13.1 validate and compile; not a Waza check and not behavioural evidence
-    commands: atlas validate --root <copied store>; atlas compile --root <copied store>
-    subjects: fixtures/subjects/subject, subject-legacy and subject-designed
-    outcome: exit 0, no CRITICAL finding, compile wrote no extra store files
-    design_output: dated plan with a relates_to list, matching work node, experience record, three index.md updates, log.md append
+    commands: atlas validate --root <copied store>; atlas compile --dry-run --root <copied store>
+    subjects: fixtures/subjects/subject, subject-legacy, subject-designed, and every task reference variant with a store
+    outcome: exit 0, no CRITICAL finding, no page_contract warning, no extra store files
+    design_output: dated plan with a relates_to list including kind implements, matching work node, experience record, three index.md updates, log.md append
     design_outcome: compile exit 0, informational missing_gist only, no extra store files
 run_status: not-run-by-autogenesis
 ```

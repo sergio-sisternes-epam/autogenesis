@@ -15,7 +15,7 @@
   "compile": {
     "hard_fail": true,
     "allow_inline_ignores": true,
-    "min_body_chars": 20,
+    "min_body_chars": 40,
     "core_checks": [
       "okf_compliance",
       "frontmatter",
@@ -28,9 +28,6 @@
     "simplicity_budget": {
       "max_required_frontmatter_keys_per_type": 8,
       "max_required_sections_per_type": 6
-    },
-    "page_contract": {
-      "when_work_id": "fixture-does-not-require-implements"
     }
   },
   "autogenesis_space": {

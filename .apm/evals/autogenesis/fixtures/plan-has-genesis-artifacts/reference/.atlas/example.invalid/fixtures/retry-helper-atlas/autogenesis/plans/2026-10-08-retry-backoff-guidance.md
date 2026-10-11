@@ -9,6 +9,9 @@ status: designed
 change_class: hardening
 subject: retry-helper
 plan_path: autogenesis/plans/2026-10-08-retry-backoff-guidance.md
+relates_to:
+  - path: autogenesis/work/2026-10-08-retry-backoff-guidance.md
+    kind: implements
 ---
 
 # Jittered exponential backoff with a retry budget
