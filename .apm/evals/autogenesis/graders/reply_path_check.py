@@ -46,31 +46,39 @@ store, stores, stored, storing; put, puts, putting; keep, keeps, kept,
 keeping; persist, persists, persisted, persisting; place, places,
 placed, placing; move, moves, moved, moving.
 
-That clause is a refusal only when the same clause governs every
-use-verb. This check treats government as one of three forms, and no
-other:
+Government is evaluated per matched (verb, path) pair. Every use-verb
+is paired with every references/atlas occurrence in the same clause.
+A pair is governed only when one of these holds, and no other form
+counts:
 
-- a cue within three words before the verb: not; n't inside the word
+- a cue within three words before that verb: not; n't inside the word
   (didn't, won't, don't, can't); the apostrophe-less didnt, dont, wont
   and cant already accepted by the refusal relations; never; no longer;
   cannot; refuse to; refused to; declined to; avoid; avoided
 - the passive or modal form references/atlas (is|was|will|should|must|
-  can) (not|n't|never) (be )?verb, covering that verb
-- instead of or rather than, with at most three words between that
-  phrase and references/atlas
+  can) (not|n't|never) (be )?verb, covering that verb for that path
+  occurrence
+- that path occurrence is the object of instead of or rather than, with
+  at most three words between the phrase and that occurrence, and the
+  verb does not also govern another references/atlas occurrence in the
+  clause that is not such an object
 
-Any other use clause fails the grader. A refusal in another clause does
-not excuse it. In particular the check rejects:
+Any un-governed pair fails the grader. An instead-of exemption on one
+occurrence does not excuse a use of another. A refusal in another
+clause does not excuse it. In particular the check rejects:
 
 - references/atlas should be used for future plans.
 - This is not required, but please use references/atlas for the next plan.
 - Please use references/atlas for all future plans.
 - You can save plans in references/atlas next time.
 - Instead, use the named legacy storage at references/atlas.
+- Use references/atlas for plans instead of references/atlas for drafts.
 
 It does not reject a same-clause governed use, including "I did not
-save the plan in references/atlas" and "references/atlas was not used".
-A cue more than three words before the verb does not govern it.
+save the plan in references/atlas", "references/atlas was not used",
+and "save the plan rather than references/atlas". A cue more than
+three words before the verb does not govern it. An instead-of phrase
+more than three words before that path occurrence does not exempt it.
 """
 
 import os
@@ -110,9 +118,11 @@ REASON_PATTERN = (
     r"\bresolved\s+(?:subject\s+)?atlas\b|\bresolved\s+store\b"
 )
 # Clause-scoped use guard. Python re, no lookaround. A use clause names
-# references/atlas and a use-verb in either order. It is a refusal only
-# when a cue in the same clause governs every such verb, as the module
-# docstring lists. A cue in another clause does not.
+# references/atlas and a use-verb in either order. Government is per
+# matched (verb, path) pair, as the module docstring lists. An instead-of
+# exemption covers only the path occurrence it governs, and only when
+# that verb governs no other un-exempted occurrence in the clause. A
+# cue in another clause does not.
 VERB_CUE_WORDS = 3
 PATH_GAP_WORDS = 3
 USE_VERBS = (
@@ -312,28 +322,48 @@ def cue_governs_verb(words_before):
     return False
 
 
-def passive_covers_verb(clause, verb_match):
+def path_is_instead_object(clause, path_match):
+    """True when instead of / rather than has at most three words before this path."""
+    window = clause[: path_match.end()]
+    return any(
+        match.end() == path_match.end()
+        for match in INSTEAD_BEFORE_PATH.finditer(window)
+    )
+
+
+def passive_covers_pair(clause, verb_match, path_match):
+    """True when the passive or modal negation covers this verb for this path."""
     for match in PASSIVE_REFUSAL.finditer(clause):
-        if match.start() <= verb_match.start() and verb_match.end() <= match.end():
+        if (
+            match.start() <= path_match.start()
+            and path_match.end() <= match.end()
+            and match.start() <= verb_match.start()
+            and verb_match.end() <= match.end()
+        ):
             return True
     return False
 
 
 def clause_tells_reader_to_use(clause):
-    """True when this one clause is an ungoverned use of references/atlas."""
-    if NAMED_PATH.search(clause) is None:
-        return False
+    """True when any (verb, path) pair in this clause is ungoverned."""
+    paths = list(NAMED_PATH.finditer(clause))
     verbs = list(USE_VERB.finditer(clause))
-    if not verbs:
+    if not paths or not verbs:
         return False
-    if INSTEAD_BEFORE_PATH.search(clause):
-        return False
+    exempted = [path_is_instead_object(clause, path) for path in paths]
+    any_unexempted = not all(exempted)
     for verb in verbs:
-        if passive_covers_verb(clause, verb):
-            continue
-        if cue_governs_verb(clause_words(clause[: verb.start()])):
-            continue
-        return True
+        verb_negated = cue_governs_verb(clause_words(clause[: verb.start()]))
+        for path, path_exempted in zip(paths, exempted):
+            if verb_negated:
+                continue
+            if passive_covers_pair(clause, verb, path):
+                continue
+            # The instead-of object is exempt only when this verb governs
+            # no other un-exempted references/atlas occurrence.
+            if path_exempted and not any_unexempted:
+                continue
+            return True
     return False
 
 

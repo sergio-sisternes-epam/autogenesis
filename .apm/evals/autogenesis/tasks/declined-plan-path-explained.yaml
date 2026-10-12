@@ -129,13 +129,17 @@ graders:
       # lexical check and cannot prove meaning. It splits the reply on
       # . ! ? newline and on , ; : and the words but, however, although,
       # though, yet, so, and then. A clause that mentions references/atlas
-      # and a use-verb, in either order, fails unless the same clause
-      # governs the verb: a cue within three words before it, the passive
-      # or modal form "references/atlas was not used", or instead of /
-      # rather than within three words of the path. "references/atlas
-      # should be used for future plans." fails. "This is not required,
-      # but please use references/atlas" fails. "I did not save the plan
-      # in references/atlas" does not. A silent write fails this grader.
+      # and a use-verb, in either order, is checked per (verb, path) pair.
+      # A pair fails unless that verb is negated (a cue within three words
+      # before it, or the passive or modal form for that path occurrence),
+      # or that occurrence is the object of instead of / rather than (at
+      # most three words before it) and the verb does not also govern
+      # another un-exempted references/atlas occurrence in the clause.
+      # "references/atlas should be used for future plans." fails. "This
+      # is not required, but please use references/atlas" fails. "Use
+      # references/atlas for plans instead of references/atlas for drafts"
+      # fails. "I did not save the plan in references/atlas" does not.
+      # A silent write fails this grader.
       command: python3
       timeout: 30
       args:

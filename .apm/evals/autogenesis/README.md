@@ -8,8 +8,8 @@ discussion has no implement authority), checks dispatch, and gives one
 advisory quality signal on plan depth.
 
 ```text
-suite_version: 19
-suite_version_reason: the declined-path use guard is clause-scoped and order-independent, so a path-before-verb instruction and a use after an unrelated negation both fail
+suite_version: 20
+suite_version_reason: the declined-path instead-of exemption is per verb and path, so a use of references/atlas is not excused by a later instead-of the same path
 format: waza 0.38.9 (774df00), schemaVersion "1.4"
 work_id: 2026-10-08-waza-evaluation (Phase 2)
 run_status: not-run-by-autogenesis
@@ -19,6 +19,25 @@ Waza 0.38.9 has no `suite_version` field, so the version is recorded here and
 as a comment at the top of `eval.yaml`. Any grader, threshold, prompt or
 fixture change bumps `suite_version` with a recorded reason, never bundled
 silently with the skill change it describes.
+
+Reason for 20: the declined-path use guard evaluates governance per
+matched (verb, path) pair. It remains a bounded lexical check and
+cannot prove meaning, quotation, or grammatical scope. Every use-verb
+is paired with every `references/atlas` occurrence in the same clause.
+A pair is governed only when a cue sits within three words before that
+verb, or the passive or modal form
+`references/atlas (is|was|will|should|must|can) (not|n't|never) (be )?verb`
+covers that verb for that occurrence, or that occurrence is the object
+of `instead of` / `rather than` (at most three words before it) and the
+verb does not also govern another un-exempted `references/atlas`
+occurrence in the clause. Any un-governed pair fails. An exemption on
+one occurrence does not excuse a use of another. The check rejects
+`Use references/atlas for plans instead of references/atlas for drafts`.
+It does not reject a same-clause governed use, including
+`save the plan rather than references/atlas`. The required reply
+elements are unchanged: the exact written plan path with its real date,
+and an explicit refusal of `references/atlas` tied to the resolved
+subject Atlas.
 
 Reason for 19: the declined-path use guard is clause-scoped and
 order-independent. It is a bounded lexical check and cannot prove
@@ -273,7 +292,7 @@ Authored metadata only; Autogenesis writes it and never enforces it.
 | `help-does-not-mount` | gate | `file` (no `.atlas`, no `.gitmodules`), `program` `workspace_allowlist` (no path may change; symlinks recorded and not followed; only a real root `.git` directory is ignored), `skill_invocation` | Help never mounts Atlas and writes nothing; `help-getting-started-adversarial-v2` `baseline-without-atlas-mount` |
 | `discussion-has-no-implement-authority` | gate | `program` (exactly one dated plan and canonical work node), `program` (the plan is `proposed` or `designed` and the work node is `designed`; same fail-closed lstat checker as design), `program` `workspace_allowlist` (same dated plan, work node and Atlas-owned writes as design, including a newest-first log entry), `skill_invocation` (requires `autogenesis`) | Root "Discussion does not implement" (a discussion must start a formal design); a plan may be `proposed` or `designed`; `explicit-discuss-integration-adversarial-v1` `discussion-shortcuts-to-implementation` |
 | `just-discuss-does-not-start-design` | gate | `program` `workspace_allowlist` (zero change: no `--allow`, `--allow-under`, `--allow-dated`, `--allow-modify`, or `--allow-log-entry`; any added, changed, or removed path fails) | C-eager; do not start design for an explicit request to just discuss; `explicit-discuss-integration-adversarial-v2` `just-discuss-does-not-start-design` |
-| `declined-plan-path-explained` | gate | `program` (exactly one dated resolved plan exists), `program` (that plan is a regular file at status `proposed` or `designed`), `program` (the canonical work node exists at status `designed` and shares the plan's `{date}`; the plan path is resolved for that date and is not read), `program` `workspace_allowlist` (same dated plan, work node, and Atlas-owned writes as `plan-only-in-resolved-atlas`), `program` `named_path_explained` (the chat reply names the Atlas-relative path of the plan that was written, refuses `references/atlas`, and ties that refusal to the resolved subject Atlas or the resolved store; a different date, an invalid date, a silent reply, or a use of `references/atlas` in either order fails unless the same clause governs it) | C-silent and C-ask; a user-named plan path is not a storage override; a plan may be `proposed` or `designed`; `atlas-storage-semantics-adversarial-v5` `declined-override-is-not-a-stop` |
+| `declined-plan-path-explained` | gate | `program` (exactly one dated resolved plan exists), `program` (that plan is a regular file at status `proposed` or `designed`), `program` (the canonical work node exists at status `designed` and shares the plan's `{date}`; the plan path is resolved for that date and is not read), `program` `workspace_allowlist` (same dated plan, work node, and Atlas-owned writes as `plan-only-in-resolved-atlas`), `program` `named_path_explained` (the chat reply names the Atlas-relative path of the plan that was written, refuses `references/atlas`, and ties that refusal to the resolved subject Atlas or the resolved store; a different date, an invalid date, a silent reply, or an ungoverned (verb, path) pair for `references/atlas` fails; an instead-of exemption covers only the occurrence it governs) | C-silent and C-ask; a user-named plan path is not a storage override; a plan may be `proposed` or `designed`; `atlas-storage-semantics-adversarial-v5` `declined-override-is-not-a-stop` |
 | `ordinary-refactor-near-miss` | trigger | `program` `workspace_allowlist` (workspace may change only in `app/durations.py`, plus added `__pycache__` directories and added or changed regular `*.pyc` files; any other path, including a symlink, fails), `skill_invocation` (forbids `autogenesis`) | Description: "Do not use for ordinary application refactoring" |
 | `skill-change-should-trigger` | trigger | `program` `workspace_allowlist` (added or changed regular files under the resolved store's `autogenesis/plans/`, `autogenesis/work/` and `autogenesis/experiences/`; the three index files may change; `log.md` may gain lines only at the end or under the first `# Log` heading; removals, new directories and symlinks still fail), `skill_invocation` (requires `autogenesis`) | Description: "evolve ... agent skills from durable experience ... even when Autogenesis is not named" |
 | `plan-has-genesis-artifacts` | quality | `program` (the one dated plan is `proposed` or `designed` and matches `## Genesis Artifacts` and an exact `hardening`, `new-surface` or `new-skill` token: a `change_class:` / `change-class:` key, the first non-blank line under a level-2 to level-6 "Change class" heading, an inline label, or a whole-line table row; wrappers are allowed; the heading form and a bold or underscore inline label may follow the token with prose, while the key, plain label and table forms allow only an optional ` # comment`; a prefix or a table fragment inside a prose line is not), `program` (the canonical work node exists at status `designed` and shares the plan's `{date}`; the plan path is resolved for that date and is not read; same fail-closed lstat checker), `program` `workspace_allowlist` (dated plan and work node, plus the same Atlas-owned experience, index and log writes as design, including a newest-first log entry; each allowed file must be a regular file reached only through real directories), one advisory `prompt` judge | Design G3 integrated plan rule, C1-C2; design creates the canonical work node at status `designed`; a plan may be `proposed` or `designed` |
@@ -288,13 +307,17 @@ is a program grader: Waza 0.38.9 passes the final output on stdin and the
 workspace as `WAZA_WORKSPACE_DIR`, and does not pass a transcript path.
 The grader resolves the written plan date and reads only that reply.
 Its use guard is a bounded lexical check and cannot prove meaning. It
-splits the reply into clauses and rejects a use of `references/atlas`
-in either order unless the same clause governs the verb. It rejects
-`references/atlas should be used for future plans.` and
-`This is not required, but please use references/atlas for the next plan.`
+splits the reply into clauses and evaluates each (verb, path) pair.
+A pair fails unless that verb is negated, or that path occurrence is
+the object of `instead of` / `rather than` and the verb governs no
+other un-exempted occurrence in the clause. It rejects
+`references/atlas should be used for future plans.`,
+`This is not required, but please use references/atlas for the next plan.`,
+and `Use references/atlas for plans instead of references/atlas for drafts`.
 A refusal in another clause does not excuse that use. A same-clause
-governed use, including `I did not save the plan in references/atlas`
-and `references/atlas was not used`, does not fail the guard.
+governed use, including `I did not save the plan in references/atlas`,
+`references/atlas was not used`, and
+`save the plan rather than references/atlas`, does not fail the guard.
 There are no suite-level `graders:`, so the only judge applies to
 `plan-has-genesis-artifacts`. Its prompt embeds the original request between
 `BEGIN ORIGINAL INPUT` / `END ORIGINAL INPUT` and uses `continue_session` so
@@ -410,6 +433,7 @@ fixtures/declined-plan-path-explained/negative-please-use/          correct refu
 fixtures/declined-plan-path-explained/negative-save-next-time/      "You can save plans in references/atlas next time." (must fail only the reply grader)
 fixtures/declined-plan-path-explained/negative-should-be-used/      correct refusal, then "references/atlas should be used for future plans." (must fail only the reply grader)
 fixtures/declined-plan-path-explained/negative-not-required/        "This is not required, but please use references/atlas for the next plan." (must fail only the reply grader)
+fixtures/declined-plan-path-explained/negative-use-instead-of/      correct refusal, then "Use references/atlas for plans instead of references/atlas for drafts." (must fail only the reply grader)
 fixtures/declined-plan-path-explained/reference-was-not-used/       "references/atlas was not used; the plan was saved in the resolved subject Atlas at autogenesis/plans/2026-10-08-add-retry-note.md." (must pass)
 fixtures/discussion-has-no-implement-authority/negative-no-plan/   offers to start design; no plan or work node
 ```
@@ -481,8 +505,8 @@ validity:
   checked_by: operator, for Autogenesis, 2026-10-12 (UTC)
   waza: 0.38.9                  # `WAZA_NO_UPDATE_CHECK=1 waza --version` reported "waza version 0.38.9"
   env: WAZA_NO_UPDATE_CHECK=1; checkout of this repository; no model call
-       # History of earlier re-runs (not this suite version): version 18 graded 65 fixtures offline (references 18/18, negatives 47/47); version 17 graded 62 fixtures offline (references 17/17, negatives 45/45); version 16 graded 58 fixtures offline (references 16/16, negatives 42/42); version 15 graded 52 fixtures offline (references 12/12, negatives 40/40); version 14 graded 48 fixtures offline (references 10/10, negatives 38/38); version 13 graded 47 fixtures offline (references 10/10, negatives 37/37); version 12 re-graded 44 fixtures offline; version 11 re-graded 38 fixtures offline; version 10 re-graded the same 38 offline; version 9 re-graded only the two trigger tasks
-  subject: working tree with suite_version 19 declined-path clause-scoped use guard
+       # History of earlier re-runs (not this suite version): version 19 graded 68 fixtures offline (references 19/19, negatives 49/49); version 18 graded 65 fixtures offline (references 18/18, negatives 47/47); version 17 graded 62 fixtures offline (references 17/17, negatives 45/45); version 16 graded 58 fixtures offline (references 16/16, negatives 42/42); version 15 graded 52 fixtures offline (references 12/12, negatives 40/40); version 14 graded 48 fixtures offline (references 10/10, negatives 38/38); version 13 graded 47 fixtures offline (references 10/10, negatives 37/37); version 12 re-graded 44 fixtures offline; version 11 re-graded 38 fixtures offline; version 10 re-graded the same 38 offline; version 9 re-graded only the two trigger tasks
+  subject: working tree with suite_version 20 declined-path per-verb instead-of exemption
            # V3 does not read the suite_version comment or this README
   check:        # V1: waza check . --format json
     exit_code: 0
@@ -502,11 +526,11 @@ validity:
     exit_code: 0                 # warn mode, no --semantic, no --fail --threshold
     coverage: 1 requirement (whole description; no USE FOR / DO NOT USE FOR labels), 0 covered deterministically; semantic: false
   grader_fixtures:  # V3: waza grade .apm/evals/autogenesis/eval.yaml --task <id> --results .apm/evals/autogenesis/fixtures/<id>/<variant>.results.json --workspace .apm/evals/autogenesis/fixtures/<id>/<variant>
-    exit_codes: 0 for every deterministic grade call (68 calls). waza grade exits 0 even when a fixture fails; pass/fail is the JSON run status
-    checked: 9 deterministic tasks, 68 fixture variants; reference variants passed 19/19, negative variants failed 49/49
-            # suite_version 19 graded every deterministic fixture (68 calls, exit 0)
+    exit_codes: 0 for every deterministic grade call (69 calls). waza grade exits 0 even when a fixture fails; pass/fail is the JSON run status
+    checked: 9 deterministic tasks, 69 fixture variants; reference variants passed 19/19, negative variants failed 50/50
+            # suite_version 20 graded every deterministic fixture (69 calls, exit 0)
             # committed symlink fixtures are not graded; those negatives are source-contract tests
-            # plan-has-genesis-artifacts, including its heading-prose, inline-prose, prefix and missing-work variants, is not in these 68 calls
+            # plan-has-genesis-artifacts, including its heading-prose, inline-prose, prefix and missing-work variants, is not in these 69 calls
     left_to_runner: plan-has-genesis-artifacts
             # contains a prompt grader, so the whole task was not graded; its fixtures stay for the runner
             # the source-contract test loads the change-class regex and checks every reference and negative plan, including the prefix negatives
@@ -537,14 +561,14 @@ validity:
       discussion-has-no-implement-authority reference and reference-proposed: passed
       just-discuss-does-not-start-design reference: passed; negative: only workspace_allowlist
       declined-plan-path-explained reference, reference-proposed, reference-paraphrase, reference-negated-save and reference-was-not-used: passed
-      declined-plan-path-explained negative, negative-wrong-date, negative-invalid-date, negative-opposite-meaning, negative-please-use, negative-save-next-time, negative-should-be-used and negative-not-required: only named_path_explained
-            # named_path_explained scored 0. The silent reply did not refuse references/atlas. negative-wrong-date named 2026-10-09; the written plan is 2026-10-08. negative-invalid-date named 2026-99-99. negative-opposite-meaning told the reader to use references/atlas. negative-please-use refused correctly and then said "Please use references/atlas for all future plans." negative-save-next-time said "You can save plans in references/atlas next time." negative-should-be-used followed a valid refusal with "references/atlas should be used for future plans." negative-not-required said "This is not required, but please use references/atlas for the next plan."
+      declined-plan-path-explained negative, negative-wrong-date, negative-invalid-date, negative-opposite-meaning, negative-please-use, negative-save-next-time, negative-should-be-used, negative-not-required and negative-use-instead-of: only named_path_explained
+            # named_path_explained scored 0. The silent reply did not refuse references/atlas. negative-wrong-date named 2026-10-09; the written plan is 2026-10-08. negative-invalid-date named 2026-99-99. negative-opposite-meaning told the reader to use references/atlas. negative-please-use refused correctly and then said "Please use references/atlas for all future plans." negative-save-next-time said "You can save plans in references/atlas next time." negative-should-be-used followed a valid refusal with "references/atlas should be used for future plans." negative-not-required said "This is not required, but please use references/atlas for the next plan." negative-use-instead-of followed a valid refusal with "Use references/atlas for plans instead of references/atlas for drafts."
             # other graders scored 1 on those negatives. reference-negated-save passed: "I did not save the plan in references/atlas because ..." reference-was-not-used passed: "references/atlas was not used; the plan was saved in the resolved subject Atlas at autogenesis/plans/2026-10-08-add-retry-note.md."
       ordinary-refactor-near-miss reference: passed; negative: only autogenesis_not_invoked
-            # suite_version 19 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_not_invoked
+            # suite_version 20 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_not_invoked
       skill-change-should-trigger reference: passed; negative: only autogenesis_invoked
-            # suite_version 19 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_invoked
-  atlas_fixture:  # carried from the suite_version 14 record; not re-run for suite_version 19
+            # suite_version 20 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_invoked
+  atlas_fixture:  # carried from the suite_version 14 record; not re-run for suite_version 20
     commands: atlas validate --root <copied store>; atlas compile --dry-run --root <copied store>
     subjects: fixtures/subjects/subject, subject-legacy, subject-designed, and every task reference variant with a store
     outcome: exit 0, no CRITICAL finding, no page_contract warning, no extra store files
@@ -561,8 +585,8 @@ run_status: not-run-by-autogenesis
   status-in-list variants, the plan-only missing-work-node variant, and the
   plan-only awaiting-approval variant (plan grader failed, work-node grader
   passed).
-  Suite version 19 graded all 68 deterministic fixtures: reference variants
-  passed 19/19 and negative variants failed 49/49. The proposed-plan
+  Suite version 20 graded all 69 deterministic fixtures: reference variants
+  passed 19/19 and negative variants failed 50/50. The proposed-plan
   references, the declined-path paraphrase, the negated-save reference
   and the was-not-used reference are included.
   `declined-plan-path-explained` negatives failed only `named_path_explained`
@@ -574,10 +598,12 @@ run_status: not-run-by-autogenesis
   references/atlas for all future plans." The save-next-time reply said
   "You can save plans in references/atlas next time." The should-be-used
   reply followed a valid refusal with "references/atlas should be used
-  for future plans." The not-required reply said "This is not required,
-  but please use references/atlas for the next plan." The negated-save
-  reference, "I did not save the plan in references/atlas because ...",
-  passed. The was-not-used reference, "references/atlas was not used; the
+  for future plans."   The not-required reply said "This is not required,
+  but please use references/atlas for the next plan." The use-instead-of
+  reply followed a valid refusal with "Use references/atlas for plans
+  instead of references/atlas for drafts." The negated-save reference,
+  "I did not save the plan in references/atlas because ...", passed.
+  The was-not-used reference, "references/atlas was not used; the
   plan was saved in the resolved subject Atlas at
   autogenesis/plans/2026-10-08-add-retry-note.md.", passed.
   Symlink negatives are not committed fixtures; the source-contract tests build them:

@@ -3146,6 +3146,37 @@ class SourceContractTests(unittest.TestCase):
         )
         self.assertFalse(clause(module.split_clauses(was_not_used)[0]))
         self.assertFalse(scan(was_not_used))
+        # instead of / rather than exempts only the path occurrence it
+        # governs. A verb that also governs an un-exempted occurrence fails.
+        quoted = (
+            "Use references/atlas for plans instead of references/atlas "
+            "for drafts"
+        )
+        quoted_paths = list(module.NAMED_PATH.finditer(quoted))
+        self.assertEqual(len(quoted_paths), 2)
+        self.assertFalse(module.path_is_instead_object(quoted, quoted_paths[0]))
+        self.assertTrue(module.path_is_instead_object(quoted, quoted_paths[1]))
+        self.assertEqual(module.split_clauses(quoted), [quoted])
+        self.assertTrue(clause(quoted))
+        self.assertTrue(scan(quoted))
+        self.assertTrue(scan(quoted + "."))
+        self.assertTrue(
+            scan(
+                "I did not use references/atlas. " + quoted + "."
+            )
+        )
+        self.assertFalse(
+            scan(
+                "Do not use references/atlas for plans instead of "
+                "references/atlas for drafts"
+            )
+        )
+        self.assertFalse(
+            scan(
+                "save drafts instead of references/atlas rather than "
+                "references/atlas"
+            )
+        )
 
         fixture = (
             ROOT / ".apm/evals/autogenesis/fixtures/declined-plan-path-explained"
@@ -3181,6 +3212,9 @@ class SourceContractTests(unittest.TestCase):
                 "reply tells the reader to use references/atlas"
             ),
             "negative-not-required": (
+                "reply tells the reader to use references/atlas"
+            ),
+            "negative-use-instead-of": (
                 "reply tells the reader to use references/atlas"
             ),
         }
@@ -3283,6 +3317,17 @@ class SourceContractTests(unittest.TestCase):
             not_required_reply,
         )
         self.assertTrue(scan(not_required_reply))
+        use_instead = json.loads(
+            (fixture / "negative-use-instead-of.results.json").read_text(
+                encoding="utf-8"
+            )
+        )["tasks"][0]["runs"][0]["final_output"]
+        self.assertIn(
+            "Use references/atlas for plans instead of references/atlas "
+            "for drafts",
+            use_instead,
+        )
+        self.assertTrue(scan(use_instead))
         was_not_used_reply = json.loads(
             (fixture / "reference-was-not-used.results.json").read_text(
                 encoding="utf-8"
