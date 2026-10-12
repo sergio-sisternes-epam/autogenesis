@@ -6,6 +6,7 @@
     "atlas-storage-semantics-adversarial-v5.yaml",
     "autogenesis-adversarial-v4.yaml",
     "catalogue-review-gate-adversarial-v2.yaml",
+    "catalogue-description-adversarial-v1.yaml",
     "catalog-think-integration-adversarial-v2.yaml",
     "derived-skill-modules-adversarial-v1.yaml",
     "explicit-discuss-integration-adversarial-v2.yaml",

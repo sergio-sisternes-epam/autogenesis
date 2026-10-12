@@ -6,13 +6,16 @@ Autogenesis is an expanded discipline of [`danielmeppiel/genesis`](https://githu
 
 Autogenesis is a root APM skill (`SKILL.md` + `apm.yml` at the repository
 root). Use it to evolve, design, review, or initialise agent skills from
-durable experience. Genesis remains the design process; Autogenesis fuses
-and extends it. Derived skills receive the runtime capabilities their
-purpose needs, not an Autogenesis framework by default. Design stops for
-explicit approval. Discussion does not implement.
+durable experience. Also use it to change an existing skill package,
+including an agreed change or a request to skip ceremony. Genesis remains
+the design process; Autogenesis fuses and extends it. Derived skills
+receive the runtime capabilities their purpose needs, not an Autogenesis
+framework by default. Design stops for explicit approval. Discussion does
+not implement.
 
-Do not use it for ordinary application refactoring, automatic wiring, or
-bypassing parent-routed help to load private support modules. Public
+Do not use it for ordinary application refactoring, a mere mention of
+SKILL.md, automatic wiring, or bypassing parent-routed help to load
+private support modules. Public
 module overview is the `help` operation. It does not supersede Genesis,
 auto-implement from reflection, or author process memory into the
 installed skill package.

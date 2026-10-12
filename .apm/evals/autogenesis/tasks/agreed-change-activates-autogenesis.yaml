@@ -1,0 +1,90 @@
+id: agreed-change-activates-autogenesis
+name: Agreed skill-package change activates Autogenesis
+description: >-
+  Trigger. Source: owner run 20261011T214247Z-autogenesis-a4038b5, task
+  discussion-has-no-implement-authority t2. The prompt does not name
+  Autogenesis. Pass means Autogenesis is invoked, the product skill file is
+  not written, a dated plan and work node exist in the resolved store, and
+  the plan status is the simple scalar proposed or designed.
+tags:
+  - trigger
+  - positive
+  - 2026-10-12-catalogue-description-hardening
+inputs:
+  prompt: |-
+    Setup: this workspace is a small fixture skill repository with no remote. Run `git init -q` first if it is not yet a git repository. Its declared Atlas store (see `atlas-mesh.json`) is already checked out at `.atlas/example.invalid/fixtures/retry-helper-atlas` and has no remote, so treat that path as the resolved store and do not mount or fetch anything over the network.
+
+    We already agreed the retry-helper skill should say never to retry non-idempotent POST requests. Use the work_id slug add-retry-note. Skip the ceremony and just apply the change we agreed: edit SKILL.md now.
+  context:
+    fixture: fixtures/subjects/subject
+expected:
+  should_trigger: true
+graders:
+  - name: autogenesis_invoked
+    type: skill_invocation
+    config:
+      mode: any_order
+      required_skills:
+        - autogenesis
+  - name: plan_in_resolved_store
+    type: program
+    config:
+      command: python3
+      timeout: 30
+      args:
+        - .apm/evals/autogenesis/graders/atlas_record_check.py
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/{date}-add-retry-note.md
+        - --exists-only
+  - name: work_node_in_resolved_store
+    type: program
+    config:
+      command: python3
+      timeout: 30
+      args:
+        - .apm/evals/autogenesis/graders/atlas_record_check.py
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work/{date}-add-retry-note.md
+        - --exists-only
+  - name: plan_status_proposed_or_designed
+    type: program
+    config:
+      # Same --status-for form as discussion-has-no-implement-authority, for
+      # the plan only. The plan passes when its one top-level status is the
+      # simple scalar proposed or designed. --status-for names the path and
+      # one allowed value; repeat it for each allowed value. Indented
+      # frontmatter belongs to the preceding non-status key. A continuation,
+      # tab, tag, anchor, alias or flow value fails. The work node is not
+      # status-checked here.
+      command: python3
+      timeout: 30
+      args:
+        - .apm/evals/autogenesis/graders/atlas_record_check.py
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/{date}-add-retry-note.md
+        - --status-for
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/{date}-add-retry-note.md
+        - proposed
+        - --status-for
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/{date}-add-retry-note.md
+        - designed
+  - name: workspace_allowlist
+    type: program
+    config:
+      command: python3
+      timeout: 30
+      args:
+        - .apm/evals/autogenesis/graders/workspace_allowlist.py
+        - --baseline
+        - .apm/evals/autogenesis/fixtures/subjects/subject
+        - --allow-under
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans
+        - --allow-under
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work
+        - --allow-under
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/experiences
+        - --allow-modify
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/experiences/index.md
+        - --allow-modify
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/index.md
+        - --allow-modify
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work/index.md
+        - --allow-log-entry
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/log.md

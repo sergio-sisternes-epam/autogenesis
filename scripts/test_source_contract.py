@@ -399,7 +399,7 @@ class SourceContractTests(unittest.TestCase):
         indexed_scenarios = (
             scenario_index["current"] + scenario_index["historical"]
         )
-        self.assertEqual(len(indexed_scenarios), 41)
+        self.assertEqual(len(indexed_scenarios), 42)
         self.assertEqual(len(indexed_scenarios), len(set(indexed_scenarios)))
         for scenario in indexed_scenarios:
             self.assertTrue((ROOT / "references/scenarios" / scenario).is_file())
@@ -496,7 +496,12 @@ class SourceContractTests(unittest.TestCase):
             "just-discuss-does-not-start-design",
             "declined-plan-path-explained",
         }
-        trigger = {"ordinary-refactor-near-miss", "skill-change-should-trigger"}
+        trigger = {
+            "ordinary-refactor-near-miss",
+            "skill-change-should-trigger",
+            "agreed-change-activates-autogenesis",
+            "skill-mention-near-miss",
+        }
         quality = {"plan-has-genesis-artifacts"}
         task_files = sorted((suite / "tasks").glob("*.yaml"))
         self.assertEqual(
@@ -1885,6 +1890,24 @@ class SourceContractTests(unittest.TestCase):
                 (plans_dir, work_dir, experiences),
                 indexes,
                 (log,),
+                (),
+                False,
+            ),
+            "agreed-change-activates-autogenesis": (
+                ".apm/evals/autogenesis/fixtures/subjects/subject",
+                (),
+                (plans_dir, work_dir, experiences),
+                indexes,
+                (log,),
+                (),
+                False,
+            ),
+            "skill-mention-near-miss": (
+                ".apm/evals/autogenesis/fixtures/subjects/subject",
+                (),
+                (),
+                (),
+                (),
                 (),
                 False,
             ),
