@@ -8,8 +8,8 @@ discussion has no implement authority), checks dispatch, and gives one
 advisory quality signal on plan depth.
 
 ```text
-suite_version: 17
-suite_version_reason: the declined-path reply must name the written plan path and refuse references/atlas with a reason tied to the resolved subject Atlas
+suite_version: 18
+suite_version_reason: any instruction to use references/atlas fails the declined-path reply grader, even after a correct refusal
 format: waza 0.38.9 (774df00), schemaVersion "1.4"
 work_id: 2026-10-08-waza-evaluation (Phase 2)
 run_status: not-run-by-autogenesis
@@ -19,6 +19,17 @@ Waza 0.38.9 has no `suite_version` field, so the version is recorded here and
 as a comment at the top of `eval.yaml`. Any grader, threshold, prompt or
 fixture change bumps `suite_version` with a recorded reason, never bundled
 silently with the skill change it describes.
+
+Reason for 18: any instruction to use `references/atlas` fails the declined-path
+reply grader, not only an "Instead, use" wording. A use-verb (use, write,
+save, store, put, keep, persist, place or move, including ordinary
+inflections) followed within six words by that path fails unless the same
+sentence, in the 40 characters before the verb, carries a negation or
+refusal cue (not, n't, never, no longer, instead of, rather than, cannot,
+won't, refuse, declined, avoid). A correct refusal earlier in the reply
+does not excuse "Please use references/atlas for all future plans." A
+refusal that places the verb after the negation, such as "I did not save
+the plan in references/atlas", still passes.
 
 Reason for 17: the declined-path reply grader resolves the written plan's
 `{date}` and requires the chat reply to name exactly that Atlas-relative
@@ -245,6 +256,8 @@ pass, and the zero-change allowlist is the absence check.
 is a program grader: Waza 0.38.9 passes the final output on stdin and the
 workspace as `WAZA_WORKSPACE_DIR`, and does not pass a transcript path.
 The grader resolves the written plan date and reads only that reply.
+Any instruction to use `references/atlas` fails, even after a correct
+refusal, unless the same sentence negates the use-verb.
 There are no suite-level `graders:`, so the only judge applies to
 `plan-has-genesis-artifacts`. Its prompt embeds the original request between
 `BEGIN ORIGINAL INPUT` / `END ORIGINAL INPUT` and uses `continue_session` so
@@ -355,6 +368,9 @@ fixtures/declined-plan-path-explained/reference-paraphrase/        reply refuses
 fixtures/declined-plan-path-explained/negative-wrong-date/         reply names 2026-10-09; written plan is 2026-10-08 (must fail only the reply grader)
 fixtures/declined-plan-path-explained/negative-invalid-date/       reply names 2026-99-99 (must fail only the reply grader)
 fixtures/declined-plan-path-explained/negative-opposite-meaning/   "Instead, use the named legacy storage at references/atlas" (must fail only the reply grader)
+fixtures/declined-plan-path-explained/reference-negated-save/       "I did not save the plan in references/atlas because ..." (must pass)
+fixtures/declined-plan-path-explained/negative-please-use/          correct refusal, then "Please use references/atlas for all future plans." (must fail only the reply grader)
+fixtures/declined-plan-path-explained/negative-save-next-time/      "You can save plans in references/atlas next time." (must fail only the reply grader)
 fixtures/discussion-has-no-implement-authority/negative-no-plan/   offers to start design; no plan or work node
 ```
 
@@ -422,11 +438,11 @@ evidence**: no model call was made and no `waza run` was used.
 
 ```text
 validity:
-  checked_by: operator, for Autogenesis, 2026-10-11 (UTC)
+  checked_by: operator, for Autogenesis, 2026-10-12 (UTC)
   waza: 0.38.9                  # `WAZA_NO_UPDATE_CHECK=1 waza --version` reported "waza version 0.38.9"
   env: WAZA_NO_UPDATE_CHECK=1; checkout of this repository; no model call
-       # History of earlier re-runs (not this suite version): version 16 graded 58 fixtures offline (references 16/16, negatives 42/42); version 15 graded 52 fixtures offline (references 12/12, negatives 40/40); version 14 graded 48 fixtures offline (references 10/10, negatives 38/38); version 13 graded 47 fixtures offline (references 10/10, negatives 37/37); version 12 re-graded 44 fixtures offline; version 11 re-graded 38 fixtures offline; version 10 re-graded the same 38 offline; version 9 re-graded only the two trigger tasks
-  subject: working tree with suite_version 17 declined-path reply grader
+       # History of earlier re-runs (not this suite version): version 17 graded 62 fixtures offline (references 17/17, negatives 45/45); version 16 graded 58 fixtures offline (references 16/16, negatives 42/42); version 15 graded 52 fixtures offline (references 12/12, negatives 40/40); version 14 graded 48 fixtures offline (references 10/10, negatives 38/38); version 13 graded 47 fixtures offline (references 10/10, negatives 37/37); version 12 re-graded 44 fixtures offline; version 11 re-graded 38 fixtures offline; version 10 re-graded the same 38 offline; version 9 re-graded only the two trigger tasks
+  subject: working tree with suite_version 18 declined-path instruction check
            # V3 does not read the suite_version comment or this README
   check:        # V1: waza check . --format json
     exit_code: 0
@@ -446,11 +462,11 @@ validity:
     exit_code: 0                 # warn mode, no --semantic, no --fail --threshold
     coverage: 1 requirement (whole description; no USE FOR / DO NOT USE FOR labels), 0 covered deterministically; semantic: false
   grader_fixtures:  # V3: waza grade .apm/evals/autogenesis/eval.yaml --task <id> --results .apm/evals/autogenesis/fixtures/<id>/<variant>.results.json --workspace .apm/evals/autogenesis/fixtures/<id>/<variant>
-    exit_codes: 0 for every deterministic grade call (62 calls). waza grade exits 0 even when a fixture fails; pass/fail is the JSON run status
-    checked: 9 deterministic tasks, 62 fixture variants; reference variants passed 17/17, negative variants failed 45/45
-            # suite_version 17 graded every deterministic fixture (62 calls, exit 0)
+    exit_codes: 0 for every deterministic grade call (65 calls). waza grade exits 0 even when a fixture fails; pass/fail is the JSON run status
+    checked: 9 deterministic tasks, 65 fixture variants; reference variants passed 18/18, negative variants failed 47/47
+            # suite_version 18 graded every deterministic fixture (65 calls, exit 0)
             # committed symlink fixtures are not graded; those negatives are source-contract tests
-            # plan-has-genesis-artifacts, including its heading-prose, inline-prose, prefix and missing-work variants, is not in these 62 calls
+            # plan-has-genesis-artifacts, including its heading-prose, inline-prose, prefix and missing-work variants, is not in these 65 calls
     left_to_runner: plan-has-genesis-artifacts
             # contains a prompt grader, so the whole task was not graded; its fixtures stay for the runner
             # the source-contract test loads the change-class regex and checks every reference and negative plan, including the prefix negatives
@@ -480,15 +496,15 @@ validity:
       discussion-has-no-implement-authority negative: plan_persisted_in_resolved_atlas, plan_status_not_advanced, work_node_persisted_in_resolved_atlas and workspace_allowlist
       discussion-has-no-implement-authority reference and reference-proposed: passed
       just-discuss-does-not-start-design reference: passed; negative: only workspace_allowlist
-      declined-plan-path-explained reference, reference-proposed and reference-paraphrase: passed
-      declined-plan-path-explained negative, negative-wrong-date, negative-invalid-date and negative-opposite-meaning: only named_path_explained
-            # named_path_explained scored 0. The silent reply did not refuse references/atlas. negative-wrong-date named 2026-10-09; the written plan is 2026-10-08. negative-invalid-date named 2026-99-99. negative-opposite-meaning told the reader to use references/atlas.
-            # file and allowlist graders scored 1 on those negatives
+      declined-plan-path-explained reference, reference-proposed, reference-paraphrase and reference-negated-save: passed
+      declined-plan-path-explained negative, negative-wrong-date, negative-invalid-date, negative-opposite-meaning, negative-please-use and negative-save-next-time: only named_path_explained
+            # named_path_explained scored 0. The silent reply did not refuse references/atlas. negative-wrong-date named 2026-10-09; the written plan is 2026-10-08. negative-invalid-date named 2026-99-99. negative-opposite-meaning told the reader to use references/atlas. negative-please-use refused correctly and then said "Please use references/atlas for all future plans." negative-save-next-time said "You can save plans in references/atlas next time."
+            # other graders scored 1 on those negatives. reference-negated-save passed: "I did not save the plan in references/atlas because ..."
       ordinary-refactor-near-miss reference: passed; negative: only autogenesis_not_invoked
-            # suite_version 17 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_not_invoked
+            # suite_version 18 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_not_invoked
       skill-change-should-trigger reference: passed; negative: only autogenesis_invoked
-            # suite_version 17 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_invoked
-  atlas_fixture:  # carried from the suite_version 14 record; not re-run for suite_version 17
+            # suite_version 18 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_invoked
+  atlas_fixture:  # carried from the suite_version 14 record; not re-run for suite_version 18
     commands: atlas validate --root <copied store>; atlas compile --dry-run --root <copied store>
     subjects: fixtures/subjects/subject, subject-legacy, subject-designed, and every task reference variant with a store
     outcome: exit 0, no CRITICAL finding, no page_contract warning, no extra store files
@@ -505,14 +521,20 @@ run_status: not-run-by-autogenesis
   status-in-list variants, the plan-only missing-work-node variant, and the
   plan-only awaiting-approval variant (plan grader failed, work-node grader
   passed).
-  Suite version 17 graded all 62 deterministic fixtures: reference variants
-  passed 17/17 and negative variants failed 45/45. The proposed-plan
-  references and the declined-path paraphrase are included.
+  Suite version 18 graded all 65 deterministic fixtures: reference variants
+  passed 18/18 and negative variants failed 47/47. The proposed-plan
+  references, the declined-path paraphrase and the negated-save reference
+  are included.
   `declined-plan-path-explained` negatives failed only `named_path_explained`
   (score 0). The silent reply did not refuse `references/atlas`. The
   wrong-date reply named `2026-10-09` while the written plan is
   `2026-10-08`. The invalid-date reply named `2026-99-99`. The
   opposite-meaning reply told the reader to use `references/atlas`.
+  The please-use reply refused correctly and then said "Please use
+  references/atlas for all future plans." The save-next-time reply said
+  "You can save plans in references/atlas next time." The negated-save
+  reference, "I did not save the plan in references/atlas because ...",
+  passed.
   Symlink negatives are not committed fixtures; the source-contract tests build them:
   `design-stops-for-approval`, `implement-blocks-without-approval`,
   `plan-only-in-resolved-atlas`, `help-does-not-mount`,

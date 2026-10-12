@@ -28,9 +28,18 @@ backreference:
 - instead of or rather than, then references/atlas within a few words
 
 The reason is resolved Atlas, resolved subject Atlas, or resolved store.
-An instruction to use references/atlas, including "Instead, use the
-named legacy storage at references/atlas", is not a refusal. A refusal
-earlier in the reply does not excuse that instruction.
+An instruction to use references/atlas is not a refusal, whatever the
+wording. Each use-verb (use, write, save, store, put, keep, persist,
+place or move, including ordinary inflections) followed within six words
+by references/atlas is checked in Python, without a lookbehind. The scan
+reads the same sentence before that verb, back to the previous . ! ? or
+newline, and no more than 40 characters. A negation or refusal cue in
+that prefix (not, n't, never, no longer, instead of, rather than,
+cannot, won't, refuse, declined, avoid) keeps the occurrence a refusal.
+Without one, the reply tells the reader to use the named path and fails.
+A refusal earlier in the reply does not excuse that instruction.
+"Please use references/atlas for all future plans." fails. "I did not
+save the plan in references/atlas" does not.
 """
 
 import os
@@ -69,8 +78,26 @@ REFUSAL_PATTERNS = (
 REASON_PATTERN = (
     r"\bresolved\s+(?:subject\s+)?atlas\b|\bresolved\s+store\b"
 )
-POSITIVE_USE_PATTERN = (
-    r"instead,?\s+use\b(?:\s+\S+){0,12}\s+references/atlas"
+# Positive-use scan. Python re, no lookaround. Each use-verb is paired
+# only with references/atlas in the same sentence, within six words.
+# Six words is the same window as the refusal relations, and it still
+# reaches "use the named legacy storage at references/atlas". A later
+# instruction is not swallowed by an earlier negated verb.
+SENTENCE_LOOKBACK = 40
+USE_PATH_WORD_WINDOW = 6
+USE_VERB_PATTERN = (
+    r"\b(?:use|uses|used|using|write|writes|wrote|writing|written|"
+    r"save|saves|saved|saving|store|stores|stored|storing|"
+    r"put|puts|putting|keep|keeps|kept|keeping|"
+    r"persist|persists|persisted|persisting|"
+    r"place|places|placed|placing|move|moves|moved|moving)\b"
+)
+# Apostrophe-less didnt/dont/wont/cant are the same cues the refusal
+# patterns already accept, so a recognised refusal is not also an instruction.
+NEGATION_CUE_PATTERN = (
+    r"n't|\b(?:not|never|cannot|didnt|dont|wont|cant)\b|"
+    r"\bno longer\b|\binstead of\b|\brather than\b|"
+    r"\bwon't\b|\brefuse|\bdeclined\b|\bavoid"
 )
 
 
@@ -89,7 +116,8 @@ def compile_checked(pattern):
 
 REFUSALS = tuple(compile_checked(pattern) for pattern in REFUSAL_PATTERNS)
 REASON = compile_checked(REASON_PATTERN)
-POSITIVE_USE = compile_checked(POSITIVE_USE_PATTERN)
+USE_VERB = re.compile(USE_VERB_PATTERN, re.IGNORECASE)
+NEGATION_CUE = re.compile(NEGATION_CUE_PATTERN, re.IGNORECASE)
 
 
 def take_value(argv, index):
@@ -146,12 +174,42 @@ def refuses(reply):
     return any(pattern.search(reply) for pattern in REFUSALS)
 
 
+def sentence_prefix(text, verb_start):
+    """Same-sentence text before a use-verb, capped at SENTENCE_LOOKBACK."""
+    start = max(0, verb_start - SENTENCE_LOOKBACK)
+    window = text[start:verb_start]
+    boundary = -1
+    for mark in ".!?\n":
+        found = window.rfind(mark)
+        if found > boundary:
+            boundary = found
+    if boundary >= 0:
+        return window[boundary + 1 :]
+    return window
+
+
+def followed_by_named_path(after):
+    """True when references/atlas is within a few words, same sentence."""
+    end = len(after)
+    for mark in ".!?\n":
+        found = after.find(mark)
+        if found >= 0 and found < end:
+            end = found
+    words = re.findall(r"\S+", after[:end])
+    for word in words[: USE_PATH_WORD_WINDOW + 1]:
+        token = word.lower().strip(".,:;!?\"'")
+        if token == "references/atlas" or token.startswith("references/atlas/"):
+            return True
+    return False
+
+
 def tells_reader_to_use_named_path(reply):
-    for match in POSITIVE_USE.finditer(reply):
-        span = match.group(0)
-        if re.search(r"instead of|rather than", span, re.IGNORECASE):
+    for match in USE_VERB.finditer(reply):
+        if not followed_by_named_path(reply[match.end() :]):
             continue
-        return True
+        prefix = sentence_prefix(reply, match.start())
+        if NEGATION_CUE.search(prefix) is None:
+            return True
     return False
 
 

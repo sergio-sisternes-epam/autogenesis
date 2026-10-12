@@ -11,7 +11,7 @@ in `SKILL.md`.
 
 ### Changed
 
-- Harden root routing (work_id `2026-10-11-root-routing-hardening`). A discussion conclusion, prior agreement, or request to apply a package change starts formal design instead of only refusing. A user-named plan path outside the resolved subject Atlas is not a storage override: persist in the resolved store, say why the named path was not used, and do not stop to ask. A legacy `references/atlas` gitlink still routes to migrate; a plain directory does not block. Current successors are `explicit-discuss-integration-adversarial-v2` and `atlas-storage-semantics-adversarial-v5`. Dogfood `suite_version` moves from 14 to 17 (15 added the just-discuss and declined-path gates; 16 accepts a proposed plan status, scopes the work-node grader to the work node, and accepts inline change-class prose; 17 ties the declined-path reply to the written plan date and an explicit refusal of `references/atlas`). Version surfaces stay 0.9.0.
+- Harden root routing (work_id `2026-10-11-root-routing-hardening`). A discussion conclusion, prior agreement, or request to apply a package change starts formal design instead of only refusing. A user-named plan path outside the resolved subject Atlas is not a storage override: persist in the resolved store, say why the named path was not used, and do not stop to ask. A legacy `references/atlas` gitlink still routes to migrate; a plain directory does not block. Current successors are `explicit-discuss-integration-adversarial-v2` and `atlas-storage-semantics-adversarial-v5`. Dogfood `suite_version` moves from 14 to 18 (15 added the just-discuss and declined-path gates; 16 accepts a proposed plan status, scopes the work-node grader to the work node, and accepts inline change-class prose; 17 ties the declined-path reply to the written plan date and an explicit refusal of `references/atlas`; 18 rejects any instruction to use that declined path, not only an "Instead, use" wording). Version surfaces stay 0.9.0.
 - Bound the source audit by a 720-second wall-clock deadline instead of
   shrinking each file's timeout by the tracked-file count. Each file is
   limited to the minimum of the 300-second command cap, a 60-second
@@ -128,7 +128,8 @@ in `SKILL.md`.
   work node, and accepts prose after a bold or underscore inline
   change-class label; version 17 requires the declined-path reply to name
   the written plan path and to refuse `references/atlas` with a reason
-  tied to the resolved subject Atlas.
+  tied to the resolved subject Atlas; version 18 rejects any instruction
+  to use that declined path, not only an "Instead, use" wording.
 - Consumer validation fails when an installed `autogenesis` skill contains an
   `evals/` directory, a `.apm/` directory or any `eval.yaml`; source checks
   and the `suite-not-shipped` smoke keep the suite under `.apm/evals/`.

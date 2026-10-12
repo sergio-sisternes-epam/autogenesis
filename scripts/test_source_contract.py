@@ -2886,10 +2886,16 @@ class SourceContractTests(unittest.TestCase):
                 for child in cache.iterdir():
                     child.unlink()
                 cache.rmdir()
+        self.assertFalse(hasattr(module, "POSITIVE_USE_PATTERN"))
+        self.assertEqual(module.SENTENCE_LOOKBACK, 40)
+        self.assertEqual(module.USE_PATH_WORD_WINDOW, 6)
+        self.assertNotIn("(?<=", source)
+        self.assertNotIn("(?<!", source)
         patterns = (
             *module.REFUSAL_PATTERNS,
             module.REASON_PATTERN,
-            module.POSITIVE_USE_PATTERN,
+            module.USE_VERB_PATTERN,
+            module.NEGATION_CUE_PATTERN,
         )
         for pattern in patterns:
             self.assertNotIn("(?=", pattern)
@@ -2897,6 +2903,62 @@ class SourceContractTests(unittest.TestCase):
             self.assertNotIn("(?<", pattern)
             self.assertIsNone(re.search(r"\\[1-9]", pattern))
             re.compile(pattern, re.IGNORECASE)
+        scan = module.tells_reader_to_use_named_path
+        self.assertTrue(
+            scan("Please use references/atlas for all future plans.")
+        )
+        self.assertTrue(
+            scan("You can save plans in references/atlas next time.")
+        )
+        self.assertFalse(
+            scan(
+                "I did not save the plan in references/atlas because "
+                "the resolved subject Atlas owns it."
+            )
+        )
+        self.assertTrue(
+            scan("Instead, use the named legacy storage at references/atlas.")
+        )
+        self.assertFalse(scan("I did not use references/atlas."))
+        self.assertTrue(
+            scan(
+                "I did not use references/atlas. Please use "
+                "references/atlas for all future plans."
+            )
+        )
+        self.assertFalse(
+            scan("I will not write the plan in references/atlas.")
+        )
+        self.assertFalse(
+            scan("rather than store the plan in references/atlas")
+        )
+        self.assertFalse(scan("instead of references/atlas"))
+        self.assertFalse(scan("Never keep plans in references/atlas."))
+        self.assertFalse(scan("I cannot put the plan in references/atlas."))
+        self.assertFalse(
+            scan("I declined to place the plan in references/atlas.")
+        )
+        self.assertFalse(
+            scan("Do not move the plan to references/atlas.")
+        )
+        self.assertTrue(
+            scan("I did not use it! Please use references/atlas.")
+        )
+        self.assertTrue(
+            scan("Was it saved? Please use references/atlas.")
+        )
+        self.assertTrue(
+            scan("I did not use it.\nPlease move the plan to references/atlas.")
+        )
+        self.assertTrue(scan("not " + ("x" * 40) + " use references/atlas"))
+        self.assertFalse(scan("not " + ("x" * 10) + " use references/atlas"))
+        self.assertTrue(
+            scan("I did not. " + ("y" * 10) + " use references/atlas")
+        )
+        self.assertEqual(
+            module.sentence_prefix("I did not save", len("I did not ")),
+            "I did not ",
+        )
 
         fixture = (
             ROOT / ".apm/evals/autogenesis/fixtures/declined-plan-path-explained"
@@ -2906,6 +2968,7 @@ class SourceContractTests(unittest.TestCase):
             "reference",
             "reference-proposed",
             "reference-paraphrase",
+            "reference-negated-save",
         }
         expect_fail = {
             "negative": "reply does not refuse references/atlas",
@@ -2918,6 +2981,12 @@ class SourceContractTests(unittest.TestCase):
                 "not autogenesis/plans/2026-10-08-add-retry-note.md"
             ),
             "negative-opposite-meaning": (
+                "reply tells the reader to use references/atlas"
+            ),
+            "negative-please-use": (
+                "reply tells the reader to use references/atlas"
+            ),
+            "negative-save-next-time": (
                 "reply tells the reader to use references/atlas"
             ),
         }
@@ -2969,6 +3038,36 @@ class SourceContractTests(unittest.TestCase):
             "Instead, use the named legacy storage at references/atlas",
             opposite,
         )
+        negated = json.loads(
+            (fixture / "reference-negated-save.results.json").read_text(
+                encoding="utf-8"
+            )
+        )["tasks"][0]["runs"][0]["final_output"]
+        self.assertIn(
+            "I did not save the plan in references/atlas because",
+            negated,
+        )
+        self.assertFalse(scan(negated))
+        please_use = json.loads(
+            (fixture / "negative-please-use.results.json").read_text(
+                encoding="utf-8"
+            )
+        )["tasks"][0]["runs"][0]["final_output"]
+        self.assertIn(
+            "Please use references/atlas for all future plans.",
+            please_use,
+        )
+        self.assertTrue(scan(please_use))
+        save_next = json.loads(
+            (fixture / "negative-save-next-time.results.json").read_text(
+                encoding="utf-8"
+            )
+        )["tasks"][0]["runs"][0]["final_output"]
+        self.assertIn(
+            "You can save plans in references/atlas next time.",
+            save_next,
+        )
+        self.assertTrue(scan(save_next))
         combined = subprocess.run(
             ["python3", *args],
             cwd=ROOT,
