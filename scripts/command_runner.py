@@ -80,7 +80,7 @@ def run_command(
     args: Sequence[str],
     *,
     cwd: Path,
-    timeout: int,
+    timeout: float,
     label: str,
     check: bool = True,
     env: Mapping[str, str] | None = None,

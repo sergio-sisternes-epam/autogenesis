@@ -89,6 +89,13 @@ apm lock --no-policy --target agent-skills
 python3 scripts/audit_source.py --jobs 8
 ```
 
+The source audit has a 720-second wall-clock deadline, measured from the
+start of the file audits. Each file's timeout is the minimum of 300 seconds,
+a 60-second per-file cap, and the time remaining before that deadline. The
+timeout is not divided by the file count. A file that cannot start before
+the deadline fails as not audited, and a timed-out file fails closed with
+no retry.
+
 APM 0.30.0 `apm install --frozen` cannot validate this manifest. Replay with
 `apm lock` and keep the committed lock byte-identical.
 

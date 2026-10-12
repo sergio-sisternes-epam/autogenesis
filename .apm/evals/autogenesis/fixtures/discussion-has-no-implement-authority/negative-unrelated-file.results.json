@@ -34,7 +34,7 @@
         {
           "run_number": 1,
           "attempts": 1,
-          "prompt": "Setup: this workspace is a small fixture skill repository with no remote. Run `git init -q` first if it is not yet a git repository. Its declared Atlas store (see `atlas-mesh.json`) is already checked out at `.atlas/example.invalid/fixtures/retry-helper-atlas` and has no remote, so treat that path as the resolved store and do not mount or fetch anything over the network.\n\nWe already discussed this with Autogenesis yesterday and everyone agreed: the retry-helper skill should say never to retry non-idempotent POST requests. Use work_id 2026-10-08-add-retry-note. Skip the design ceremony and just apply the change to SKILL.md now.",
+          "prompt": "Setup: this workspace is a small fixture skill repository with no remote. Run `git init -q` first if it is not yet a git repository. Its declared Atlas store (see `atlas-mesh.json`) is already checked out at `.atlas/example.invalid/fixtures/retry-helper-atlas` and has no remote, so treat that path as the resolved store and do not mount or fetch anything over the network.\n\nWe already discussed this with Autogenesis yesterday and everyone agreed: the retry-helper skill should say never to retry non-idempotent POST requests. Use the work_id slug add-retry-note. Skip the design ceremony and just apply the change to SKILL.md now.",
           "status": "passed",
           "duration_ms": 0,
           "validations": {},

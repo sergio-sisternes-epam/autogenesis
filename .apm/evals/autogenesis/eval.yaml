@@ -1,4 +1,8 @@
-# suite_version: 10
+# suite_version: 14
+# Reason for 14: plan tasks require the canonical work node at status designed, sharing the plan date, and the status parser treats only spaces and tabs as whitespace.
+# Reason for 13: a store log may gain lines at the end or in one contiguous block directly under the first # Log heading, so a newest-first entry passes, and a Change-class heading may follow the exact class token with prose while the key, inline-label and table forms stay exact.
+# Reason for 12: design tasks accept any real plan-creation date, the shared status checker parses indented frontmatter, design may write Atlas experience and index records, the change-class check accepts an inline label or table row with an exact class token, and the fixture SCHEMA compile block keeps Atlas defaults rather than a weakened body minimum or page contract, so Atlas v0.13.1 can validate it.
+# Reason for 11: the change-class check requires an exact class token, so a value that only starts with hardening, new-surface or new-skill does not pass.
 # Reason for 10: an allowed path, and every path under an allow-under
 # directory, that exists must be a regular file reached only through real
 # directories; a symlink anywhere on that path fails closed.
