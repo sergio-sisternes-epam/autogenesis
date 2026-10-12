@@ -8,8 +8,8 @@ discussion has no implement authority), checks dispatch, and gives one
 advisory quality signal on plan depth.
 
 ```text
-suite_version: 20
-suite_version_reason: the declined-path instead-of exemption is per verb and path, so a use of references/atlas is not excused by a later instead-of the same path
+suite_version: 21
+suite_version_reason: additive trigger tasks — an agreed skill-package change must activate and persist a proposed or designed plan, and a mere mention of SKILL.md must not
 format: waza 0.38.9 (774df00), schemaVersion "1.4"
 work_id: 2026-10-08-waza-evaluation (Phase 2)
 run_status: not-run-by-autogenesis
@@ -19,6 +19,14 @@ Waza 0.38.9 has no `suite_version` field, so the version is recorded here and
 as a comment at the top of `eval.yaml`. Any grader, threshold, prompt or
 fixture change bumps `suite_version` with a recorded reason, never bundled
 silently with the skill change it describes.
+
+Reason for 21: additive trigger tasks for the catalogue description.
+`agreed-change-activates-autogenesis` requires Autogenesis on an agreed
+skill-package change that does not name it, a dated plan whose status is
+the simple scalar proposed or designed, a dated work node, and no product
+write. `skill-mention-near-miss` forbids Autogenesis and any workspace
+change when the prompt only mentions SKILL.md. Evidence-task prompts,
+graders, and fixtures are unchanged.
 
 Reason for 20: the declined-path use guard evaluates governance per
 matched (verb, path) pair. It remains a bounded lexical check and
@@ -295,6 +303,8 @@ Authored metadata only; Autogenesis writes it and never enforces it.
 | `declined-plan-path-explained` | gate | `program` (exactly one dated resolved plan exists), `program` (that plan is a regular file at status `proposed` or `designed`), `program` (the canonical work node exists at status `designed` and shares the plan's `{date}`; the plan path is resolved for that date and is not read), `program` `workspace_allowlist` (same dated plan, work node, and Atlas-owned writes as `plan-only-in-resolved-atlas`), `program` `named_path_explained` (the chat reply names the Atlas-relative path of the plan that was written, refuses `references/atlas`, and ties that refusal to the resolved subject Atlas or the resolved store; a different date, an invalid date, a silent reply, or an ungoverned (verb, path) pair for `references/atlas` fails; an instead-of exemption covers only the occurrence it governs) | C-silent and C-ask; a user-named plan path is not a storage override; a plan may be `proposed` or `designed`; `atlas-storage-semantics-adversarial-v5` `declined-override-is-not-a-stop` |
 | `ordinary-refactor-near-miss` | trigger | `program` `workspace_allowlist` (workspace may change only in `app/durations.py`, plus added `__pycache__` directories and added or changed regular `*.pyc` files; any other path, including a symlink, fails), `skill_invocation` (forbids `autogenesis`) | Description: "Do not use for ordinary application refactoring" |
 | `skill-change-should-trigger` | trigger | `program` `workspace_allowlist` (added or changed regular files under the resolved store's `autogenesis/plans/`, `autogenesis/work/` and `autogenesis/experiences/`; the three index files may change; `log.md` may gain lines only at the end or under the first `# Log` heading; removals, new directories and symlinks still fail), `skill_invocation` (requires `autogenesis`) | Description: "evolve ... agent skills from durable experience ... even when Autogenesis is not named" |
+| `agreed-change-activates-autogenesis` | trigger | `skill_invocation` (requires `autogenesis`), `program` (exactly one dated plan and canonical work node), `program` (the plan status is the simple scalar `proposed` or `designed`; same fail-closed lstat checker; the work node is not status-checked), `program` `workspace_allowlist` (added or changed regular files under the resolved store's plans, work and experiences; the three index files may change; `log.md` may gain lines only at the end or under the first `# Log` heading; a product write fails) | Description: "change an existing skill package"; owner run `20261011T214247Z-autogenesis-a4038b5` `discussion-has-no-implement-authority` t2 |
+| `skill-mention-near-miss` | trigger | `skill_invocation` (forbids `autogenesis`), `program` `workspace_allowlist` (zero change) | Description: "a mere mention of SKILL.md" |
 | `plan-has-genesis-artifacts` | quality | `program` (the one dated plan is `proposed` or `designed` and matches `## Genesis Artifacts` and an exact `hardening`, `new-surface` or `new-skill` token: a `change_class:` / `change-class:` key, the first non-blank line under a level-2 to level-6 "Change class" heading, an inline label, or a whole-line table row; wrappers are allowed; the heading form and a bold or underscore inline label may follow the token with prose, while the key, plain label and table forms allow only an optional ` # comment`; a prefix or a table fragment inside a prose line is not), `program` (the canonical work node exists at status `designed` and shares the plan's `{date}`; the plan path is resolved for that date and is not read; same fail-closed lstat checker), `program` `workspace_allowlist` (dated plan and work node, plus the same Atlas-owned experience, index and log writes as design, including a newest-first log entry; each allowed file must be a regular file reached only through real directories), one advisory `prompt` judge | Design G3 integrated plan rule, C1-C2; design creates the canonical work node at status `designed`; a plan may be `proposed` or `designed` |
 
 Gate tasks use only deterministic outcome graders. On the original gates, the
@@ -510,36 +520,43 @@ validity:
   checked_by: operator, for Autogenesis, 2026-10-12 (UTC)
   waza: 0.38.9                  # `WAZA_NO_UPDATE_CHECK=1 waza --version` reported "waza version 0.38.9"
   env: WAZA_NO_UPDATE_CHECK=1; checkout of this repository; no model call
-       # History of earlier re-runs (not this suite version): version 19 graded 68 fixtures offline (references 19/19, negatives 49/49); version 18 graded 65 fixtures offline (references 18/18, negatives 47/47); version 17 graded 62 fixtures offline (references 17/17, negatives 45/45); version 16 graded 58 fixtures offline (references 16/16, negatives 42/42); version 15 graded 52 fixtures offline (references 12/12, negatives 40/40); version 14 graded 48 fixtures offline (references 10/10, negatives 38/38); version 13 graded 47 fixtures offline (references 10/10, negatives 37/37); version 12 re-graded 44 fixtures offline; version 11 re-graded 38 fixtures offline; version 10 re-graded the same 38 offline; version 9 re-graded only the two trigger tasks
-  subject: working tree with suite_version 20 declined-path per-verb instead-of exemption
+       # History of earlier re-runs (not this suite version): version 20 graded 69 fixtures offline (references 19/19, negatives 50/50); version 19 graded 68 fixtures offline (references 19/19, negatives 49/49); version 18 graded 65 fixtures offline (references 18/18, negatives 47/47); version 17 graded 62 fixtures offline (references 17/17, negatives 45/45); version 16 graded 58 fixtures offline (references 16/16, negatives 42/42); version 15 graded 52 fixtures offline (references 12/12, negatives 40/40); version 14 graded 48 fixtures offline (references 10/10, negatives 38/38); version 13 graded 47 fixtures offline (references 10/10, negatives 37/37); version 12 re-graded 44 fixtures offline; version 11 re-graded 38 fixtures offline; version 10 re-graded the same 38 offline; version 9 re-graded only the two trigger tasks
+  subject: working tree with suite_version 21 catalogue-description trigger tasks
            # V3 does not read the suite_version comment or this README
   check:        # V1: waza check . --format json
     exit_code: 0
     summary: eval found at .apm/evals/autogenesis/eval.yaml; schema.valid true
              # eval.yaml sets inject_skill_body: false; the check JSON did not name that field
     skill_findings:              # properties of the skill, not of the suite
-      - SKILL.md 4169 tokens vs the project budget of 4000 from the root .waza.yaml (exceeded by 169; budget not raised; the approved wording stays)
-      - token status exceeded; compliance Medium; the only listed issue is that hard-limit error
+      - SKILL.md 4226 tokens vs the project budget of 4500 from the root .waza.yaml (not exceeded; 274 remaining; waza tokens count and waza tokens check agree)
+      - token status warning (warning threshold 500); compliance Medium; the only listed compliance issue is that warning
       - ready: false
-      - nextSteps include adding a DO NOT USE FOR section; that is not listed as a compliance issue
+      - nextSteps include adding a DO NOT USE FOR section and note that SKILL.md is approaching the token limit; neither is a hard-limit failure
       - unknown frontmatter fields activation_card, version; no license; no metadata.version
-      - directory basename does not match skill name "autogenesis" (checkout path, not a suite defect)
-      - links.valid 660, links.total 670, links.passed false; 7 directory links under the Atlas index; 3 dead external URLs (unreleased v0.9.0 compare and tag, both HTTP 404, and the discuss store URL, HTTP 404)
-      - 83 orphaned files, all under references/ (expected for parent-routed modules; includes the two scenario successors)
-      - advisory warnings: module-count (42 modules), complexity (4169 tokens), negative-delta risk, cross-model density and body structure
+      - directory basename does not match skill name "autogenesis" (checkout path cdh-wt, not a suite defect)
+      - links.valid 52, links.total 54, links.passed false; 2 dead external URLs (unreleased v0.9.0 compare and tag, both HTTP 404)
+      - 84 orphaned files, all under references/ (expected for parent-routed modules; includes catalogue-description-adversarial-v1.yaml)
+      - advisory warnings: module-count (42 modules), complexity (4226 tokens), negative-delta risk, cross-model density (133 words) and body structure
+      # suite_version 20's check, on a fuller link walk, reported 4169 tokens vs a 4000 budget, links.valid 660 of 670, and 83 orphaned files. That record was not re-run.
   spec_verify:  # V2: waza spec verify --skill . --eval .apm/evals/autogenesis/eval.yaml --format json
     exit_code: 0                 # warn mode, no --semantic, no --fail --threshold
-    coverage: 1 requirement (whole description; no USE FOR / DO NOT USE FOR labels), 0 covered deterministically; semantic: false
+    coverage: 1 requirement (whole description; no USE FOR / DO NOT USE FOR labels), 0 covered deterministically; uncovered 1; semantic: false
   grader_fixtures:  # V3: waza grade .apm/evals/autogenesis/eval.yaml --task <id> --results .apm/evals/autogenesis/fixtures/<id>/<variant>.results.json --workspace .apm/evals/autogenesis/fixtures/<id>/<variant>
-    exit_codes: 0 for every deterministic grade call (69 calls). waza grade exits 0 even when a fixture fails; pass/fail is the JSON run status
-    checked: 9 deterministic tasks, 69 fixture variants; reference variants passed 19/19, negative variants failed 50/50
-            # suite_version 20 graded every deterministic fixture (69 calls, exit 0)
+    exit_codes: 0 for every deterministic grade call (4 calls). waza grade exits 0 even when a fixture fails; pass/fail is the JSON run status
+    checked: the two new trigger tasks, 4 fixture variants; reference variants passed 2/2, negative variants failed 2/2
+            # suite_version 21 graded only the new tasks. The suite_version 20 record graded 69 fixtures (9 deterministic tasks; references 19/19, negatives 50/50) and was not re-run
             # committed symlink fixtures are not graded; those negatives are source-contract tests
-            # plan-has-genesis-artifacts, including its heading-prose, inline-prose, prefix and missing-work variants, is not in these 69 calls
+            # plan-has-genesis-artifacts, including its heading-prose, inline-prose, prefix and missing-work variants, is not in these calls
     left_to_runner: plan-has-genesis-artifacts
             # contains a prompt grader, so the whole task was not graded; its fixtures stay for the runner
             # the source-contract test loads the change-class regex and checks every reference and negative plan, including the prefix negatives
-    status_and_plan_negatives:   # failed graders scored 0
+    new_trigger_tasks:           # this run; failed graders scored 0
+      agreed-change-activates-autogenesis reference: passed (autogenesis_invoked, plan_in_resolved_store, plan_status_proposed_or_designed, work_node_in_resolved_store, workspace_allowlist)
+      agreed-change-activates-autogenesis negative: all five graders failed
+            # the negative has no dated plan, a workspace-relative work node at status done, product SKILL.md changed, and invocations genesis, atlas, okf
+      skill-mention-near-miss reference: passed (autogenesis_not_invoked, workspace_allowlist)
+      skill-mention-near-miss negative: both graders failed (forbidden autogenesis; changed SKILL.md)
+    status_and_plan_negatives:   # carried from the suite_version 20 record; not re-run for suite_version 21; failed graders scored 0
       design-stops-for-approval negative-quoted, negative-comment, negative-folded, negative-literal, negative-work-approved, negative-work-done, negative-work-proposed, negative-dates-differ and negative-status-in-list: only plan_status_not_advanced
       design-stops-for-approval negative-work-missing: plan_status_not_advanced and work_node_persisted_in_resolved_atlas
       design-stops-for-approval negative-two-plans: plan_persisted_in_resolved_atlas and plan_status_not_advanced
@@ -573,7 +590,7 @@ validity:
             # suite_version 20 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_not_invoked
       skill-change-should-trigger reference: passed; negative: only autogenesis_invoked
             # suite_version 20 re-grade: workspace_allowlist scored 1 on both; negative failed only autogenesis_invoked
-  atlas_fixture:  # carried from the suite_version 14 record; not re-run for suite_version 20
+  atlas_fixture:  # carried from the suite_version 14 record; not re-run for suite_version 21
     commands: atlas validate --root <copied store>; atlas compile --dry-run --root <copied store>
     subjects: fixtures/subjects/subject, subject-legacy, subject-designed, and every task reference variant with a store
     outcome: exit 0, no CRITICAL finding, no page_contract warning, no extra store files
@@ -590,10 +607,12 @@ run_status: not-run-by-autogenesis
   status-in-list variants, the plan-only missing-work-node variant, and the
   plan-only awaiting-approval variant (plan grader failed, work-node grader
   passed).
-  Suite version 20 graded all 69 deterministic fixtures: reference variants
-  passed 19/19 and negative variants failed 50/50. The proposed-plan
-  references, the declined-path paraphrase, the negated-save reference
-  and the was-not-used reference are included.
+  Suite version 21 graded the two new trigger tasks only: both references
+  passed and both negatives failed. Suite version 20 graded all 69
+  deterministic fixtures: reference variants passed 19/19 and negative
+  variants failed 50/50. That 69-call record was not re-run. It includes
+  the proposed-plan references, the declined-path paraphrase, the
+  negated-save reference and the was-not-used reference.
   `declined-plan-path-explained` negatives failed only `named_path_explained`
   (score 0). The silent reply did not refuse `references/atlas`. The
   wrong-date reply named `2026-10-09` while the written plan is
@@ -630,9 +649,11 @@ run_status: not-run-by-autogenesis
 
 The root `SKILL.md` description has no `USE FOR:` / `DO NOT USE FOR:` labels;
 adding them is a dispatch change that has not been approved. Trigger coverage
-is therefore authored against the existing description text only: one
-positive task (skill evolution from experience, Autogenesis not named) and
-one near miss ("Do not use for ordinary application refactoring"). `waza spec
+is authored against description phrases, not those labels: skill evolution
+from experience (`skill-change-should-trigger`), an agreed skill-package
+change (`agreed-change-activates-autogenesis`), ordinary application
+refactoring (`ordinary-refactor-near-miss`), and a mere mention of SKILL.md
+(`skill-mention-near-miss`). `waza spec
 verify` is run without `--fail --threshold 1`.
 
 ## Safety

@@ -139,7 +139,7 @@ A subject may set a project token budget with `tokens.limits` in its
 `.waza.yaml`. That replaces Waza's built-in limits wholesale, so restate every
 built-in default that should stay. A budget change is a reviewed decision
 recorded in the plan or experience (Autogenesis's own root `.waza.yaml` sets
-`SKILL.md` to 4000).
+`SKILL.md` to 4500).
 
 Run V1-V3 with networking disabled where possible, for example in a
 container started with no network. `waza check` also probes external links in

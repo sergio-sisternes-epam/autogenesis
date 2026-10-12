@@ -1,0 +1,91 @@
+id: catalogue-description-adversarial-v1
+work_id: 2026-10-12-catalogue-description-hardening
+kind: skill-discipline
+packages:
+  - id: subject
+    root: "<candidate-root>"
+    mode: mount
+adversarial: true
+version: 1
+description: "Catalogue description activates on an agreed skill-package change and names the near-miss boundary, without stuffing the failed prompt or exceeding the description cap."
+project:
+  seed_knowledge: []
+smokes:
+  - id: description-covers-package-change
+    source: "C-miss; owner run 20261011T214247Z-autogenesis-a4038b5 discussion-has-no-implement-authority t2"
+    cmd: |
+      python3 - << 'PY'
+      import json, os, re
+      from pathlib import Path
+      text = (Path(os.environ["PKG_subject"]) / "SKILL.md").read_text()
+      desc = re.search(r"(?m)^description: (.+)$", text).group(1)
+      need = [
+          "change an existing skill package",
+          "apply an agreed change",
+          "skip ceremony",
+          "even when Autogenesis is not named",
+      ]
+      print(json.dumps({"ok": all(item in desc for item in need)}))
+      PY
+    expect:
+      ok: true
+  - id: description-names-near-miss-boundary
+    source: "C-overtrigger"
+    cmd: |
+      python3 - << 'PY'
+      import json, os, re
+      from pathlib import Path
+      text = (Path(os.environ["PKG_subject"]) / "SKILL.md").read_text()
+      desc = re.search(r"(?m)^description: (.+)$", text).group(1)
+      need = [
+          "ordinary application refactoring",
+          "not a skill-package change",
+          "mere mention of SKILL.md",
+          "plain discussion",
+          "unrelated help requests",
+      ]
+      print(json.dumps({"ok": all(item in desc for item in need)}))
+      PY
+    expect:
+      ok: true
+  - id: description-within-spec-cap
+    source: "C-trunc"
+    cmd: |
+      python3 - << 'PY'
+      import json, os, re
+      from pathlib import Path
+      text = (Path(os.environ["PKG_subject"]) / "SKILL.md").read_text()
+      desc = re.search(r"(?m)^description: (.+)$", text).group(1)
+      print(json.dumps({"ok": 1 <= len(desc) <= 1024}))
+      PY
+    expect:
+      ok: true
+  - id: description-does-not-stuff-failed-prompt
+    source: "C-stuff"
+    cmd: |
+      python3 - << 'PY'
+      import json, os, re
+      from pathlib import Path
+      text = (Path(os.environ["PKG_subject"]) / "SKILL.md").read_text()
+      desc = re.search(r"(?m)^description: (.+)$", text).group(1)
+      banned = "just apply the change to SKILL.md now"
+      print(json.dumps({"ok": banned not in desc}))
+      PY
+    expect:
+      ok: true
+  - id: activation-card-and-body-fence-unchanged
+    source: "C-eager; do not regress root routing or the activation-card suite"
+    cmd: |
+      python3 - << 'PY'
+      import json, os
+      from pathlib import Path
+      text = (Path(os.environ["PKG_subject"]) / "SKILL.md").read_text()
+      ok = (
+          "activation_card: on" in text
+          and "not a reason only to refuse" in text
+          and "status `designed`" in text
+      )
+      print(json.dumps({"ok": ok}))
+      PY
+    expect:
+      ok: true
