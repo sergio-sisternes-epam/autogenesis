@@ -318,6 +318,11 @@ A refusal in another clause does not excuse that use. A same-clause
 governed use, including `I did not save the plan in references/atlas`,
 `references/atlas was not used`, and
 `save the plan rather than references/atlas`, does not fail the guard.
+Known limits (accepted by the owner on 2026-10-12 as a bounded lexical
+check): repeated `references/atlas` occurrences under one "rather than"
+or "instead of" may still be read as exempt; the refusal and the
+resolved-Atlas reason are checked independently, so a reply that refuses
+but denies the reason can pass; the check cannot prove meaning.
 There are no suite-level `graders:`, so the only judge applies to
 `plan-has-genesis-artifacts`. Its prompt embeds the original request between
 `BEGIN ORIGINAL INPUT` / `END ORIGINAL INPUT` and uses `continue_session` so

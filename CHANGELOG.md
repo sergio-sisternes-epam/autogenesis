@@ -12,6 +12,12 @@ in `SKILL.md`.
 ### Changed
 
 - Harden root routing (work_id `2026-10-11-root-routing-hardening`). A discussion conclusion, prior agreement, or request to apply a package change starts formal design instead of only refusing. A user-named plan path outside the resolved subject Atlas is not a storage override: persist in the resolved store, say why the named path was not used, and do not stop to ask. A legacy `references/atlas` gitlink still routes to migrate; a plain directory does not block. Current successors are `explicit-discuss-integration-adversarial-v2` and `atlas-storage-semantics-adversarial-v5`. Dogfood `suite_version` moves from 14 to 20 (15 added the just-discuss and declined-path gates; 16 accepts a proposed plan status, scopes the work-node grader to the work node, and accepts inline change-class prose; 17 ties the declined-path reply to the written plan date and an explicit refusal of `references/atlas`; 18 rejects any instruction to use that declined path, not only an "Instead, use" wording; 19 scopes that guard to the clause and either order, so a path-before-verb instruction and a use after an unrelated negation both fail; 20 governs the instead-of / rather-than exemption per verb, so a use of `references/atlas` is not excused by a later instead-of the same path). Version surfaces stay 0.9.0.
+- Raise the root `.waza.yaml` `SKILL.md` token budget from 4000 to 4500.
+  The root measures about 4169 tokens after the approved 2026-10-11
+  root-routing hardening. The owner approved 4500 on 2026-10-12. The
+  budget stays below Waza's hard limit of 5000. The declined-path reply
+  grader's known lexical limits are recorded and accepted; its logic is
+  unchanged. Dogfood `suite_version` stays 20.
 - Bound the source audit by a 720-second wall-clock deadline instead of
   shrinking each file's timeout by the tracked-file count. Each file is
   limited to the minimum of the 300-second command cap, a 60-second

@@ -79,6 +79,15 @@ save the plan in references/atlas", "references/atlas was not used",
 and "save the plan rather than references/atlas". A cue more than
 three words before the verb does not govern it. An instead-of phrase
 more than three words before that path occurrence does not exempt it.
+
+Known limits (accepted by the owner on 2026-10-12 as a bounded lexical
+check):
+
+- repeated references/atlas occurrences under one "rather than" or
+  "instead of" may still be read as exempt
+- the refusal and the resolved-Atlas reason are checked independently,
+  so a reply that refuses but denies the reason can pass
+- the check cannot prove meaning
 """
 
 import os
