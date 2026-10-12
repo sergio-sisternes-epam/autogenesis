@@ -116,6 +116,10 @@ def module_resource_reference_errors(
             continue
         if not path_token.startswith("references/"):
             continue
+        # Subject legacy mount, not a module resource. Root-routing step 6
+        # must name it bare so the successor smoke can match the phrase.
+        if path_token == "references/atlas":
+            continue
 
         relative = Path(path_token)
         if "//" in path_token:
@@ -395,7 +399,7 @@ class SourceContractTests(unittest.TestCase):
         indexed_scenarios = (
             scenario_index["current"] + scenario_index["historical"]
         )
-        self.assertEqual(len(indexed_scenarios), 39)
+        self.assertEqual(len(indexed_scenarios), 41)
         self.assertEqual(len(indexed_scenarios), len(set(indexed_scenarios)))
         for scenario in indexed_scenarios:
             self.assertTrue((ROOT / "references/scenarios" / scenario).is_file())
@@ -489,6 +493,8 @@ class SourceContractTests(unittest.TestCase):
             "plan-only-in-resolved-atlas",
             "help-does-not-mount",
             "discussion-has-no-implement-authority",
+            "just-discuss-does-not-start-design",
+            "declined-plan-path-explained",
         }
         trigger = {"ordinary-refactor-near-miss", "skill-change-should-trigger"}
         quality = {"plan-has-genesis-artifacts"}
@@ -530,7 +536,8 @@ class SourceContractTests(unittest.TestCase):
             "waza-evaluation-adversarial-v1",
         }
         for path in sorted((ROOT / ".apm/evals").rglob("*")):
-            if path.is_file():
+            # Grader imports may leave ignored bytecode beside the scripts.
+            if path.is_file() and "__pycache__" not in path.parts:
                 text = path.read_text(encoding="utf-8")
                 for match in re.finditer(r"\bwaza-[a-z][a-z0-9-]*", text):
                     self.assertIn(
@@ -599,6 +606,7 @@ class SourceContractTests(unittest.TestCase):
                 "reference-heading",
                 "reference-heading-prose",
                 "reference-inline-label",
+                "reference-inline-prose",
             ],
         )
         for variant in variants:
@@ -640,6 +648,11 @@ class SourceContractTests(unittest.TestCase):
             "- **Change-class:** `hardening`",
             "**Change class:** new-surface",
             "**Change-class**: `new-skill`",
+            "**Change-class:** `hardening` — prose",
+            "- **Change-class:** `hardening` — prose",
+            "**Change-class:** hardening — prose",
+            "**Change class:** new-surface: adds one module",
+            "__Change-class:__ new-skill, full Genesis",
             "Change class: hardening",
             "* __change_class:__ hardening",
             "| Change class | `hardening` |",
@@ -665,7 +678,11 @@ class SourceContractTests(unittest.TestCase):
             "## Change class\n\nTo be decided.",
             "# Change class\n\nhardening",
             "- **Change-class:** `hardening-extra`",
+            "**Change-class:** hardening-extra",
             "**Change class:** TBD",
+            "**Change-class:** This is hardening",
+            "**Change-class:** hardening-extra — prose",
+            "Change class: hardening plus more",
             "| Change class | hardening plus more |",
             "Change class: Hardening",
             "The change class is hardening.",
@@ -695,10 +712,22 @@ class SourceContractTests(unittest.TestCase):
         cases = {
             "design-stops-for-approval": {
                 "reference-quoted": (plan, "status: 'designed'"),
+                "reference-proposed": (plan, "status: proposed"),
                 "negative-quoted": (plan, "status: 'approved'"),
                 "negative-comment": (plan, "status: done # implemented"),
                 "negative-work-approved": (work, "status: approved"),
                 "negative-work-done": (work, "status: done"),
+                "negative-work-proposed": (work, "status: proposed"),
+            },
+            "discussion-has-no-implement-authority": {
+                "reference-proposed": (plan, "status: proposed"),
+            },
+            "plan-only-in-resolved-atlas": {
+                "reference-proposed": (plan, "status: proposed"),
+                "negative-plan-awaiting": (plan, "status: awaiting-approval"),
+            },
+            "declined-plan-path-explained": {
+                "reference-proposed": (plan, "status: proposed"),
             },
             "implement-blocks-without-approval": {
                 "negative-plan-quoted": (plan, "status: 'approved'"),
@@ -1054,11 +1083,20 @@ class SourceContractTests(unittest.TestCase):
                 )
                 self.assertIn(dated_plan, args)
                 self.assertIn(dated_work, args)
-                self.assertLess(args.index(dated_plan), args.index("--status"))
-                self.assertLess(args.index(dated_work), args.index("--status"))
-                self.assertEqual(args[args.index("--status") + 1], "designed")
+                self.assertNotIn("--status", args)
                 self.assertNotIn("--exists-only", args)
                 self.assertNotIn("-c", args)
+                # The plan path is resolved only so both files share one
+                # date. Status is scoped to the work node.
+                scoped = []
+                index = 0
+                while index < len(args):
+                    if args[index] == "--status-for":
+                        scoped.append((args[index + 1], args[index + 2]))
+                        index += 3
+                        continue
+                    index += 1
+                self.assertEqual(scoped, [(dated_work, "designed")])
                 # The plan grader stays plan-only, so a missing work node
                 # fails only the work-node grader.
                 plan_graders = [
@@ -1084,6 +1122,179 @@ class SourceContractTests(unittest.TestCase):
                         "status: designed\n",
                         (variant / work).read_text(encoding="utf-8"),
                     )
+
+    def test_plan_status_accepts_proposed_and_work_node_stays_designed(self) -> None:
+        yaml = self._require_yaml()
+        script = ".apm/evals/autogenesis/graders/atlas_record_check.py"
+        tasks_dir = ROOT / ".apm/evals/autogenesis/tasks"
+        for path in sorted(tasks_dir.glob("*.yaml")):
+            task = yaml.safe_load(path.read_text(encoding="utf-8"))
+            for grader in task["graders"]:
+                if grader["type"] != "program":
+                    continue
+                args = grader["config"]["args"]
+                if not args or args[0] != script:
+                    continue
+                positional = []
+                statuses = []
+                status_for = {}
+                exists_only = False
+                index = 1
+                while index < len(args):
+                    arg = args[index]
+                    if arg == "--exists-only":
+                        exists_only = True
+                        index += 1
+                        continue
+                    if arg == "--status":
+                        statuses.append(args[index + 1])
+                        index += 2
+                        continue
+                    if arg == "--status-for":
+                        status_for.setdefault(args[index + 1], []).append(
+                            args[index + 2]
+                        )
+                        index += 3
+                        continue
+                    if arg == "--must-match":
+                        index += 2
+                        continue
+                    self.assertFalse(arg.startswith("--"), arg)
+                    positional.append(arg)
+                    index += 1
+                self.assertFalse(statuses and status_for, grader["name"])
+                checked = {}
+                if not exists_only:
+                    if status_for:
+                        checked = status_for
+                    else:
+                        checked = {item: list(statuses) for item in positional}
+                with self.subTest(task=task["id"], grader=grader["name"]):
+                    for rel, allowed in checked.items():
+                        if "/plans/" in rel:
+                            self.assertEqual(allowed, ["proposed", "designed"])
+                        elif "/work/" in rel:
+                            self.assertEqual(allowed, ["designed"])
+                        else:
+                            self.fail(rel)
+                    if grader["name"] == "work_node_persisted_in_resolved_atlas":
+                        self.assertFalse(
+                            any("/plans/" in rel for rel in checked),
+                            checked,
+                        )
+
+        plan = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/plans/2026-10-08-add-retry-note.md"
+        )
+        work = (
+            ".atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis"
+            "/work/2026-10-08-add-retry-note.md"
+        )
+        base = (
+            ROOT
+            / ".apm/evals/autogenesis/fixtures/design-stops-for-approval"
+            / "reference"
+        )
+        plan_text = (base / plan).read_text(encoding="utf-8")
+        work_text = (base / work).read_text(encoding="utf-8")
+        design = yaml.safe_load(
+            (tasks_dir / "design-stops-for-approval.yaml").read_text(
+                encoding="utf-8"
+            )
+        )
+        design_status = next(
+            item
+            for item in design["graders"]
+            if item["name"] == "plan_status_not_advanced"
+        )["config"]["args"]
+        plan_only = yaml.safe_load(
+            (tasks_dir / "plan-only-in-resolved-atlas.yaml").read_text(
+                encoding="utf-8"
+            )
+        )
+        plan_only_status = next(
+            item
+            for item in plan_only["graders"]
+            if item["name"] == "plan_status_not_advanced"
+        )["config"]["args"]
+        plan_only_work = next(
+            item
+            for item in plan_only["graders"]
+            if item["name"] == "work_node_persisted_in_resolved_atlas"
+        )["config"]["args"]
+
+        def run(args, workspace):
+            return subprocess.run(
+                ["python3", *args],
+                cwd=ROOT,
+                env={**os.environ, "WAZA_WORKSPACE_DIR": str(workspace)},
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+        cases = {
+            "proposed": (plan_text.replace("status: designed\n", "status: proposed\n", 1), work_text, 0),
+            "missing-status": (plan_text.replace("status: designed\n", "", 1), work_text, 1),
+            "awaiting-approval": (
+                plan_text.replace("status: designed\n", "status: awaiting-approval\n", 1),
+                work_text,
+                1,
+            ),
+            "approved": (
+                plan_text.replace("status: designed\n", "status: approved\n", 1),
+                work_text,
+                1,
+            ),
+            "work-proposed": (
+                plan_text,
+                work_text.replace("status: designed\n", "status: proposed\n", 1),
+                1,
+            ),
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            for name, (plan_body, work_body, expect) in cases.items():
+                workspace = Path(tmp) / name
+                (workspace / plan).parent.mkdir(parents=True)
+                (workspace / work).parent.mkdir(parents=True)
+                (workspace / plan).write_text(plan_body, encoding="utf-8")
+                (workspace / work).write_text(work_body, encoding="utf-8")
+                result = run(design_status, workspace)
+                with self.subTest(case=name):
+                    if expect == 0:
+                        self.assertEqual(result.returncode, 0, result.stderr)
+                    else:
+                        self.assertNotEqual(result.returncode, 0, result.stdout)
+                if name == "missing-status":
+                    self.assertIn("found 0", result.stderr)
+                if name in {"awaiting-approval", "approved"}:
+                    self.assertIn("expected one of 'proposed', 'designed'", result.stderr)
+                if name == "work-proposed":
+                    self.assertIn("/work/", result.stderr)
+                    self.assertIn("status is 'proposed'", result.stderr)
+
+        awaiting = (
+            ROOT
+            / ".apm/evals/autogenesis/fixtures/plan-only-in-resolved-atlas"
+            / "negative-plan-awaiting"
+        )
+        proposed = (
+            ROOT
+            / ".apm/evals/autogenesis/fixtures/plan-only-in-resolved-atlas"
+            / "reference-proposed"
+        )
+        bad_plan = run(plan_only_status, awaiting)
+        good_work = run(plan_only_work, awaiting)
+        good_plan = run(plan_only_status, proposed)
+        self.assertNotEqual(bad_plan.returncode, 0, bad_plan.stdout)
+        self.assertIn("awaiting-approval", bad_plan.stderr)
+        self.assertEqual(good_work.returncode, 0, good_work.stderr)
+        notes, _, resolved = good_work.stdout.partition("resolved:")
+        self.assertIn("status 'designed'", notes)
+        self.assertNotIn("plans/", notes)
+        self.assertIn("plans/", resolved)
+        self.assertEqual(good_plan.returncode, 0, good_plan.stderr)
 
     def test_plan_work_node_missing_omits_only_the_work_node(self) -> None:
         cases = {
@@ -1630,6 +1841,24 @@ class SourceContractTests(unittest.TestCase):
                 indexes,
                 (log,),
                 (dated_plan, dated_work),
+                False,
+            ),
+            "declined-plan-path-explained": (
+                ".apm/evals/autogenesis/fixtures/subjects/subject-legacy",
+                (),
+                (experiences,),
+                indexes,
+                (log,),
+                (dated_plan, dated_work),
+                False,
+            ),
+            "just-discuss-does-not-start-design": (
+                ".apm/evals/autogenesis/fixtures/subjects/subject",
+                (),
+                (),
+                (),
+                (),
+                (),
                 False,
             ),
             "help-does-not-mount": (
@@ -2612,6 +2841,528 @@ class SourceContractTests(unittest.TestCase):
                 self.assertNotEqual(failed.returncode, 0, failed.stdout)
                 self.assertIn("not an allowed log change: " + log, failed.stderr)
                 self.assertTrue((suite / f"{variant}.results.json").is_file())
+
+    def test_declined_path_reply_names_the_written_plan_and_refuses(self) -> None:
+        yaml = self._require_yaml()
+        task = yaml.safe_load(
+            (
+                ROOT
+                / ".apm/evals/autogenesis/tasks/declined-plan-path-explained.yaml"
+            ).read_text(encoding="utf-8")
+        )
+        grader = next(
+            item for item in task["graders"] if item["name"] == "named_path_explained"
+        )
+        self.assertEqual(grader["type"], "program")
+        self.assertEqual(grader["config"]["command"], "python3")
+        self.assertEqual(grader["config"]["timeout"], 30)
+        args = grader["config"]["args"]
+        self.assertEqual(
+            args[0], ".apm/evals/autogenesis/graders/reply_path_check.py"
+        )
+        self.assertNotIn("-c", args)
+        self.assertNotIn("import os", "\n".join(args))
+        script = ROOT / args[0]
+        source = script.read_text(encoding="utf-8")
+        self.assertIn("sys.stdin.buffer.read", source)
+        self.assertIn("WAZA_WORKSPACE_DIR", source)
+        import importlib.util
+        import sys
+
+        write_bytecode = sys.dont_write_bytecode
+        sys.dont_write_bytecode = True
+        try:
+            loaded = importlib.util.spec_from_file_location(
+                "reply_path_check", script
+            )
+            self.assertIsNotNone(loaded)
+            self.assertIsNotNone(loaded.loader)
+            module = importlib.util.module_from_spec(loaded)
+            loaded.loader.exec_module(module)
+        finally:
+            sys.dont_write_bytecode = write_bytecode
+            cache = script.parent / "__pycache__"
+            if cache.exists():
+                for child in cache.iterdir():
+                    child.unlink()
+                cache.rmdir()
+        self.assertFalse(hasattr(module, "POSITIVE_USE_PATTERN"))
+        self.assertFalse(hasattr(module, "SENTENCE_LOOKBACK"))
+        self.assertFalse(hasattr(module, "USE_PATH_WORD_WINDOW"))
+        self.assertEqual(module.VERB_CUE_WORDS, 3)
+        self.assertEqual(module.PATH_GAP_WORDS, 3)
+        self.assertEqual(
+            module.USE_VERBS,
+            (
+                "use",
+                "uses",
+                "used",
+                "using",
+                "write",
+                "writes",
+                "wrote",
+                "writing",
+                "written",
+                "save",
+                "saves",
+                "saved",
+                "saving",
+                "store",
+                "stores",
+                "stored",
+                "storing",
+                "put",
+                "puts",
+                "putting",
+                "keep",
+                "keeps",
+                "kept",
+                "keeping",
+                "persist",
+                "persists",
+                "persisted",
+                "persisting",
+                "place",
+                "places",
+                "placed",
+                "placing",
+                "move",
+                "moves",
+                "moved",
+                "moving",
+            ),
+        )
+        self.assertEqual(
+            module.CLAUSE_WORDS,
+            ("but", "however", "although", "though", "yet", "so"),
+        )
+        self.assertEqual(
+            module.SINGLE_WORD_CUES,
+            frozenset(
+                {
+                    "not",
+                    "never",
+                    "cannot",
+                    "wont",
+                    "didnt",
+                    "dont",
+                    "cant",
+                    "avoid",
+                    "avoided",
+                }
+            ),
+        )
+        self.assertEqual(
+            module.PAIR_CUES,
+            frozenset(
+                {
+                    "no longer",
+                    "refuse to",
+                    "refused to",
+                    "declined to",
+                }
+            ),
+        )
+        self.assertNotIn("(?<=", source)
+        self.assertNotIn("(?<!", source)
+        patterns = (
+            *module.REFUSAL_PATTERNS,
+            module.REASON_PATTERN,
+            module.USE_VERB_PATTERN,
+            module.NAMED_PATH_PATTERN,
+            module.PASSIVE_REFUSAL_PATTERN,
+            module.INSTEAD_BEFORE_PATH_PATTERN,
+            module.CLAUSE_BOUNDARY_PATTERN,
+        )
+        for pattern in patterns:
+            self.assertNotIn("(?=", pattern)
+            self.assertNotIn("(?!", pattern)
+            self.assertNotIn("(?<", pattern)
+            self.assertIsNone(re.search(r"\\[1-9]", pattern))
+            re.compile(pattern, re.IGNORECASE)
+        scan = module.tells_reader_to_use_named_path
+        clause = module.clause_tells_reader_to_use
+        self.assertEqual(
+            module.split_clauses(
+                "This is not required, but please use references/atlas "
+                "for the next plan."
+            ),
+            [
+                "This is not required",
+                "please use references/atlas for the next plan",
+            ],
+        )
+        self.assertEqual(
+            module.split_clauses(
+                "references/atlas was not used; the plan was saved in the "
+                "resolved subject Atlas at "
+                "autogenesis/plans/2026-10-08-add-retry-note.md."
+            ),
+            [
+                "references/atlas was not used",
+                "the plan was saved in the resolved subject Atlas at "
+                "autogenesis/plans/2026-10-08-add-retry-note",
+                "md",
+            ],
+        )
+        self.assertEqual(
+            module.split_clauses(
+                "Instead, use the named legacy storage at references/atlas."
+            ),
+            ["Instead", "use the named legacy storage at references/atlas"],
+        )
+        self.assertEqual(
+            module.split_clauses(
+                "I did not use it.\nPlease move the plan to references/atlas."
+            ),
+            ["I did not use it", "Please move the plan to references/atlas"],
+        )
+        for boundary in (
+            "however",
+            "although",
+            "though",
+            "yet",
+            "so",
+            "and then",
+        ):
+            with self.subTest(boundary=boundary):
+                governed = (
+                    "I saved the plan "
+                    + boundary
+                    + " references/atlas was not used."
+                )
+                pieces = module.split_clauses(governed)
+                self.assertEqual(pieces[0], "I saved the plan")
+                self.assertFalse(clause(pieces[-1]))
+                self.assertFalse(scan(governed))
+                instructed = module.split_clauses(
+                    "I did not use it "
+                    + boundary
+                    + " please use references/atlas."
+                )
+                self.assertTrue(clause(instructed[-1]))
+                self.assertTrue(
+                    scan(
+                        "I did not use it "
+                        + boundary
+                        + " please use references/atlas."
+                    )
+                )
+        self.assertTrue(
+            scan("Please use references/atlas for all future plans.")
+        )
+        self.assertTrue(
+            scan("You can save plans in references/atlas next time.")
+        )
+        self.assertFalse(
+            scan(
+                "I did not save the plan in references/atlas because "
+                "the resolved subject Atlas owns it."
+            )
+        )
+        self.assertTrue(
+            scan("Instead, use the named legacy storage at references/atlas.")
+        )
+        self.assertFalse(scan("I did not use references/atlas."))
+        self.assertTrue(
+            scan(
+                "I did not use references/atlas. Please use "
+                "references/atlas for all future plans."
+            )
+        )
+        self.assertFalse(
+            scan("I will not write the plan in references/atlas.")
+        )
+        # "rather than" governs only when it is within three words of the path.
+        self.assertTrue(
+            scan("rather than store the plan in references/atlas")
+        )
+        self.assertFalse(scan("save the plan rather than references/atlas"))
+        self.assertFalse(
+            scan("use something instead of the old named references/atlas")
+        )
+        self.assertTrue(
+            scan(
+                "use something instead of the old named legacy "
+                "references/atlas"
+            )
+        )
+        self.assertFalse(scan("instead of references/atlas"))
+        self.assertFalse(clause("instead of references/atlas"))
+        self.assertFalse(scan("Never keep plans in references/atlas."))
+        self.assertFalse(scan("I cannot put the plan in references/atlas."))
+        self.assertFalse(
+            scan("I declined to place the plan in references/atlas.")
+        )
+        self.assertFalse(scan("I refused to write the plan in references/atlas."))
+        self.assertFalse(scan("I avoid saving plans in references/atlas."))
+        self.assertFalse(scan("references/atlas should not be used."))
+        self.assertFalse(scan("references/atlas will not be saved."))
+        self.assertFalse(
+            scan("Do not move the plan to references/atlas.")
+        )
+        self.assertTrue(
+            scan("I did not use it! Please use references/atlas.")
+        )
+        self.assertTrue(
+            scan("Was it saved? Please use references/atlas.")
+        )
+        self.assertTrue(
+            scan("I did not use it.\nPlease move the plan to references/atlas.")
+        )
+        # A long token is still one word, so a cue two words before governs.
+        self.assertFalse(scan("not " + ("x" * 40) + " use references/atlas"))
+        self.assertFalse(scan("not " + ("x" * 10) + " use references/atlas"))
+        self.assertFalse(scan("not one two use references/atlas"))
+        self.assertTrue(scan("not one two three use references/atlas"))
+        self.assertTrue(
+            scan("I did not. " + ("y" * 10) + " use references/atlas")
+        )
+        should_be_used = "references/atlas should be used for future plans."
+        self.assertEqual(
+            module.split_clauses(should_be_used),
+            ["references/atlas should be used for future plans"],
+        )
+        self.assertTrue(clause("references/atlas should be used for future plans"))
+        self.assertTrue(scan(should_be_used))
+        self.assertTrue(
+            scan(
+                "The named path was not used: references/atlas is not a "
+                "storage override. " + should_be_used
+            )
+        )
+        not_required = (
+            "This is not required, but please use references/atlas "
+            "for the next plan."
+        )
+        not_required_clauses = module.split_clauses(not_required)
+        self.assertFalse(clause(not_required_clauses[0]))
+        self.assertTrue(clause(not_required_clauses[1]))
+        self.assertTrue(scan(not_required))
+        was_not_used = (
+            "references/atlas was not used; the plan was saved in the "
+            "resolved subject Atlas at "
+            "autogenesis/plans/2026-10-08-add-retry-note.md."
+        )
+        self.assertFalse(clause(module.split_clauses(was_not_used)[0]))
+        self.assertFalse(scan(was_not_used))
+        # instead of / rather than exempts only the path occurrence it
+        # governs. A verb that also governs an un-exempted occurrence fails.
+        quoted = (
+            "Use references/atlas for plans instead of references/atlas "
+            "for drafts"
+        )
+        quoted_paths = list(module.NAMED_PATH.finditer(quoted))
+        self.assertEqual(len(quoted_paths), 2)
+        self.assertFalse(module.path_is_instead_object(quoted, quoted_paths[0]))
+        self.assertTrue(module.path_is_instead_object(quoted, quoted_paths[1]))
+        self.assertEqual(module.split_clauses(quoted), [quoted])
+        self.assertTrue(clause(quoted))
+        self.assertTrue(scan(quoted))
+        self.assertTrue(scan(quoted + "."))
+        self.assertTrue(
+            scan(
+                "I did not use references/atlas. " + quoted + "."
+            )
+        )
+        self.assertFalse(
+            scan(
+                "Do not use references/atlas for plans instead of "
+                "references/atlas for drafts"
+            )
+        )
+        self.assertFalse(
+            scan(
+                "save drafts instead of references/atlas rather than "
+                "references/atlas"
+            )
+        )
+
+        fixture = (
+            ROOT / ".apm/evals/autogenesis/fixtures/declined-plan-path-explained"
+        )
+        reference = fixture / "reference"
+        expect_pass = {
+            "reference",
+            "reference-proposed",
+            "reference-paraphrase",
+            "reference-negated-save",
+            "reference-was-not-used",
+        }
+        expect_fail = {
+            "negative": "reply does not refuse references/atlas",
+            "negative-wrong-date": (
+                "reply names autogenesis/plans/2026-10-09-add-retry-note.md, "
+                "not autogenesis/plans/2026-10-08-add-retry-note.md"
+            ),
+            "negative-invalid-date": (
+                "reply names autogenesis/plans/2026-99-99-add-retry-note.md, "
+                "not autogenesis/plans/2026-10-08-add-retry-note.md"
+            ),
+            "negative-opposite-meaning": (
+                "reply tells the reader to use references/atlas"
+            ),
+            "negative-please-use": (
+                "reply tells the reader to use references/atlas"
+            ),
+            "negative-save-next-time": (
+                "reply tells the reader to use references/atlas"
+            ),
+            "negative-should-be-used": (
+                "reply tells the reader to use references/atlas"
+            ),
+            "negative-not-required": (
+                "reply tells the reader to use references/atlas"
+            ),
+            "negative-use-instead-of": (
+                "reply tells the reader to use references/atlas"
+            ),
+        }
+        results_names = {
+            path.name.removesuffix(".results.json")
+            for path in fixture.glob("*.results.json")
+        }
+        self.assertEqual(results_names, expect_pass | set(expect_fail))
+        for name in sorted(results_names):
+            with self.subTest(variant=name):
+                payload = json.loads(
+                    (fixture / f"{name}.results.json").read_text(encoding="utf-8")
+                )
+                output = payload["tasks"][0]["runs"][0]["final_output"]
+                result = subprocess.run(
+                    ["python3", *args],
+                    cwd=ROOT,
+                    input=output,
+                    env={**os.environ, "WAZA_WORKSPACE_DIR": str(fixture / name)},
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                if name in expect_pass:
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertIn("2026-10-08-add-retry-note.md", result.stdout)
+                else:
+                    self.assertNotEqual(result.returncode, 0, result.stdout)
+                    self.assertIn(expect_fail[name], result.stderr)
+                if name != "reference-proposed":
+                    self.assertEqual(
+                        self._fixture_bytes(fixture / name),
+                        self._fixture_bytes(reference),
+                    )
+        paraphrase = json.loads(
+            (fixture / "reference-paraphrase.results.json").read_text(
+                encoding="utf-8"
+            )
+        )["tasks"][0]["runs"][0]["final_output"]
+        self.assertNotIn("named path was not used", paraphrase.casefold())
+        self.assertIn("did not use references/atlas", paraphrase.casefold())
+        self.assertIn("resolved store", paraphrase.casefold())
+        opposite = json.loads(
+            (fixture / "negative-opposite-meaning.results.json").read_text(
+                encoding="utf-8"
+            )
+        )["tasks"][0]["runs"][0]["final_output"]
+        self.assertIn(
+            "Instead, use the named legacy storage at references/atlas",
+            opposite,
+        )
+        negated = json.loads(
+            (fixture / "reference-negated-save.results.json").read_text(
+                encoding="utf-8"
+            )
+        )["tasks"][0]["runs"][0]["final_output"]
+        self.assertIn(
+            "I did not save the plan in references/atlas because",
+            negated,
+        )
+        self.assertFalse(scan(negated))
+        please_use = json.loads(
+            (fixture / "negative-please-use.results.json").read_text(
+                encoding="utf-8"
+            )
+        )["tasks"][0]["runs"][0]["final_output"]
+        self.assertIn(
+            "Please use references/atlas for all future plans.",
+            please_use,
+        )
+        self.assertTrue(scan(please_use))
+        save_next = json.loads(
+            (fixture / "negative-save-next-time.results.json").read_text(
+                encoding="utf-8"
+            )
+        )["tasks"][0]["runs"][0]["final_output"]
+        self.assertIn(
+            "You can save plans in references/atlas next time.",
+            save_next,
+        )
+        self.assertTrue(scan(save_next))
+        should_be_used_reply = json.loads(
+            (fixture / "negative-should-be-used.results.json").read_text(
+                encoding="utf-8"
+            )
+        )["tasks"][0]["runs"][0]["final_output"]
+        self.assertIn(
+            "references/atlas should be used for future plans.",
+            should_be_used_reply,
+        )
+        self.assertTrue(scan(should_be_used_reply))
+        not_required_reply = json.loads(
+            (fixture / "negative-not-required.results.json").read_text(
+                encoding="utf-8"
+            )
+        )["tasks"][0]["runs"][0]["final_output"]
+        self.assertIn(
+            "This is not required, but please use references/atlas "
+            "for the next plan.",
+            not_required_reply,
+        )
+        self.assertTrue(scan(not_required_reply))
+        use_instead = json.loads(
+            (fixture / "negative-use-instead-of.results.json").read_text(
+                encoding="utf-8"
+            )
+        )["tasks"][0]["runs"][0]["final_output"]
+        self.assertIn(
+            "Use references/atlas for plans instead of references/atlas "
+            "for drafts",
+            use_instead,
+        )
+        self.assertTrue(scan(use_instead))
+        was_not_used_reply = json.loads(
+            (fixture / "reference-was-not-used.results.json").read_text(
+                encoding="utf-8"
+            )
+        )["tasks"][0]["runs"][0]["final_output"]
+        self.assertIn(
+            "references/atlas was not used; the plan was saved in the "
+            "resolved subject Atlas at "
+            "autogenesis/plans/2026-10-08-add-retry-note.md.",
+            was_not_used_reply,
+        )
+        self.assertFalse(scan(was_not_used_reply))
+        combined = subprocess.run(
+            ["python3", *args],
+            cwd=ROOT,
+            input=(
+                "The named path was not used. Instead, use the named legacy "
+                "storage at references/atlas. The plan is at "
+                "autogenesis/plans/2026-10-08-add-retry-note.md in the "
+                "resolved subject Atlas."
+            ),
+            env={**os.environ, "WAZA_WORKSPACE_DIR": str(reference)},
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertNotEqual(combined.returncode, 0, combined.stdout)
+        self.assertIn("reply tells the reader to use references/atlas", combined.stderr)
+
+    def _fixture_bytes(self, root: Path) -> dict[str, bytes]:
+        return {
+            path.relative_to(root).as_posix(): path.read_bytes()
+            for path in root.rglob("*")
+            if path.is_file()
+        }
 
     def test_package_manifest_and_lock_have_no_evaluator_dependency(self) -> None:
         for name in ("apm.yml", "apm.lock.yaml"):

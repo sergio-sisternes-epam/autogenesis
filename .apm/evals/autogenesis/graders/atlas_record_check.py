@@ -10,8 +10,13 @@ invocation must resolve to the same date. Zero matches is missing; two or
 more is ambiguous.
 
 --exists-only checks existence, uniqueness and the shared date only.
-Otherwise exactly one top-level status key must be the simple plain or
-quoted scalar given by --status (default designed). A trailing `#` comment
+Otherwise exactly one top-level status key must be a simple plain or
+quoted scalar. --status may be repeated; any listed value is accepted.
+When --status is omitted the allowed value is designed. --status-for
+REL VALUE may be repeated and names one allowed value for that positional
+path. When it is used, only those paths are status-checked; every other
+positional path is resolved for existence and the shared date and is not
+read. --status and --status-for cannot be combined. A trailing `#` comment
 counts only when at least one space or tab separates it from the scalar.
 Only a space or a tab is whitespace in this parser. A NBSP or other
 Unicode space is not stripped and is not a comment separator, so the
@@ -43,7 +48,8 @@ from pathlib import Path
 
 USAGE = (
     "usage: atlas_record_check.py REL... "
-    "[--exists-only] [--status VALUE] [--must-match REGEX]..."
+    "[--exists-only] [--status VALUE]... "
+    "[--status-for REL VALUE]... [--must-match REGEX]..."
 )
 
 DATE_TEXT = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -366,10 +372,17 @@ def resolve_one(root, rel):
     return child_rel, found, None
 
 
+def take_value(argv, index):
+    if index >= len(argv) or argv[index].startswith("--"):
+        fail(USAGE)
+    return argv[index]
+
+
 def parse_args(argv):
     paths = []
     exists_only = False
-    status = None
+    statuses = []
+    status_for = {}
     must_match = []
     index = 0
     while index < len(argv):
@@ -379,10 +392,18 @@ def parse_args(argv):
             index += 1
             continue
         if arg == "--status":
-            if status is not None or index + 1 >= len(argv):
-                fail(USAGE)
-            status = argv[index + 1]
+            value = take_value(argv, index + 1)
+            if value not in statuses:
+                statuses.append(value)
             index += 2
+            continue
+        if arg == "--status-for":
+            path = workspace_relative(take_value(argv, index + 1))
+            value = take_value(argv, index + 2)
+            allowed = status_for.setdefault(path, [])
+            if value not in allowed:
+                allowed.append(value)
+            index += 3
             continue
         if arg == "--must-match":
             if index + 1 >= len(argv):
@@ -396,11 +417,22 @@ def parse_args(argv):
         index += 1
     if not paths:
         fail(USAGE)
-    if exists_only and status is not None:
+    if exists_only and (statuses or status_for):
         fail("--exists-only cannot be combined with --status")
-    if not exists_only and status is None:
-        status = "designed"
-    return paths, exists_only, status, must_match
+    if statuses and status_for:
+        fail("--status cannot be combined with --status-for")
+    for path in status_for:
+        if path not in paths:
+            fail("--status-for path is not checked: " + path)
+    if not exists_only and not statuses and not status_for:
+        statuses = ["designed"]
+    return paths, exists_only, statuses, status_for, must_match
+
+
+def expected_phrase(expected):
+    if len(expected) == 1:
+        return "expected " + repr(expected[0])
+    return "expected one of " + ", ".join(repr(item) for item in expected)
 
 
 def main():
@@ -411,7 +443,7 @@ def main():
     root_info = lstat_component(root, "workspace")
     if root_info is None or stat.S_ISLNK(root_info.st_mode) or not stat.S_ISDIR(root_info.st_mode):
         fail("workspace is not a directory")
-    paths, exists_only, status, must_match = parse_args(sys.argv[1:])
+    paths, exists_only, statuses, status_for, must_match = parse_args(sys.argv[1:])
     resolved = []
     dates = []
     problems = []
@@ -420,7 +452,7 @@ def main():
         if error:
             problems.append(error)
             continue
-        resolved.append(child)
+        resolved.append((rel, child))
         if found_date is not None:
             dates.append((child, found_date))
     if len({item[1] for item in dates}) > 1:
@@ -432,16 +464,29 @@ def main():
         fail("; ".join(problems))
     notes = []
     if not exists_only:
-        for rel in resolved:
+        for pattern, rel in resolved:
+            # A path named by --status-for is checked against its own
+            # values. Every other path in that invocation is date-only:
+            # do not read its status or content.
+            if status_for:
+                expected = status_for.get(pattern)
+                if expected is None:
+                    continue
+            else:
+                expected = statuses
             value = status_of_text(read_regular(root / rel, rel), rel)
-            if value != status:
+            if value not in expected:
                 problems.append(
-                    rel + " status is " + repr(value) + ", expected " + repr(status)
+                    rel
+                    + " status is "
+                    + repr(value)
+                    + ", "
+                    + expected_phrase(expected)
                 )
             else:
                 notes.append(rel + " status " + repr(value))
     if must_match:
-        first = resolved[0]
+        first = resolved[0][1]
         text = read_regular(root / first, first)
         for pattern in must_match:
             if re.search(pattern, text) is None:
@@ -450,7 +495,7 @@ def main():
         fail("; ".join(problems))
     if notes:
         print("; ".join(notes))
-    print("resolved: " + " ".join(resolved))
+    print("resolved: " + " ".join(child for _, child in resolved))
 
 
 if __name__ == "__main__":

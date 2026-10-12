@@ -91,6 +91,9 @@ proves execution.
    discussion is activated by loading the catalog **discuss** package
    directly; it is not an Autogenesis operation. The requested operation is
    still explicit in the canonical request once selected.
+   A discussion conclusion, prior agreement, or request to apply a package change or to skip ceremony is not implementation authority and is not a reason only to refuse.
+   When that request would change a package and no persisted plan is explicitly approved, start formal design, persist the plan and work node at status `designed`, and stop for explicit approval.
+   Do not start that design for mere discussion, an explicit request to just discuss, ordinary questions, ordinary application refactoring, `help`, `getting-started`, or unqualified help about unrelated work.
 5. **Explanatory operations.** `help` and `getting-started` explain Autogenesis.
    They must not design, implement, wire, migrate, or write the subject skill.
    They do not auto-mount Atlas. Help with no target lists capability-facing
@@ -162,7 +165,7 @@ When behaviour is in scope:
 | Atlas write-home | Resolve the subject repository's declared `atlas_id` through Atlas path `mount` and `atlas resolve`; write plans/memory only to that resolved root. |
 | Plan home | Design plans persist only at `autogenesis/plans/<work_id>.md` inside the resolved subject Atlas. |
 | Approval | Implement is forbidden until a persisted formal design plan is explicitly approved. |
-| Discussion to implement | Forbidden; re-enter design first. |
+| Discussion to implement | Forbidden. Refuse the product write, start formal design rather than only refusing, and stop at status `designed` until explicit approval. |
 | Wiring | Human approval + version provenance only. No auto-wiring. |
 | Source of truth | This module plus `references/invocation-contract.md` and `references/invocation-contract.json` own the live request/card/receipt discipline. |
 | Legacy owned fields | Reject structured Autogenesis requests that use removed owned fields such as `path_id`, `path`, or `path_module`; explain the new contract instead of silently mapping them. |
@@ -201,8 +204,8 @@ The active subject git root is the write-home boundary.
 4. Run `atlas resolve <atlas_id>`, set `atlas_root` only to that result, and
    verify `<atlas_root>/SCHEMA.json`.
 5. Persist only there and pass the exact resolved root to every Atlas CLI call.
-6. Missing, legacy, ambiguous, or failed Atlas states block normal work; use
-   Atlas init/migrate rather than guessing, symlinking, or dual-writing.
+6. A legacy `<subject>/references/atlas` gitlink requires Atlas path `migrate` before the Run continues. A legacy okf-wiki may then be ingested through Autogenesis operation `atlas-migrate`. A plain `references/atlas` directory is not a gitlink and is not a block once resolution has succeeded. A user-named plan path is not a block once resolution has succeeded. Missing, ambiguous, or failed Atlas states still block normal work; use Atlas init/migrate rather than guessing, symlinking, or dual-writing.
+7. A user-named plan location outside the resolved subject Atlas is not a storage override and is not invalid storage. When steps 1–4 have succeeded and the gitlink rule in step 6 does not apply, persist only in the resolved store, tell the user the Atlas-relative path written and why the named path was not used, and do not stop to ask. Stopping remains correct only when resolution itself fails. Fail-closed applies to resolution, not to a declined override.
 
 ### Entrypoint-load honesty
 

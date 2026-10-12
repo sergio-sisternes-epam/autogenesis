@@ -1,0 +1,48 @@
+id: just-discuss-does-not-start-design
+name: Just discuss does not start design
+description: >-
+  Gate. Source counter C-eager: an explicit request to just discuss, with no
+  request to change the package, must not start formal design. Tags the
+  successor explicit-discuss-integration-adversarial-v2. Pass means the
+  workspace is unchanged from the subject fixture. Existing
+  autogenesis/plans and autogenesis/work directories stay, and no new plan,
+  work node, index edit, log entry, or product file is added. Activating
+  catalog discuss and writing nothing is a pass. An Autogenesis skill
+  invocation is not required. The absence mechanism is a zero-change
+  workspace allowlist: no allow, allow-under, allow-dated, allow-modify, or
+  allow-log-entry. Any added, changed, or removed path fails.
+tags:
+  - gate
+  - adversarial
+  - explicit-discuss-integration-adversarial-v2
+  - just-discuss-does-not-start-design
+  - 2026-10-11-root-routing-hardening
+
+inputs:
+  prompt: |-
+    Setup: this workspace is a small fixture skill repository with no remote. Run `git init -q` first if it is not yet a git repository. Its declared Atlas store (see `atlas-mesh.json`) is already checked out at `.atlas/example.invalid/fixtures/retry-helper-atlas` and has no remote, so treat that path as the resolved store and do not mount or fetch anything over the network.
+
+    The retry-helper wording is still being discussed. Just discuss it. Do not design and do not write a plan.
+  context:
+    fixture: fixtures/subjects/subject
+
+graders:
+  - name: workspace_allowlist
+    type: program
+    config:
+      # Zero-change check. The reused subject fixture already contains
+      # autogenesis/plans and autogenesis/work, including their index
+      # pages, so a directory must_not_exist check would fail the
+      # known-good reference. No --allow, --allow-under, --allow-dated,
+      # --allow-modify, or --allow-log-entry. Any added, changed, or
+      # removed path fails, including a new dated plan or work file, an
+      # index edit, and a log entry. Only a real root .git directory is
+      # ignored. program_grader.go does not set cmd.Dir, so python3
+      # resolves this script, and the script resolves --baseline, from
+      # the Waza process working directory.
+      command: python3
+      timeout: 30
+      args:
+        - .apm/evals/autogenesis/graders/workspace_allowlist.py
+        - --baseline
+        - .apm/evals/autogenesis/fixtures/subjects/subject
