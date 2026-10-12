@@ -28,18 +28,49 @@ backreference:
 - instead of or rather than, then references/atlas within a few words
 
 The reason is resolved Atlas, resolved subject Atlas, or resolved store.
-An instruction to use references/atlas is not a refusal, whatever the
-wording. Each use-verb (use, write, save, store, put, keep, persist,
-place or move, including ordinary inflections) followed within six words
-by references/atlas is checked in Python, without a lookbehind. The scan
-reads the same sentence before that verb, back to the previous . ! ? or
-newline, and no more than 40 characters. A negation or refusal cue in
-that prefix (not, n't, never, no longer, instead of, rather than,
-cannot, won't, refuse, declined, avoid) keeps the occurrence a refusal.
-Without one, the reply tells the reader to use the named path and fails.
-A refusal earlier in the reply does not excuse that instruction.
-"Please use references/atlas for all future plans." fails. "I did not
-save the plan in references/atlas" does not.
+Those three relations are unchanged. They are not the use guard.
+
+The use guard is a bounded lexical check. It cannot prove meaning,
+quotation, or that a cue actually governs a verb. It splits the reply
+into clauses and fails when any clause is a use clause that is not a
+refusal. Sentence boundaries are . ! ? and newline. Clause boundaries
+are , ; : and the words but, however, although, though, yet, so, and
+the phrase and then. A full stop inside a token, including the stop in
+a .md suffix, is also a boundary, so words on opposite sides of it are
+not one clause.
+
+A clause is a use clause when it mentions references/atlas and contains
+a use-verb, in either order. Use-verbs are use, uses, used, using;
+write, writes, wrote, writing, written; save, saves, saved, saving;
+store, stores, stored, storing; put, puts, putting; keep, keeps, kept,
+keeping; persist, persists, persisted, persisting; place, places,
+placed, placing; move, moves, moved, moving.
+
+That clause is a refusal only when the same clause governs every
+use-verb. This check treats government as one of three forms, and no
+other:
+
+- a cue within three words before the verb: not; n't inside the word
+  (didn't, won't, don't, can't); the apostrophe-less didnt, dont, wont
+  and cant already accepted by the refusal relations; never; no longer;
+  cannot; refuse to; refused to; declined to; avoid; avoided
+- the passive or modal form references/atlas (is|was|will|should|must|
+  can) (not|n't|never) (be )?verb, covering that verb
+- instead of or rather than, with at most three words between that
+  phrase and references/atlas
+
+Any other use clause fails the grader. A refusal in another clause does
+not excuse it. In particular the check rejects:
+
+- references/atlas should be used for future plans.
+- This is not required, but please use references/atlas for the next plan.
+- Please use references/atlas for all future plans.
+- You can save plans in references/atlas next time.
+- Instead, use the named legacy storage at references/atlas.
+
+It does not reject a same-clause governed use, including "I did not
+save the plan in references/atlas" and "references/atlas was not used".
+A cue more than three words before the verb does not govern it.
 """
 
 import os
@@ -78,26 +109,94 @@ REFUSAL_PATTERNS = (
 REASON_PATTERN = (
     r"\bresolved\s+(?:subject\s+)?atlas\b|\bresolved\s+store\b"
 )
-# Positive-use scan. Python re, no lookaround. Each use-verb is paired
-# only with references/atlas in the same sentence, within six words.
-# Six words is the same window as the refusal relations, and it still
-# reaches "use the named legacy storage at references/atlas". A later
-# instruction is not swallowed by an earlier negated verb.
-SENTENCE_LOOKBACK = 40
-USE_PATH_WORD_WINDOW = 6
-USE_VERB_PATTERN = (
-    r"\b(?:use|uses|used|using|write|writes|wrote|writing|written|"
-    r"save|saves|saved|saving|store|stores|stored|storing|"
-    r"put|puts|putting|keep|keeps|kept|keeping|"
-    r"persist|persists|persisted|persisting|"
-    r"place|places|placed|placing|move|moves|moved|moving)\b"
+# Clause-scoped use guard. Python re, no lookaround. A use clause names
+# references/atlas and a use-verb in either order. It is a refusal only
+# when a cue in the same clause governs every such verb, as the module
+# docstring lists. A cue in another clause does not.
+VERB_CUE_WORDS = 3
+PATH_GAP_WORDS = 3
+USE_VERBS = (
+    "use",
+    "uses",
+    "used",
+    "using",
+    "write",
+    "writes",
+    "wrote",
+    "writing",
+    "written",
+    "save",
+    "saves",
+    "saved",
+    "saving",
+    "store",
+    "stores",
+    "stored",
+    "storing",
+    "put",
+    "puts",
+    "putting",
+    "keep",
+    "keeps",
+    "kept",
+    "keeping",
+    "persist",
+    "persists",
+    "persisted",
+    "persisting",
+    "place",
+    "places",
+    "placed",
+    "placing",
+    "move",
+    "moves",
+    "moved",
+    "moving",
 )
-# Apostrophe-less didnt/dont/wont/cant are the same cues the refusal
-# patterns already accept, so a recognised refusal is not also an instruction.
-NEGATION_CUE_PATTERN = (
-    r"n't|\b(?:not|never|cannot|didnt|dont|wont|cant)\b|"
-    r"\bno longer\b|\binstead of\b|\brather than\b|"
-    r"\bwon't\b|\brefuse|\bdeclined\b|\bavoid"
+USE_VERB_PATTERN = r"\b(?:" + "|".join(USE_VERBS) + r")\b"
+NAMED_PATH_PATTERN = r"\breferences/atlas\b"
+# didnt/dont/wont/cant are the apostrophe-less cues the refusal relations
+# already accept, so a recognised refusal is not also an instruction.
+# n't is matched inside the word, so didn't, won't, don't and can't count.
+SINGLE_WORD_CUES = frozenset(
+    {
+        "not",
+        "never",
+        "cannot",
+        "wont",
+        "didnt",
+        "dont",
+        "cant",
+        "avoid",
+        "avoided",
+    }
+)
+PAIR_CUES = frozenset(
+    {
+        "no longer",
+        "refuse to",
+        "refused to",
+        "declined to",
+    }
+)
+PASSIVE_REFUSAL_PATTERN = (
+    NAMED_PATH_PATTERN
+    + r"\s+(?:is|was|will|should|must|can)"
+    + r"(?:n't|\s+not|\s+never)"
+    + r"(?:\s+be)?"
+    + r"\s+"
+    + USE_VERB_PATTERN
+)
+INSTEAD_BEFORE_PATH_PATTERN = (
+    r"\b(?:instead\s+of|rather\s+than)\b"
+    + r"(?:\s+\S+){0,"
+    + str(PATH_GAP_WORDS)
+    + r"}\s+"
+    + NAMED_PATH_PATTERN
+)
+CLAUSE_WORDS = ("but", "however", "although", "though", "yet", "so")
+CLAUSE_BOUNDARY_PATTERN = (
+    r"[.!?,\r\n;:]|\band\s+then\b|\b(?:" + "|".join(CLAUSE_WORDS) + r")\b"
 )
 
 
@@ -116,8 +215,11 @@ def compile_checked(pattern):
 
 REFUSALS = tuple(compile_checked(pattern) for pattern in REFUSAL_PATTERNS)
 REASON = compile_checked(REASON_PATTERN)
-USE_VERB = re.compile(USE_VERB_PATTERN, re.IGNORECASE)
-NEGATION_CUE = re.compile(NEGATION_CUE_PATTERN, re.IGNORECASE)
+USE_VERB = compile_checked(USE_VERB_PATTERN)
+NAMED_PATH = compile_checked(NAMED_PATH_PATTERN)
+PASSIVE_REFUSAL = compile_checked(PASSIVE_REFUSAL_PATTERN)
+INSTEAD_BEFORE_PATH = compile_checked(INSTEAD_BEFORE_PATH_PATTERN)
+CLAUSE_BOUNDARY = compile_checked(CLAUSE_BOUNDARY_PATTERN)
 
 
 def take_value(argv, index):
@@ -174,43 +276,71 @@ def refuses(reply):
     return any(pattern.search(reply) for pattern in REFUSALS)
 
 
-def sentence_prefix(text, verb_start):
-    """Same-sentence text before a use-verb, capped at SENTENCE_LOOKBACK."""
-    start = max(0, verb_start - SENTENCE_LOOKBACK)
-    window = text[start:verb_start]
-    boundary = -1
-    for mark in ".!?\n":
-        found = window.rfind(mark)
-        if found > boundary:
-            boundary = found
-    if boundary >= 0:
-        return window[boundary + 1 :]
-    return window
+def split_clauses(text):
+    """Split on sentence and clause boundaries. Boundaries are not kept."""
+    clauses = []
+    start = 0
+    for match in CLAUSE_BOUNDARY.finditer(text):
+        chunk = text[start:match.start()].strip()
+        if chunk:
+            clauses.append(chunk)
+        start = match.end()
+    tail = text[start:].strip()
+    if tail:
+        clauses.append(tail)
+    return clauses
 
 
-def followed_by_named_path(after):
-    """True when references/atlas is within a few words, same sentence."""
-    end = len(after)
-    for mark in ".!?\n":
-        found = after.find(mark)
-        if found >= 0 and found < end:
-            end = found
-    words = re.findall(r"\S+", after[:end])
-    for word in words[: USE_PATH_WORD_WINDOW + 1]:
-        token = word.lower().strip(".,:;!?\"'")
-        if token == "references/atlas" or token.startswith("references/atlas/"):
+def clause_words(text):
+    words = []
+    for raw in re.findall(r"\S+", text):
+        token = raw.lower().strip(".,:;!?\"'()[]{}")
+        if token:
+            words.append(token)
+    return words
+
+
+def cue_governs_verb(words_before):
+    """True when a listed cue sits in the three words before the verb."""
+    window = words_before[-VERB_CUE_WORDS:]
+    for word in window:
+        if word in SINGLE_WORD_CUES or "n't" in word:
             return True
+    for index in range(len(window) - 1):
+        if window[index] + " " + window[index + 1] in PAIR_CUES:
+            return True
+    return False
+
+
+def passive_covers_verb(clause, verb_match):
+    for match in PASSIVE_REFUSAL.finditer(clause):
+        if match.start() <= verb_match.start() and verb_match.end() <= match.end():
+            return True
+    return False
+
+
+def clause_tells_reader_to_use(clause):
+    """True when this one clause is an ungoverned use of references/atlas."""
+    if NAMED_PATH.search(clause) is None:
+        return False
+    verbs = list(USE_VERB.finditer(clause))
+    if not verbs:
+        return False
+    if INSTEAD_BEFORE_PATH.search(clause):
+        return False
+    for verb in verbs:
+        if passive_covers_verb(clause, verb):
+            continue
+        if cue_governs_verb(clause_words(clause[: verb.start()])):
+            continue
+        return True
     return False
 
 
 def tells_reader_to_use_named_path(reply):
-    for match in USE_VERB.finditer(reply):
-        if not followed_by_named_path(reply[match.end() :]):
-            continue
-        prefix = sentence_prefix(reply, match.start())
-        if NEGATION_CUE.search(prefix) is None:
-            return True
-    return False
+    return any(
+        clause_tells_reader_to_use(clause) for clause in split_clauses(reply)
+    )
 
 
 def main():

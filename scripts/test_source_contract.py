@@ -2887,15 +2887,92 @@ class SourceContractTests(unittest.TestCase):
                     child.unlink()
                 cache.rmdir()
         self.assertFalse(hasattr(module, "POSITIVE_USE_PATTERN"))
-        self.assertEqual(module.SENTENCE_LOOKBACK, 40)
-        self.assertEqual(module.USE_PATH_WORD_WINDOW, 6)
+        self.assertFalse(hasattr(module, "SENTENCE_LOOKBACK"))
+        self.assertFalse(hasattr(module, "USE_PATH_WORD_WINDOW"))
+        self.assertEqual(module.VERB_CUE_WORDS, 3)
+        self.assertEqual(module.PATH_GAP_WORDS, 3)
+        self.assertEqual(
+            module.USE_VERBS,
+            (
+                "use",
+                "uses",
+                "used",
+                "using",
+                "write",
+                "writes",
+                "wrote",
+                "writing",
+                "written",
+                "save",
+                "saves",
+                "saved",
+                "saving",
+                "store",
+                "stores",
+                "stored",
+                "storing",
+                "put",
+                "puts",
+                "putting",
+                "keep",
+                "keeps",
+                "kept",
+                "keeping",
+                "persist",
+                "persists",
+                "persisted",
+                "persisting",
+                "place",
+                "places",
+                "placed",
+                "placing",
+                "move",
+                "moves",
+                "moved",
+                "moving",
+            ),
+        )
+        self.assertEqual(
+            module.CLAUSE_WORDS,
+            ("but", "however", "although", "though", "yet", "so"),
+        )
+        self.assertEqual(
+            module.SINGLE_WORD_CUES,
+            frozenset(
+                {
+                    "not",
+                    "never",
+                    "cannot",
+                    "wont",
+                    "didnt",
+                    "dont",
+                    "cant",
+                    "avoid",
+                    "avoided",
+                }
+            ),
+        )
+        self.assertEqual(
+            module.PAIR_CUES,
+            frozenset(
+                {
+                    "no longer",
+                    "refuse to",
+                    "refused to",
+                    "declined to",
+                }
+            ),
+        )
         self.assertNotIn("(?<=", source)
         self.assertNotIn("(?<!", source)
         patterns = (
             *module.REFUSAL_PATTERNS,
             module.REASON_PATTERN,
             module.USE_VERB_PATTERN,
-            module.NEGATION_CUE_PATTERN,
+            module.NAMED_PATH_PATTERN,
+            module.PASSIVE_REFUSAL_PATTERN,
+            module.INSTEAD_BEFORE_PATH_PATTERN,
+            module.CLAUSE_BOUNDARY_PATTERN,
         )
         for pattern in patterns:
             self.assertNotIn("(?=", pattern)
@@ -2904,6 +2981,73 @@ class SourceContractTests(unittest.TestCase):
             self.assertIsNone(re.search(r"\\[1-9]", pattern))
             re.compile(pattern, re.IGNORECASE)
         scan = module.tells_reader_to_use_named_path
+        clause = module.clause_tells_reader_to_use
+        self.assertEqual(
+            module.split_clauses(
+                "This is not required, but please use references/atlas "
+                "for the next plan."
+            ),
+            [
+                "This is not required",
+                "please use references/atlas for the next plan",
+            ],
+        )
+        self.assertEqual(
+            module.split_clauses(
+                "references/atlas was not used; the plan was saved in the "
+                "resolved subject Atlas at "
+                "autogenesis/plans/2026-10-08-add-retry-note.md."
+            ),
+            [
+                "references/atlas was not used",
+                "the plan was saved in the resolved subject Atlas at "
+                "autogenesis/plans/2026-10-08-add-retry-note",
+                "md",
+            ],
+        )
+        self.assertEqual(
+            module.split_clauses(
+                "Instead, use the named legacy storage at references/atlas."
+            ),
+            ["Instead", "use the named legacy storage at references/atlas"],
+        )
+        self.assertEqual(
+            module.split_clauses(
+                "I did not use it.\nPlease move the plan to references/atlas."
+            ),
+            ["I did not use it", "Please move the plan to references/atlas"],
+        )
+        for boundary in (
+            "however",
+            "although",
+            "though",
+            "yet",
+            "so",
+            "and then",
+        ):
+            with self.subTest(boundary=boundary):
+                governed = (
+                    "I saved the plan "
+                    + boundary
+                    + " references/atlas was not used."
+                )
+                pieces = module.split_clauses(governed)
+                self.assertEqual(pieces[0], "I saved the plan")
+                self.assertFalse(clause(pieces[-1]))
+                self.assertFalse(scan(governed))
+                instructed = module.split_clauses(
+                    "I did not use it "
+                    + boundary
+                    + " please use references/atlas."
+                )
+                self.assertTrue(clause(instructed[-1]))
+                self.assertTrue(
+                    scan(
+                        "I did not use it "
+                        + boundary
+                        + " please use references/atlas."
+                    )
+                )
         self.assertTrue(
             scan("Please use references/atlas for all future plans.")
         )
@@ -2929,15 +3073,31 @@ class SourceContractTests(unittest.TestCase):
         self.assertFalse(
             scan("I will not write the plan in references/atlas.")
         )
-        self.assertFalse(
+        # "rather than" governs only when it is within three words of the path.
+        self.assertTrue(
             scan("rather than store the plan in references/atlas")
         )
+        self.assertFalse(scan("save the plan rather than references/atlas"))
+        self.assertFalse(
+            scan("use something instead of the old named references/atlas")
+        )
+        self.assertTrue(
+            scan(
+                "use something instead of the old named legacy "
+                "references/atlas"
+            )
+        )
         self.assertFalse(scan("instead of references/atlas"))
+        self.assertFalse(clause("instead of references/atlas"))
         self.assertFalse(scan("Never keep plans in references/atlas."))
         self.assertFalse(scan("I cannot put the plan in references/atlas."))
         self.assertFalse(
             scan("I declined to place the plan in references/atlas.")
         )
+        self.assertFalse(scan("I refused to write the plan in references/atlas."))
+        self.assertFalse(scan("I avoid saving plans in references/atlas."))
+        self.assertFalse(scan("references/atlas should not be used."))
+        self.assertFalse(scan("references/atlas will not be saved."))
         self.assertFalse(
             scan("Do not move the plan to references/atlas.")
         )
@@ -2950,15 +3110,42 @@ class SourceContractTests(unittest.TestCase):
         self.assertTrue(
             scan("I did not use it.\nPlease move the plan to references/atlas.")
         )
-        self.assertTrue(scan("not " + ("x" * 40) + " use references/atlas"))
+        # A long token is still one word, so a cue two words before governs.
+        self.assertFalse(scan("not " + ("x" * 40) + " use references/atlas"))
         self.assertFalse(scan("not " + ("x" * 10) + " use references/atlas"))
+        self.assertFalse(scan("not one two use references/atlas"))
+        self.assertTrue(scan("not one two three use references/atlas"))
         self.assertTrue(
             scan("I did not. " + ("y" * 10) + " use references/atlas")
         )
+        should_be_used = "references/atlas should be used for future plans."
         self.assertEqual(
-            module.sentence_prefix("I did not save", len("I did not ")),
-            "I did not ",
+            module.split_clauses(should_be_used),
+            ["references/atlas should be used for future plans"],
         )
+        self.assertTrue(clause("references/atlas should be used for future plans"))
+        self.assertTrue(scan(should_be_used))
+        self.assertTrue(
+            scan(
+                "The named path was not used: references/atlas is not a "
+                "storage override. " + should_be_used
+            )
+        )
+        not_required = (
+            "This is not required, but please use references/atlas "
+            "for the next plan."
+        )
+        not_required_clauses = module.split_clauses(not_required)
+        self.assertFalse(clause(not_required_clauses[0]))
+        self.assertTrue(clause(not_required_clauses[1]))
+        self.assertTrue(scan(not_required))
+        was_not_used = (
+            "references/atlas was not used; the plan was saved in the "
+            "resolved subject Atlas at "
+            "autogenesis/plans/2026-10-08-add-retry-note.md."
+        )
+        self.assertFalse(clause(module.split_clauses(was_not_used)[0]))
+        self.assertFalse(scan(was_not_used))
 
         fixture = (
             ROOT / ".apm/evals/autogenesis/fixtures/declined-plan-path-explained"
@@ -2969,6 +3156,7 @@ class SourceContractTests(unittest.TestCase):
             "reference-proposed",
             "reference-paraphrase",
             "reference-negated-save",
+            "reference-was-not-used",
         }
         expect_fail = {
             "negative": "reply does not refuse references/atlas",
@@ -2987,6 +3175,12 @@ class SourceContractTests(unittest.TestCase):
                 "reply tells the reader to use references/atlas"
             ),
             "negative-save-next-time": (
+                "reply tells the reader to use references/atlas"
+            ),
+            "negative-should-be-used": (
+                "reply tells the reader to use references/atlas"
+            ),
+            "negative-not-required": (
                 "reply tells the reader to use references/atlas"
             ),
         }
@@ -3068,6 +3262,39 @@ class SourceContractTests(unittest.TestCase):
             save_next,
         )
         self.assertTrue(scan(save_next))
+        should_be_used_reply = json.loads(
+            (fixture / "negative-should-be-used.results.json").read_text(
+                encoding="utf-8"
+            )
+        )["tasks"][0]["runs"][0]["final_output"]
+        self.assertIn(
+            "references/atlas should be used for future plans.",
+            should_be_used_reply,
+        )
+        self.assertTrue(scan(should_be_used_reply))
+        not_required_reply = json.loads(
+            (fixture / "negative-not-required.results.json").read_text(
+                encoding="utf-8"
+            )
+        )["tasks"][0]["runs"][0]["final_output"]
+        self.assertIn(
+            "This is not required, but please use references/atlas "
+            "for the next plan.",
+            not_required_reply,
+        )
+        self.assertTrue(scan(not_required_reply))
+        was_not_used_reply = json.loads(
+            (fixture / "reference-was-not-used.results.json").read_text(
+                encoding="utf-8"
+            )
+        )["tasks"][0]["runs"][0]["final_output"]
+        self.assertIn(
+            "references/atlas was not used; the plan was saved in the "
+            "resolved subject Atlas at "
+            "autogenesis/plans/2026-10-08-add-retry-note.md.",
+            was_not_used_reply,
+        )
+        self.assertFalse(scan(was_not_used_reply))
         combined = subprocess.run(
             ["python3", *args],
             cwd=ROOT,
