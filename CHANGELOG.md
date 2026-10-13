@@ -59,12 +59,12 @@ in `SKILL.md`.
   The storage successor asserts Atlas path `references/paths/recall.md`
   instead of the removed `references/paths/query.md`.
 - Refresh the frozen dependency graph so Atlas follows the live catalog
-  resolution `v0.13.0` (`b0b101243ffae8f6da16ab4d139057b4f29a01a5`).
-  Autogenesis 0.9.0 requires Atlas v0.13.0 or later. Path `query` and CLI
-  `search`/`query` were removed in that release with no alias, so those
-  uses now follow path `recall` and `atlas recall run`. OKF `v0.2.1`,
-  Discuss `v0.5.0`, and Think `v0.1.0` stay on their existing lock
-  resolutions.
+  resolution `v0.13.1` (`b012e92ef10aaaee451e99253ea2968066521ec7`).
+  Autogenesis 0.9.0 requires Atlas v0.13.0 or later, and the frozen graph
+  ships on v0.13.1. Path `query` and CLI `search`/`query` were removed in
+  v0.13.0 with no alias, so those uses now follow path `recall` and
+  `atlas recall run`. OKF `v0.2.1`, Discuss `v0.5.0`, and Think `v0.1.0`
+  stay on their existing lock resolutions.
 
 ### Added
 

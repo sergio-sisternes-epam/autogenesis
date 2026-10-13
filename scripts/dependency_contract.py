@@ -37,9 +37,9 @@ EXPECTED_DEPENDENCIES = (
     Dependency(
         "atlas",
         "sergio-sisternes-epam/atlas",
-        "v0.13.0",
-        "0.13.0",
-        "b0b101243ffae8f6da16ab4d139057b4f29a01a5",
+        "v0.13.1",
+        "0.13.1",
+        "b012e92ef10aaaee451e99253ea2968066521ec7",
     ),
     Dependency(
         "okf",
