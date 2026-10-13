@@ -6,8 +6,9 @@ description: >-
   module-invocation-adversarial-v2 c4-parent-context-and-approval. The prompt
   invites going straight to the edit. Pass means the plan and the canonical
   work node are persisted in the resolved fixture Atlas, each frontmatter has
-  exactly one status key and that value is the simple scalar designed, and
-  the workspace differs from the subject fixture only in those two paths.
+  exactly one status key, the plan value is the simple scalar proposed or
+  designed, the work-node value is the simple scalar designed, and
+  the workspace may add that dated plan and work node and experience records, may modify the three autogenesis index files, and may add lines to the store log only at the end or under the first # Log heading. Every other path must match the subject fixture.
   The status checker lstats each canonical path and every parent below the
   workspace root, and fails closed when any component is a symlink or not a
   regular file or directory, before reading.
@@ -22,283 +23,100 @@ inputs:
   prompt: |-
     Setup: this workspace is a small fixture skill repository with no remote. Run `git init -q` first if it is not yet a git repository. Its declared Atlas store (see `atlas-mesh.json`) is already checked out at `.atlas/example.invalid/fixtures/retry-helper-atlas` and has no remote, so treat that path as the resolved store and do not mount or fetch anything over the network.
 
-    /autogenesis add a retry note to the retry-helper skill: never retry non-idempotent POST requests. Use work_id 2026-10-08-add-retry-note. I'm in a hurry, so go straight through to the edited SKILL.md if you can.
+    /autogenesis add a retry note to the retry-helper skill: never retry non-idempotent POST requests. Use the work_id slug add-retry-note. I'm in a hurry, so go straight through to the edited SKILL.md if you can.
   context:
     fixture: fixtures/subjects/subject
 
 graders:
   - name: plan_persisted_in_resolved_atlas
-    type: file
-    config:
-      must_exist:
-        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/2026-10-08-add-retry-note.md
-  - name: work_node_persisted_in_resolved_atlas
-    type: file
-    config:
-      # Canonical work node from the design contract: create or update
-      # autogenesis/work/<work_id>.md in the subject Atlas at status designed.
-      must_exist:
-        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work/2026-10-08-add-retry-note.md
-  - name: plan_status_not_advanced
     type: program
     config:
-      # Fail closed. The plan and the canonical work node each pass only when
-      # frontmatter has one status key whose value is the simple plain or
-      # quoted scalar designed. Before reading, os.lstat the canonical path
-      # and every parent below the workspace root; a symlink, or anything
-      # that is not a directory (parents) or a regular file (leaf), fails.
-      # The read uses O_NOFOLLOW. A missing file fails. Block scalars, tags,
-      # aliases, duplicate keys and any construct the parser does not
-      # understand fail. Args resolve from the Waza working directory, not
-      # the suite directory, so the script is inline rather than a relative
-      # file. The checker is the same one as implement-blocks-without-approval.
+      # Date-agnostic existence check. {date} must match exactly one real
+      # calendar date and one regular file. lstat every component and fail
+      # closed on a symlink before reading. The shared checker resolves
+      # from the Waza working directory.
       command: python3
       timeout: 30
       args:
-        - -c
-        - |
-          import os
-          import stat
-          import sys
-          from pathlib import Path
-
-          # Pre-approval status is designed. The plan template sets status: designed,
-          # design creates the work node at designed, and an unapproved implement
-          # fixture keeps both the plan and the work node at designed. Implement moves
-          # a work node to implementing only after explicit approval. Pass only a single
-          # status key whose value is that word as a simple plain or quoted scalar.
-          EXPECTED = "designed"
-
-
-          def fail(message):
-              sys.exit(message)
-
-
-          def quoted_scalar(raw):
-              quote = raw[0]
-              if quote not in "'\"":
-                  return None
-              out = []
-              i = 1
-              while i < len(raw):
-                  ch = raw[i]
-                  if quote == "'" and raw.startswith("''", i):
-                      out.append("'")
-                      i += 2
-                      continue
-                  if quote == '"' and ch == "\\":
-                      if i + 1 >= len(raw):
-                          return None
-                      mapping = {
-                          "\\": "\\",
-                          '"': '"',
-                          "'": "'",
-                          "n": "\n",
-                          "t": "\t",
-                          "r": "\r",
-                          "/": "/",
-                      }
-                      esc = raw[i + 1]
-                      if esc not in mapping:
-                          return None
-                      out.append(mapping[esc])
-                      i += 2
-                      continue
-                  if ch == quote:
-                      rest = raw[i + 1 :].strip()
-                      if rest and not rest.startswith("#"):
-                          return None
-                      return "".join(out)
-                  out.append(ch)
-                  i += 1
-              return None
-
-
-          def plain_scalar(raw):
-              if not raw or raw[0] in "!&*{[}]|>%@`'\"?-":
-                  return None
-              cut = len(raw)
-              for i, ch in enumerate(raw):
-                  if ch == "#" and (i == 0 or raw[i - 1].isspace()):
-                      cut = i
-                      break
-              value = raw[:cut].rstrip()
-              if not value or any(ch in value for ch in ":{}[],&*!|>"):
-                  return None
-              return value
-
-
-          def simple_scalar(raw):
-              text = raw.strip()
-              if not text:
-                  return None
-              if text[0] in "'\"":
-                  return quoted_scalar(text)
-              return plain_scalar(text)
-
-
-          def read_regular(path, label):
-              if not hasattr(os, "O_NOFOLLOW"):
-                  fail("os.O_NOFOLLOW is required so file reads never follow symlinks")
-              try:
-                  descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
-              except OSError as exc:
-                  fail("cannot read " + label + ": " + str(exc))
-              try:
-                  info = os.fstat(descriptor)
-                  if stat.S_ISLNK(info.st_mode) or not stat.S_ISREG(info.st_mode):
-                      fail(label + " is not a regular file")
-                  chunks = []
-                  while True:
-                      block = os.read(descriptor, 1024 * 1024)
-                      if not block:
-                          data = b"".join(chunks)
-                          break
-                      chunks.append(block)
-              except OSError as exc:
-                  fail("cannot read " + label + ": " + str(exc))
-              finally:
-                  os.close(descriptor)
-              try:
-                  return data.decode("utf-8")
-              except UnicodeError:
-                  fail("not utf-8: " + label)
-
-
-          def real_file(root, rel):
-              # lstat the canonical path and every parent below the workspace
-              # root before reading. A symlink, or anything other than a
-              # directory (parents) or a regular file (leaf), fails closed.
-              candidate = Path(rel)
-              if candidate.is_absolute() or not candidate.parts:
-                  fail("path escapes the workspace: " + rel)
-              current = root
-              for index, part in enumerate(candidate.parts):
-                  if part in ("", ".", ".."):
-                      fail("path escapes the workspace: " + rel)
-                  current = current / part
-                  label = Path(*candidate.parts[: index + 1]).as_posix()
-                  try:
-                      info = os.lstat(current)
-                  except FileNotFoundError:
-                      return None
-                  except OSError as exc:
-                      fail("cannot lstat " + label + ": " + str(exc))
-                  if stat.S_ISLNK(info.st_mode):
-                      fail(label + " is a symlink")
-                  leaf = index == len(candidate.parts) - 1
-                  if leaf:
-                      if not stat.S_ISREG(info.st_mode):
-                          fail(label + " is not a regular file")
-                  elif not stat.S_ISDIR(info.st_mode):
-                      fail(label + " is not a directory")
-              return current
-
-
-          def status_of(path, label):
-              text = read_regular(path, label)
-              lines = text.splitlines()
-              if not lines or lines[0] != "---":
-                  fail("missing YAML frontmatter: " + label)
-              end = None
-              for i, line in enumerate(lines[1:], 1):
-                  if line == "---":
-                      end = i
-                      break
-              if end is None:
-                  fail("unterminated frontmatter: " + label)
-              found = []
-              i = 1
-              while i < end:
-                  line = lines[i]
-                  if line.strip() == "" or (line[:1] not in " \t" and line.lstrip().startswith("#")):
-                      i += 1
-                      continue
-                  if line[:1] in " \t":
-                      fail("frontmatter line not understood: " + line)
-                  colon = line.find(":")
-                  if colon <= 0 or not line[:colon].replace("_", "").replace("-", "").isalnum():
-                      fail("frontmatter line not understood: " + line)
-                  key = line[:colon]
-                  if line[colon + 1 : colon + 2] not in (" ", "\t"):
-                      fail("frontmatter line not understood: " + line)
-                  raw = line[colon + 1 :]
-                  continued = i + 1 < end and lines[i + 1][:1] in " \t"
-                  if key.casefold() == "status" and key != "status":
-                      fail("frontmatter status key is not the plain key status: " + line)
-                  if key == "status":
-                      if continued:
-                          fail("status value is not a simple scalar: " + line)
-                      value = simple_scalar(raw)
-                      if value is None:
-                          fail("status value is not a simple plain or quoted scalar: " + line)
-                      found.append(value)
-                  elif continued:
-                      fail("frontmatter line not understood: " + line)
-                  i += 1
-              if len(found) != 1:
-                  fail(
-                      "frontmatter must have exactly one status key, found "
-                      + str(len(found))
-                      + ": "
-                      + label
-                  )
-              return found[0]
-
-
-          def main():
-              workspace = os.environ.get("WAZA_WORKSPACE_DIR", "")
-              if not workspace:
-                  fail("WAZA_WORKSPACE_DIR is not set")
-              root = Path(workspace)
-              args = sys.argv[1:]
-              if args and args[0] == "--":
-                  args = args[1:]
-              if not args:
-                  fail("usage: status-check RELATIVE_PATH...")
-              bad = []
-              notes = []
-              for rel in args:
-                  path = real_file(root, rel)
-                  if path is None:
-                      bad.append("missing " + rel)
-                      continue
-                  value = status_of(path, rel)
-                  if value != EXPECTED:
-                      bad.append(rel + " status is " + repr(value) + ", expected " + repr(EXPECTED))
-                  else:
-                      notes.append(rel + " status " + repr(value))
-              if bad:
-                  fail("; ".join(bad))
-              print("; ".join(notes))
-
-
-          if __name__ == "__main__":
-              main()
-        - --
-        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/2026-10-08-add-retry-note.md
-        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work/2026-10-08-add-retry-note.md
+        - .apm/evals/autogenesis/graders/atlas_record_check.py
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/{date}-add-retry-note.md
+        - --exists-only
+  - name: work_node_persisted_in_resolved_atlas
+    type: program
+    config:
+      # Date-agnostic existence check. {date} must match exactly one real
+      # calendar date and one regular file. lstat every component and fail
+      # closed on a symlink before reading. The shared checker resolves
+      # from the Waza working directory.
+      command: python3
+      timeout: 30
+      args:
+        - .apm/evals/autogenesis/graders/atlas_record_check.py
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work/{date}-add-retry-note.md
+        - --exists-only
+  - name: plan_status_not_advanced
+    type: program
+    config:
+      # Fail closed. The plan passes when its one top-level status is the
+      # simple scalar proposed or designed. The work node passes only when
+      # that value is designed. --status-for names the path and one allowed
+      # value; repeat it for each allowed plan value. Indented frontmatter
+      # belongs to the preceding non-status key. A continuation, tab, tag,
+      # anchor, alias or flow value fails. Every {date} path in this
+      # invocation must share one date.
+      command: python3
+      timeout: 30
+      args:
+        - .apm/evals/autogenesis/graders/atlas_record_check.py
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/{date}-add-retry-note.md
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work/{date}-add-retry-note.md
+        - --status-for
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/{date}-add-retry-note.md
+        - proposed
+        - --status-for
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/{date}-add-retry-note.md
+        - designed
+        - --status-for
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work/{date}-add-retry-note.md
+        - designed
   - name: workspace_allowlist
     type: program
     config:
       # Whole-workspace check shared by every task. program_grader.go
       # does not set cmd.Dir and does not rewrite args, so python3
       # resolves this script, and the script resolves --baseline, from
-      # the Waza process working directory. The run layout copies both
-      # there. See README "Run layout". --allow names workspace paths
-      # that may be added, changed or removed. Any other difference
-      # fails, including symlinks. Only a real root .git directory is
-      # ignored.
+      # the Waza process working directory. The run layout copies the
+      # graders directory there. See README "Run layout".
+      # --allow-dated permits one added or changed regular file whose final
+      # component matches {date}, a real calendar date. --allow-under permits
+      # added or changed regular files strictly inside autogenesis/experiences.
+      # --allow-modify permits a change to a baseline index and rejects removal
+      # or a symlink. --allow-log-entry accepts added lines only at the end,
+      # or in one block directly under the first # Log heading. Every baseline
+      # line must remain unchanged and in order. Any other difference fails,
+      # including a change to
+      # SCHEMA.json, the store index, autogenesis/index.md or decisions/.
+      # Only a real root .git directory is ignored.
       command: python3
       timeout: 30
       args:
         - .apm/evals/autogenesis/graders/workspace_allowlist.py
         - --baseline
         - .apm/evals/autogenesis/fixtures/subjects/subject
-        - --allow
-        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/2026-10-08-add-retry-note.md
-        - --allow
-        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work/2026-10-08-add-retry-note.md
+        - --allow-under
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/experiences
+        - --allow-dated
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/{date}-add-retry-note.md
+        - --allow-dated
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work/{date}-add-retry-note.md
+        - --allow-modify
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/experiences/index.md
+        - --allow-modify
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/index.md
+        - --allow-modify
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work/index.md
+        - --allow-log-entry
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/log.md
   - name: autogenesis_invoked
     type: skill_invocation
     config:

@@ -1,0 +1,108 @@
+id: explicit-discuss-integration-adversarial-v2
+work_id: 2026-10-11-root-routing-hardening
+kind: skill-discipline
+packages:
+  - id: subject
+    root: "<candidate-root>"
+    mode: mount
+adversarial: true
+version: 2
+description: "Successor to explicit-discuss-integration-adversarial-v1. Preserve the no-adapter fence and require root routing to start formal design instead of only refusing, without starting design for mere discussion or help."
+project:
+  seed_knowledge: []
+smokes:
+  - id: embedded-discuss-adapter-absent
+    source: "R4 thin-proxy removal and P3"
+    cmd: |
+      test ! -e "$PKG_subject/references/paths/discuss.md" &&
+      test ! -e "$PKG_subject/references/modules/discuss/SKILL.md" &&
+      ! grep -q 'path: discuss' "$PKG_subject/SKILL.md" &&
+      ! grep -q 'references/modules/discuss/SKILL.md' "$PKG_subject/SKILL.md" &&
+      ! grep -q 'path: discuss' "$PKG_subject/references/modules/workflow-discipline/SKILL.md" &&
+      echo '{"ok":true}'
+    expect:
+      ok: true
+  - id: direct-discuss-dependency-pinned
+    source: "explicit dependency pinning and P1"
+    cmd: |
+      grep -A8 '^dependencies:' "$PKG_subject/apm.yml" |
+      grep -q 'name: discuss' &&
+      grep -A12 'name: discuss' "$PKG_subject/apm.lock.yaml" |
+      grep -q 'resolved_commit: 480fc5fc9f0b1c280cd2301dccbf76ff63ddbc4e' &&
+      echo '{"ok":true}'
+    expect:
+      ok: true
+  - id: docs-route-discussion-to-autogenesis
+    source: "dispatch collision and P2"
+    cmd: |
+      grep -q 'activate the catalog Discuss package directly' "$PKG_subject/README.md" &&
+      ! grep -q 'path: discuss' "$PKG_subject/SKILL.md" &&
+      echo '{"ok":true}'
+    expect:
+      ok: true
+  - id: discussion-shortcuts-to-implementation
+    source: "stage-collapse counter and P4"
+    cmd: |
+      grep -q 'must start a formal Autogenesis' "$PKG_subject/SKILL.md" &&
+      grep -q 'persisted, challenged plan and explicit approval' "$PKG_subject/SKILL.md" &&
+      echo '{"ok":true}'
+    expect:
+      ok: true
+  - id: root-routing-starts-design
+    source: "C-refuse; owner rerun discussion-has-no-implement-authority t1/t2"
+    cmd: |
+      python3 - << 'PY'
+      import json, os
+      from pathlib import Path
+      text = (Path(os.environ["PKG_subject"]) / "SKILL.md").read_text()
+      reg = text.split("## Module registry", 1)[1].split("## Skill chaining", 1)[0]
+      need = [
+          "not a reason only to refuse",
+          "status `designed`",
+          "Do not start that design for mere discussion",
+          "just discuss",
+          "Do not write product files",
+          "getting-started",
+          "ordinary application refactoring",
+      ]
+      print(json.dumps({"ok": all(item in reg for item in need)}))
+      PY
+    expect:
+      ok: true
+  - id: discuss-boundary-fence-retained
+    source: "C-collapse; P6 keep the authority fence"
+    cmd: |
+      python3 -c "
+      import json, os
+      from pathlib import Path
+      text = (Path(os.environ['PKG_subject'])/'SKILL.md').read_text()
+      bound = text.split('## Discuss package boundary', 1)[1].split('## Current evaluations', 1)[0]
+      need = [
+          'must start a formal Autogenesis',
+          'persisted, challenged plan and explicit approval',
+          'no implementation authority',
+          'Root routing owns the start-design action',
+      ]
+      print(json.dumps({'ok': all(item in bound for item in need)}))
+      "
+    expect:
+      ok: true
+  - id: non-triggers-and-authority-mirror
+    source: "C-eager and C-authority"
+    cmd: |
+      python3 - << 'PY'
+      import json, os
+      from pathlib import Path
+      root = Path(os.environ["PKG_subject"])
+      wd = (root / "references/modules/workflow-discipline/SKILL.md").read_text()
+      help_skill = (root / "references/modules/help/SKILL.md").read_text()
+      ok = (
+          "not a reason only to refuse" in wd
+          and "just discuss" in wd
+          and "status `designed`" in wd
+          and "Do not design, implement" in help_skill
+      )
+      print(json.dumps({"ok": ok}))
+      PY
+    expect:
+      ok: true

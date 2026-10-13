@@ -1,6 +1,6 @@
 ---
 name: autogenesis
-description: Use this skill to evolve, design, review, or initialise agent skills from durable experience, including module structure, invocation discipline and skill composition even when Autogenesis is not named. Route through parent-controlled operation modules. Use getting-started or help when the user asks how Autogenesis itself works or how a named Autogenesis module works; help with no target lists public operations. Discussion does not implement; design stops for explicit approval. Do not use for ordinary application refactoring, automatic wiring, bypassing parent-routed help to load private support modules, or unrelated help requests.
+description: 'Use this skill to evolve, design, review, or initialise agent skills from durable experience, including module structure, invocation discipline and skill composition, even when Autogenesis is not named. Also use it to change an existing skill package: apply an agreed change, edit or update that skill, or add a rule to it, including a request to skip ceremony. Route through parent-controlled operation modules. Use getting-started or help when the user asks how Autogenesis itself works or how a named Autogenesis module works; help with no target lists public operations. Discussion does not implement; design stops for explicit approval. Do not use for ordinary application refactoring, edits that are not a skill-package change, a mere mention of SKILL.md, plain discussion, automatic wiring, bypassing parent-routed help to load private support modules, or unrelated help requests.'
 version: 0.9.0
 activation_card: on
 ---
@@ -113,6 +113,7 @@ Always pass the path returned by `atlas resolve` as card `atlas_root` /
 6. Missing, ambiguous, or invalid storage fails closed with an actionable
    initiate/migrate/abort choice. Never use a path guess, compatibility
    symlink, dual-write, or plan directory outside the resolved subject Atlas.
+7. A user-named plan location outside the resolved subject Atlas is not a storage override and is not invalid storage. When steps 1–4 have succeeded and step 5 does not apply, persist only in the resolved store, tell the user the Atlas-relative path written and why the named path was not used, and do not stop to ask. Stopping remains correct only when resolution itself fails (step 5 or step 6). Fail-closed applies to resolution, not to a declined override; asking adds a turn without changing the only legal outcome.
 
 ## Progressive disclosure (modules are parent-routed)
 
@@ -170,9 +171,14 @@ Default operation is `design` in Run mode. Route first-use questions to
 help about unrelated work must not select those operations. Durable
 discussion is not an Autogenesis operation; activate the catalog **discuss**
 package directly.
+A discussion conclusion, prior agreement, or request to apply a package change or to skip ceremony is not implementation authority and is not a reason only to refuse.
+When that request would change a package and no persisted plan is explicitly approved, start formal `mode: run` design: honour a user-supplied `work_id` only when it already matches `YYYY-MM-DD-<kebab-slug>` or `YYYY-MM-DD-<external_id>-<kebab-slug>`; otherwise the root assigns a valid `work_id` and continues.
+Design persists `autogenesis/plans/<work_id>.md` and `autogenesis/work/<work_id>.md` at status `designed` in the resolved subject Atlas, then stops for explicit approval.
+Do not write product files in that Run.
+Do not start that design for mere discussion, an explicit request to just discuss, ordinary questions, ordinary application refactoring, `help`, `getting-started`, or unqualified help about unrelated work.
 Supporting invocations retain the active operation and return to their caller.
 The parent owns subject, mode, operation, work identity, storage, approval and
-resolved locations. Module arguments cannot override them. Missing, duplicate
+resolved locations. Module arguments and user-named paths cannot override them. Missing, duplicate
 or escaping entrypoints reject explicitly; there is no catalogue fallback.
 
 | Module | Role | Description | Entrypoint |
@@ -254,6 +260,7 @@ Autogenesis declares `discuss@atlas` as an immutable direct APM dependency,
 but does not expose a `discuss` operation or proxy its runtime protocol. Activate the
 catalog **discuss** package directly for durable discussion. Discuss has no
 implementation authority: a discussion conclusion that changes a package must start a formal Autogenesis `mode: run` design operation, followed by a persisted, challenged plan and explicit approval before implementation.
+Root routing owns the start-design action for that conclusion. This section remains the authority fence: discussion still has no implementation authority. Do not delete this fence when stating the action in the Module registry.
 
 While an Autogenesis Run is active, think-challenge is an internal validation
 gate only; it is not user-activable as a discussion verb. The wrapper

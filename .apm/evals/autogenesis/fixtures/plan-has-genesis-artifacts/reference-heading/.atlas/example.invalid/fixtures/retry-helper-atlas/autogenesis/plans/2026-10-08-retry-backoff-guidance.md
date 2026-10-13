@@ -8,6 +8,9 @@ work_id: "2026-10-08-retry-backoff-guidance"
 status: designed
 subject: retry-helper
 plan_path: autogenesis/plans/2026-10-08-retry-backoff-guidance.md
+relates_to:
+  - path: autogenesis/work/2026-10-08-retry-backoff-guidance.md
+    kind: implements
 ---
 
 # Jittered exponential backoff with a retry budget
@@ -16,7 +19,7 @@ Designed; awaiting explicit approval.
 
 ## Change class
 
-`hardening` - revise one existing procedure without adding a new surface.
+`hardening`
 
 ## Genesis Artifacts
 

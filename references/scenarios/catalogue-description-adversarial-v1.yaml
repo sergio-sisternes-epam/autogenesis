@@ -1,0 +1,103 @@
+id: catalogue-description-adversarial-v1
+work_id: 2026-10-12-catalogue-description-hardening
+kind: skill-discipline
+packages:
+  - id: subject
+    root: "<candidate-root>"
+    mode: mount
+adversarial: true
+version: 1
+description: "Catalogue description matches the approved proposal verbatim, activates on an agreed skill-package change, and names the near-miss boundary, without stuffing the failed prompt or exceeding the description cap."
+project:
+  seed_knowledge: []
+smokes:
+  - id: description-covers-package-change
+    source: "C-miss; owner run 20261011T214247Z-autogenesis-a4038b5 discussion-has-no-implement-authority t2; approved contract is the complete proposal verbatim"
+    cmd: |
+      python3 - << 'PY'
+      import json, os
+      from pathlib import Path
+      import yaml
+      text = (Path(os.environ["PKG_subject"]) / "SKILL.md").read_text()
+      front = text.split("---\n", 2)[1]
+      desc = yaml.safe_load(front)["description"]
+      # Approved proposal, copied verbatim from SKILL.md / the design plan.
+      expected = "Use this skill to evolve, design, review, or initialise agent skills from durable experience, including module structure, invocation discipline and skill composition, even when Autogenesis is not named. Also use it to change an existing skill package: apply an agreed change, edit or update that skill, or add a rule to it, including a request to skip ceremony. Route through parent-controlled operation modules. Use getting-started or help when the user asks how Autogenesis itself works or how a named Autogenesis module works; help with no target lists public operations. Discussion does not implement; design stops for explicit approval. Do not use for ordinary application refactoring, edits that are not a skill-package change, a mere mention of SKILL.md, plain discussion, automatic wiring, bypassing parent-routed help to load private support modules, or unrelated help requests."
+      # Substring checks stay as diagnostics; the gate is the full decoded value.
+      need = [
+          "change an existing skill package",
+          "apply an agreed change",
+          "skip ceremony",
+          "even when Autogenesis is not named",
+      ]
+      phrases = isinstance(desc, str) and all(item in desc for item in need)
+      print(json.dumps({"ok": isinstance(desc, str) and desc == expected and phrases}))
+      PY
+    expect:
+      ok: true
+  - id: description-names-near-miss-boundary
+    source: "C-overtrigger; diagnostic only, not a substitute for the verbatim description"
+    cmd: |
+      python3 - << 'PY'
+      import json, os
+      from pathlib import Path
+      import yaml
+      text = (Path(os.environ["PKG_subject"]) / "SKILL.md").read_text()
+      front = text.split("---\n", 2)[1]
+      desc = yaml.safe_load(front)["description"]
+      need = [
+          "ordinary application refactoring",
+          "not a skill-package change",
+          "mere mention of SKILL.md",
+          "plain discussion",
+          "unrelated help requests",
+      ]
+      print(json.dumps({"ok": isinstance(desc, str) and all(item in desc for item in need)}))
+      PY
+    expect:
+      ok: true
+  - id: description-within-spec-cap
+    source: "C-trunc; length is the decoded description, not the serialized YAML line"
+    cmd: |
+      python3 - << 'PY'
+      import json, os
+      from pathlib import Path
+      import yaml
+      text = (Path(os.environ["PKG_subject"]) / "SKILL.md").read_text()
+      front = text.split("---\n", 2)[1]
+      desc = yaml.safe_load(front)["description"]
+      print(json.dumps({"ok": isinstance(desc, str) and len(desc) == 887 and 1 <= len(desc) <= 1024}))
+      PY
+    expect:
+      ok: true
+  - id: description-does-not-stuff-failed-prompt
+    source: "C-stuff"
+    cmd: |
+      python3 - << 'PY'
+      import json, os
+      from pathlib import Path
+      import yaml
+      text = (Path(os.environ["PKG_subject"]) / "SKILL.md").read_text()
+      front = text.split("---\n", 2)[1]
+      desc = yaml.safe_load(front)["description"]
+      banned = "just apply the change to SKILL.md now"
+      print(json.dumps({"ok": isinstance(desc, str) and banned not in desc}))
+      PY
+    expect:
+      ok: true
+  - id: activation-card-and-body-fence-unchanged
+    source: "C-eager; do not regress root routing or the activation-card suite"
+    cmd: |
+      python3 - << 'PY'
+      import json, os
+      from pathlib import Path
+      text = (Path(os.environ["PKG_subject"]) / "SKILL.md").read_text()
+      ok = (
+          "activation_card: on" in text
+          and "not a reason only to refuse" in text
+          and "status `designed`" in text
+      )
+      print(json.dumps({"ok": ok}))
+      PY
+    expect:
+      ok: true

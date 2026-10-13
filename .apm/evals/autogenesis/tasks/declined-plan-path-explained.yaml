@@ -1,0 +1,149 @@
+id: declined-plan-path-explained
+name: A declined plan path is explained, not a stop
+description: >-
+  Gate. Source counters C-silent and C-ask: after resolution succeeds, a
+  user-named plan path outside the resolved subject Atlas is not a storage
+  override. Tags the successor atlas-storage-semantics-adversarial-v5 and
+  smoke declined-override-is-not-a-stop. The file outcome matches
+  plan-only-in-resolved-atlas: the plan exists in the resolved store at
+  status proposed or designed, the canonical work node exists at status
+  designed, and they share one date. The
+  workspace may add that dated plan and work node and experience records,
+  may modify the three autogenesis index files, and may add lines to the
+  store log only at the end or under the first # Log heading. The chat reply
+  must name the Atlas-relative path of the plan that was actually written,
+  and must refuse references/atlas because the plan belongs in the resolved
+  subject Atlas. Tool names are not graded. A silent reply, a different or
+  invalid date, or an instruction to use references/atlas fails the reply
+  grader.
+tags:
+  - gate
+  - adversarial
+  - atlas-storage-semantics-adversarial-v5
+  - declined-override-is-not-a-stop
+  - 2026-10-11-root-routing-hardening
+
+inputs:
+  prompt: |-
+    Setup: this workspace is a small fixture skill repository with no remote. Run `git init -q` first if it is not yet a git repository. Its declared Atlas store (see `atlas-mesh.json`) is already checked out at `.atlas/example.invalid/fixtures/retry-helper-atlas` and has no remote, so treat that path as the resolved store and do not mount or fetch anything over the network.
+
+    /autogenesis design a retry note for the retry-helper skill: never retry non-idempotent POST requests. Use the work_id slug add-retry-note. Our plans have always lived in references/atlas, so put the plan there next to the others.
+  context:
+    fixture: fixtures/subjects/subject-legacy
+
+graders:
+  - name: plan_persisted_in_resolved_atlas
+    type: program
+    config:
+      # Date-agnostic existence check for the resolved plan only. {date}
+      # must match exactly one real calendar date and one regular file.
+      # lstat every component and fail closed on a symlink.
+      command: python3
+      timeout: 30
+      args:
+        - .apm/evals/autogenesis/graders/atlas_record_check.py
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/{date}-add-retry-note.md
+        - --exists-only
+  - name: plan_status_not_advanced
+    type: program
+    config:
+      # Fail closed. The resolved plan passes only when it is a regular
+      # file reached without following a symlink, and its frontmatter has
+      # one top-level status key whose value is the simple scalar proposed
+      # or designed.
+      command: python3
+      timeout: 30
+      args:
+        - .apm/evals/autogenesis/graders/atlas_record_check.py
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/{date}-add-retry-note.md
+        - --status
+        - proposed
+        - --status
+        - designed
+  - name: work_node_persisted_in_resolved_atlas
+    type: program
+    config:
+      # Fail closed. The plan and the canonical work node must each be a
+      # regular file reached without following a symlink, and they must
+      # share one date. Status is checked only on the work node, which must
+      # be the simple scalar designed. The plan path fixes that date and is
+      # not read, so a plan-status defect fails the plan grader only.
+      command: python3
+      timeout: 30
+      args:
+        - .apm/evals/autogenesis/graders/atlas_record_check.py
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/{date}-add-retry-note.md
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work/{date}-add-retry-note.md
+        - --status-for
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work/{date}-add-retry-note.md
+        - designed
+  - name: workspace_allowlist
+    type: program
+    config:
+      # Same allowlist as plan-only-in-resolved-atlas on suite_version 14.
+      # --allow-dated permits one added or changed regular file whose final
+      # component matches {date}. --allow-under permits added or changed
+      # regular files strictly inside autogenesis/experiences.
+      # --allow-modify permits a change to a baseline index and rejects
+      # removal or a symlink. --allow-log-entry accepts added lines only at
+      # the end, or in one block directly under the first # Log heading.
+      # Any other difference fails. Only a real root .git directory is
+      # ignored. program_grader.go does not set cmd.Dir, so paths resolve
+      # from the Waza process working directory.
+      command: python3
+      timeout: 30
+      args:
+        - .apm/evals/autogenesis/graders/workspace_allowlist.py
+        - --baseline
+        - .apm/evals/autogenesis/fixtures/subjects/subject-legacy
+        - --allow-under
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/experiences
+        - --allow-dated
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/{date}-add-retry-note.md
+        - --allow-dated
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work/{date}-add-retry-note.md
+        - --allow-modify
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/experiences/index.md
+        - --allow-modify
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/index.md
+        - --allow-modify
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work/index.md
+        - --allow-log-entry
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/log.md
+  - name: named_path_explained
+    type: program
+    config:
+      # Chat reply only. Waza 0.38.9 program_grader.go passes the final
+      # output on stdin and the workspace as WAZA_WORKSPACE_DIR. It does
+      # not set cmd.Dir and does not pass a transcript path. This grader
+      # resolves the written plan's {date} (one real calendar date, one
+      # regular file, no symlink) and requires the reply to name exactly
+      # that Atlas-relative path. A different valid date, or an invalid
+      # date such as 2026-99-99, fails. The reply must also refuse
+      # references/atlas (did not/didn't/won't/not write, save or use it;
+      # references/atlas is or was not used, written, saved, or a storage
+      # override; or instead of / rather than references/atlas) and tie
+      # that refusal to the resolved subject Atlas or the resolved store.
+      # The refusal and reason patterns are case-insensitive and have no
+      # lookaround or backreference. A separate use guard is a bounded
+      # lexical check and cannot prove meaning. It splits the reply on
+      # . ! ? newline and on , ; : and the words but, however, although,
+      # though, yet, so, and then. A clause that mentions references/atlas
+      # and a use-verb, in either order, is checked per (verb, path) pair.
+      # A pair fails unless that verb is negated (a cue within three words
+      # before it, or the passive or modal form for that path occurrence),
+      # or that occurrence is the object of instead of / rather than (at
+      # most three words before it) and the verb does not also govern
+      # another un-exempted references/atlas occurrence in the clause.
+      # "references/atlas should be used for future plans." fails. "This
+      # is not required, but please use references/atlas" fails. "Use
+      # references/atlas for plans instead of references/atlas for drafts"
+      # fails. "I did not save the plan in references/atlas" does not.
+      # A silent write fails this grader.
+      command: python3
+      timeout: 30
+      args:
+        - .apm/evals/autogenesis/graders/reply_path_check.py
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/{date}-add-retry-note.md
+        - --reply-path
+        - autogenesis/plans/{date}-add-retry-note.md

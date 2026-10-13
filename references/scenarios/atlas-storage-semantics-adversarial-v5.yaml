@@ -1,0 +1,140 @@
+id: atlas-storage-semantics-adversarial-v5
+kind: skill-discipline
+version: "5"
+work_id: 2026-10-11-root-routing-hardening
+adversarial: true
+description: >
+  Successor to atlas-storage-semantics-adversarial-v4. Preserve repository-local
+  write-home, fail-closed resolution, and the legacy gitlink migrate route.
+  A user-named plan path outside the resolved subject Atlas is not a storage
+  override: persist in the resolved store, explain, and do not stop to ask.
+packages:
+  - id: subject
+    root: "<candidate-root>"
+    mode: mount
+project:
+  seed_knowledge: []
+smokes:
+  - id: canonical-gitlink-path
+    source: Atlas migrate and mount contracts
+    cmd: >
+      grep -q "path = .atlas/github.com/sergio-sisternes-epam/autogenesis-atlas"
+      "$PKG_subject/.gitmodules" &&
+      git -C "$PKG_subject" ls-files -s
+      .atlas/github.com/sergio-sisternes-epam/autogenesis-atlas |
+      grep -q "^160000" && echo '{"ok":true}'
+    expect:
+      ok: true
+  - id: mesh-matches-gitlink
+    source: Atlas mesh and resolve contract
+    cmd: |
+      python3 -c "import configparser,json,os; from pathlib import Path; p=Path(os.environ['PKG_subject']); d=json.loads((p/'atlas-mesh.json').read_text()); s=d['stores'][0]; c=configparser.ConfigParser(); c.read(p/'.gitmodules'); g=c['submodule \".atlas/github.com/sergio-sisternes-epam/autogenesis-atlas\"']; print(json.dumps({'ok':s['id']=='github.com/sergio-sisternes-epam/autogenesis-atlas' and s['path']==g['path']=='.atlas/github.com/sergio-sisternes-epam/autogenesis-atlas' and s['ref']==g['branch']=='main'}))"
+    expect:
+      ok: true
+  - id: atlas-directory-is-trackable
+    source: Atlas migrate contract requires the new gitlink not be ignored
+    cmd: >
+      ! grep -Eq '^[[:space:]]*\.atlas/?[[:space:]]*$'
+      "$PKG_subject/.gitignore" && echo '{"ok":true}'
+    expect:
+      ok: true
+  - id: legacy-live-instructions-absent
+    source: no split authority and Atlas write-home rule
+    cmd: |
+      python3 -c "import json,os,re; from pathlib import Path; p=Path(os.environ['PKG_subject']); files=[p/'SKILL.md',p/'references/modules/workflow-discipline/SKILL.md',p/'references/modules/patterns/references/activation-card.md',p/'references/modules/think-ramble/SKILL.md',p/'references/modules/validate-okf-conformance/SKILL.md',p/'references/modules/research/SKILL.md',p/'references/modules/learn-skill/SKILL.md',p/'references/run-record-template.md']; bad=re.compile(r'--target references/atlas|atlas_root: <subject>/references/atlas|subject_atlas = <subject>/references/atlas'); print(json.dumps({'ok':not any(bad.search(f.read_text()) for f in files)}))"
+    expect:
+      ok: true
+  - id: mount-resolve-contract-is-explicit
+    source: Atlas mount path and deterministic root resolution
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; root=(Path(os.environ['PKG_subject'])/'SKILL.md').read_text(); wd=(Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/SKILL.md').read_text(); need=['active subject git root','no `--target`','atlas resolve <atlas_id>','SCHEMA.json']; print(json.dumps({'ok':all(x in root+wd for x in need)}))"
+    expect:
+      ok: true
+  - id: no-silent-fallback
+    source: fail-closed rule
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=((Path(os.environ['PKG_subject'])/'SKILL.md').read_text()+(Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/SKILL.md').read_text()).lower(); print(json.dumps({'ok':'fails closed' in t and 'never use a path guess' in t}))"
+    expect:
+      ok: true
+  - id: no-dual-write-compatibility
+    source: single-writer principle
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=((Path(os.environ['PKG_subject'])/'SKILL.md').read_text()+(Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/SKILL.md').read_text()).lower(); print(json.dumps({'ok':'dual-write' in t and 'symlink' in t}))"
+    expect:
+      ok: true
+  - id: external-atlas-path-names-remain-unchanged
+    source: external invocation boundary
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'SKILL.md').read_text(); need=['references/paths/remember.md','references/paths/recall.md','references/paths/work.md']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true
+  - id: workflow-gates-preserved
+    source: Enter Change Exit and work_id contracts
+    cmd: |
+      python3 -c "import json,os; from pathlib import Path; t=(Path(os.environ['PKG_subject'])/'references/modules/workflow-discipline/SKILL.md').read_text(); need=['## Change (blocking)','## Exit (blocking)','work_id lineage','remember + green compile']; print(json.dumps({'ok':all(x in t for x in need)}))"
+    expect:
+      ok: true
+  - id: release-surfaces-match-current-version
+    source: release identity gate
+    cmd: |
+      python3 -c "import json,os,re; from pathlib import Path; p=Path(os.environ['PKG_subject']); skill=re.search(r'^version: ([0-9.]+)$',(p/'SKILL.md').read_text(),re.M).group(1); apm=re.search(r'^version: ([0-9.]+)$',(p/'apm.yml').read_text(),re.M).group(1); print(json.dumps({'ok':skill==apm=='0.9.0' and '## [0.9.0]' in (p/'CHANGELOG.md').read_text()}))"
+    expect:
+      ok: true
+  - id: declined-override-is-not-a-stop
+    source: "C-ask and C-silent; owner rerun plan-only-in-resolved-atlas t3"
+    cmd: |
+      python3 -c "
+      import json, os
+      from pathlib import Path
+      root = Path(os.environ['PKG_subject'])
+      text = (root/'SKILL.md').read_text()
+      res = text.split('### Subject Atlas resolution', 1)[1].split('## Progressive disclosure', 1)[0]
+      wd = (root/'references/modules/workflow-discipline/SKILL.md').read_text()
+      reg = text.split('## Module registry', 1)[1].split('## Skill chaining', 1)[0]
+      ok = (
+          'not a storage override' in res
+          and 'do not stop to ask' in res
+          and 'Fail-closed applies to resolution' in res
+          and 'why the named path was not used' in res
+          and 'user-named paths cannot override' in reg
+          and 'not a storage override' in wd
+          and 'do not stop to ask' in wd
+      )
+      print(json.dumps({'ok': ok}))
+      "
+    expect:
+      ok: true
+  - id: legacy-gitlink-still-migrates
+    source: "C-migrate; gitlink migrates, a plain directory is not a block"
+    cmd: |
+      python3 - << 'PY'
+      import json, os
+      from pathlib import Path
+      root = Path(os.environ["PKG_subject"])
+      text = (root / "SKILL.md").read_text()
+      res = text.split("### Subject Atlas resolution", 1)[1].split("## Progressive disclosure", 1)[0]
+      wd = (root / "references/modules/workflow-discipline/SKILL.md").read_text()
+      wd_res = wd.split("### Subject Atlas resolution", 1)[1].split("### Entrypoint-load honesty", 1)[0]
+      phrase = "gitlink requires Atlas path `migrate`"
+      plain = "plain `references/atlas` directory is not a gitlink and is not a block once resolution has succeeded"
+      named = "user-named plan path is not a block once resolution has succeeded"
+      broad = "Missing, legacy, ambiguous, or failed"
+
+      def ordered(section):
+          if phrase not in section or "not a storage override" not in section:
+              return False
+          return section.index(phrase) < section.index("not a storage override")
+
+      ok = (
+          ordered(res)
+          and "before the Run continues" in res
+          and ordered(wd_res)
+          and plain in wd_res
+          and named in wd_res
+          and broad not in wd_res
+          and "do not stop to ask" in wd_res
+      )
+      print(json.dumps({"ok": ok}))
+      PY
+    expect:
+      ok: true

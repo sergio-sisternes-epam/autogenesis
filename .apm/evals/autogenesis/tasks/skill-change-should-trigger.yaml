@@ -5,8 +5,10 @@ description: >-
   initialise agent skills from durable experience ... even when Autogenesis
   is not named". The prompt does not name Autogenesis. Pass means Autogenesis
   is invoked and the workspace matches the subject fixture except for added
-  or changed regular files under the resolved store's autogenesis/plans and
-  autogenesis/work directories. Symlinks and any other path still fail.
+  or changed regular files under the resolved store's autogenesis/plans,
+  autogenesis/work and autogenesis/experiences directories, a modification of
+  the three autogenesis index files, and added lines in the store log only at the end or under the first # Log heading.
+  Symlinks and any other path still fail.
 tags:
   - trigger
   - positive
@@ -30,12 +32,14 @@ graders:
       # Whole-workspace check shared by every task. program_grader.go
       # does not set cmd.Dir and does not rewrite args, so python3
       # resolves this script, and the script resolves --baseline, from
-      # the Waza process working directory. The run layout copies both
-      # there. See README "Run layout". --allow-under permits added or
-      # changed regular files strictly inside that directory. Removals,
-      # new directories and symlinks there still fail. Any other
-      # difference fails, including symlinks. Only a real root .git
-      # directory is ignored.
+      # the Waza process working directory. The run layout copies the
+      # graders directory there. See README "Run layout".
+      # --allow-under permits added or changed regular files strictly
+      # inside plans, work and experiences. Removals, new directories
+      # and symlinks there still fail. Index files may be modified
+      # and the store log may gain an end append or a newest-first entry
+      # under the first # Log heading. Any other difference fails.
+      # Only a real root .git directory is ignored.
       command: python3
       timeout: 30
       args:
@@ -46,6 +50,16 @@ graders:
         - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans
         - --allow-under
         - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work
+        - --allow-under
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/experiences
+        - --allow-modify
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/experiences/index.md
+        - --allow-modify
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/plans/index.md
+        - --allow-modify
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/autogenesis/work/index.md
+        - --allow-log-entry
+        - .atlas/example.invalid/fixtures/retry-helper-atlas/log.md
   - name: autogenesis_invoked
     type: skill_invocation
     config:

@@ -15,3 +15,5 @@ tags: [work, lineage]
 ## Status history
 
 - designed: 2026-10-08
+
+Awaiting explicit approval before any implementation.

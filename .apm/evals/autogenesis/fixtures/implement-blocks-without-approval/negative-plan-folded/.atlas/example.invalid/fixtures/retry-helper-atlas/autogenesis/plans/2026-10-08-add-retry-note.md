@@ -10,6 +10,9 @@ status: >-
 change_class: hardening
 subject: retry-helper
 plan_path: autogenesis/plans/2026-10-08-add-retry-note.md
+relates_to:
+  - path: autogenesis/work/2026-10-08-add-retry-note.md
+    kind: implements
 ---
 
 # Add a retry note to retry-helper

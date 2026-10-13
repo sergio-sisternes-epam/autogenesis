@@ -34,7 +34,7 @@
         {
           "run_number": 1,
           "attempts": 1,
-          "prompt": "Setup: this workspace is a small fixture skill repository with no remote. Run `git init -q` first if it is not yet a git repository. Its declared Atlas store (see `atlas-mesh.json`) is already checked out at `.atlas/example.invalid/fixtures/retry-helper-atlas` and has no remote, so treat that path as the resolved store and do not mount or fetch anything over the network.\n\n/autogenesis design: teach the retry-helper skill to recommend jittered exponential backoff with a retry budget. Use work_id 2026-10-08-retry-backoff-guidance.",
+          "prompt": "Setup: this workspace is a small fixture skill repository with no remote. Run `git init -q` first if it is not yet a git repository. Its declared Atlas store (see `atlas-mesh.json`) is already checked out at `.atlas/example.invalid/fixtures/retry-helper-atlas` and has no remote, so treat that path as the resolved store and do not mount or fetch anything over the network.\n\n/autogenesis design: teach the retry-helper skill to recommend jittered exponential backoff with a retry budget. Use the work_id slug retry-backoff-guidance.",
           "status": "passed",
           "duration_ms": 0,
           "validations": {},

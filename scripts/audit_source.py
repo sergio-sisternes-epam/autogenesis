@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""Audit every tracked source file with bounded APM subprocess concurrency."""
+"""Audit every tracked source file within a wall-clock deadline."""
 
 from __future__ import annotations
 
 import argparse
 import concurrent.futures
 import os
+import time
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
-from functools import partial
 from pathlib import Path
 
 from ci_output import emit_error, print_summary, write_github_outputs
@@ -17,7 +18,9 @@ from command_runner import CommandError, run_command, run_git
 ROOT = Path(__file__).resolve().parents[1]
 GIT_TIMEOUT_SECONDS = 120
 AUDIT_TIMEOUT_SECONDS = 300
+AUDIT_FILE_TIMEOUT_SECONDS = 60
 AUDIT_DEADLINE_SECONDS = 720
+NOT_AUDITED_BEFORE_DEADLINE = "not audited before the deadline"
 
 
 class SourceAuditError(RuntimeError):
@@ -61,7 +64,7 @@ def tracked_files(root: Path = ROOT) -> list[str]:
     return sorted(files)
 
 
-def audit_file(path: str, root: Path, timeout: int) -> AuditResult:
+def audit_file(path: str, root: Path, timeout: float) -> AuditResult:
     try:
         result = run_command(
             ["apm", "audit", "--file", path],
@@ -71,6 +74,7 @@ def audit_file(path: str, root: Path, timeout: int) -> AuditResult:
             check=False,
         )
     except CommandError as error:
+        # Fail closed with no retry: a later attempt could hide a hang.
         return AuditResult(path, 124, str(error))
     output = "\n".join(
         part.strip() for part in (result.stdout, result.stderr) if part.strip()
@@ -78,11 +82,43 @@ def audit_file(path: str, root: Path, timeout: int) -> AuditResult:
     return AuditResult(path, result.returncode, output)
 
 
-def bounded_audit_timeout(file_count: int, max_workers: int) -> int:
-    if file_count < 1:
-        return AUDIT_TIMEOUT_SECONDS
-    waves = (file_count + max_workers - 1) // max_workers
-    return min(AUDIT_TIMEOUT_SECONDS, max(1, AUDIT_DEADLINE_SECONDS // waves))
+def file_audit_timeout(remaining_seconds: float) -> float:
+    """Return one file's limit. The tracked-file count does not shrink it."""
+    return min(
+        AUDIT_TIMEOUT_SECONDS,
+        AUDIT_FILE_TIMEOUT_SECONDS,
+        remaining_seconds,
+    )
+
+
+def audit_files(
+    files: Sequence[str],
+    *,
+    root: Path,
+    max_workers: int,
+    deadline_seconds: float = AUDIT_DEADLINE_SECONDS,
+    monotonic: Callable[[], float] = time.monotonic,
+    audit: Callable[[str, Path, float], AuditResult] = audit_file,
+) -> list[AuditResult]:
+    """Audit every file before the wall-clock deadline.
+
+    The deadline is the monotonic time at entry plus ``deadline_seconds``.
+    A file is not started once that instant has passed. A timed-out file is
+    not retried.
+    """
+    if not files:
+        return []
+    deadline = monotonic() + deadline_seconds
+
+    def worker(path: str) -> AuditResult:
+        remaining = deadline - monotonic()
+        if remaining <= 0:
+            return AuditResult(path, 1, NOT_AUDITED_BEFORE_DEADLINE)
+        return audit(path, root, file_audit_timeout(remaining))
+
+    workers = min(max_workers, len(files))
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+        return list(executor.map(worker, files))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -98,13 +134,7 @@ def main(argv: list[str] | None = None) -> int:
         emit_error(str(error), title="Source enumeration failed")
         return 1
     max_workers = min(args.jobs, len(files)) if files else 1
-    worker = partial(
-        audit_file,
-        root=ROOT,
-        timeout=bounded_audit_timeout(len(files), max_workers),
-    )
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        results = list(executor.map(worker, files))
+    results = audit_files(files, root=ROOT, max_workers=max_workers)
     failures = [result for result in results if result.returncode != 0]
     for result in failures:
         diagnostic = result.output.splitlines()[0] if result.output else "no diagnostic"
