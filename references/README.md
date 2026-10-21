@@ -42,4 +42,7 @@ Default mount and compile/recall root:
 
 Other subjects use the Atlas declared by their active git repository. Never
 mount or write process memory inside a skill package.
-Git root of the store **is** the OKF root (`SCHEMA.json`).
+Git root of the store **is** the OKF root. Require exactly one Atlas-validated
+root contract: `CONTRACT.json` or supported legacy `SCHEMA.json`; filename
+presence alone is not validity. Use the parent-owned subject resolution rules,
+not a guessed directory or a renamed/duplicated consumer contract.

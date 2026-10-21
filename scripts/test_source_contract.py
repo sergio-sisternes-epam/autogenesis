@@ -399,7 +399,7 @@ class SourceContractTests(unittest.TestCase):
         indexed_scenarios = (
             scenario_index["current"] + scenario_index["historical"]
         )
-        self.assertEqual(len(indexed_scenarios), 42)
+        self.assertEqual(len(indexed_scenarios), 43)
         self.assertEqual(len(indexed_scenarios), len(set(indexed_scenarios)))
         for scenario in indexed_scenarios:
             self.assertTrue((ROOT / "references/scenarios" / scenario).is_file())
@@ -413,6 +413,102 @@ class SourceContractTests(unittest.TestCase):
                 "(a missing parser is a failure, not a skip)"
             )
         return yaml
+
+    def test_subject_atlas_contract_admission_guidance(self) -> None:
+        paths = (
+            "SKILL.md",
+            "references/modules/workflow-discipline/SKILL.md",
+            "references/modules/atlas-migrate/SKILL.md",
+            "references/modules/help/references/enrichment.md",
+        )
+        for path in paths:
+            with self.subTest(path=path):
+                text = (ROOT / path).read_text(encoding="utf-8")
+                for phrase in (
+                    "exactly one",
+                    "CONTRACT.json",
+                    "SCHEMA.json",
+                    "validate --root",
+                    "--dry-run --json",
+                    "file presence",
+                    "not validity",
+                    "Both files, neither file",
+                    "broken symlinks",
+                    "malformed JSON",
+                    "unsupported",
+                    "stamp/shape",
+                    "fail closed",
+                    "Do not rename, duplicate, or rewrite a contract",
+                ):
+                    self.assertIn(phrase, text)
+        for path in ("SKILL.md", "references/README.md"):
+            text = (ROOT / path).read_text(encoding="utf-8")
+            self.assertIn("CONTRACT.json", text)
+            self.assertIn("SCHEMA.json", text)
+            self.assertIn("exactly one", text)
+
+    def test_help_contract_admission_stays_read_only(self) -> None:
+        text = (
+            ROOT / "references/modules/help/references/enrichment.md"
+        ).read_text(encoding="utf-8")
+        for phrase in (
+            "before using its tools",
+            "atlas resolve <atlas_id>",
+            "Use only the path that command returns",
+            "validate --root <returned-root> --dry-run --json",
+            "Do not mount, remount, authenticate",
+            "Do not follow mount, init, remember, compile-for-write",
+            "stop as unavailable and return limited help",
+            "Do not build indexes",
+        ):
+            self.assertIn(phrase, text)
+        workflow = (ROOT / WORKFLOW_ENTRYPOINT).read_text(encoding="utf-8")
+        for phrase in (
+            "zero/many without an explicit ID is ambiguous",
+            "set `atlas_root` only to that result",
+            "gitlink requires Atlas path `migrate`",
+            "Implement is forbidden until",
+            "Persist only there",
+        ):
+            self.assertIn(phrase, workflow)
+
+    def test_contract_scenario_uses_the_pinned_atlas_validator(self) -> None:
+        yaml = self._require_yaml()
+        scenario_root = ROOT / "references/scenarios"
+        name = "atlas-contract-compatibility-adversarial-v1.yaml"
+        index = json.loads(
+            (scenario_root / "suite-index.json").read_text(encoding="utf-8")
+        )
+        self.assertIn(name, index["current"])
+        scenario = yaml.safe_load(
+            (scenario_root / name).read_text(encoding="utf-8")
+        )
+        self.assertTrue(scenario["adversarial"])
+        smoke = next(
+            item for item in scenario["smokes"]
+            if item["id"] == "single-contract-storage-matrix"
+        )
+        for phrase in (
+            "ATLAS_CLI",
+            "b012e92ef10aaaee451e99253ea2968066521ec7",
+            "atlas, version 0.13.1",
+            '"init"',
+            '"validate"',
+            '"--dry-run"',
+            '"mini-atlas"',
+            '"both"',
+            '"neither"',
+            '"malformed"',
+            '"non-object"',
+            '"unknown-stamp"',
+            '"current-stamp-on-schema"',
+            '"symlink"',
+            '"broken-symlink"',
+            '"schema_present"',
+            '"stamp_shape"',
+            "snapshot(root) == before",
+        ):
+            self.assertIn(phrase, smoke["cmd"])
 
     def test_pyyaml_test_extra_is_hash_pinned(self) -> None:
         text = (ROOT / "scripts/requirements-test.txt").read_text(encoding="utf-8")

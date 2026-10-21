@@ -13,21 +13,29 @@ stop. Extra Atlas reads are optional, not required.
 Attempt recall only when an `atlas_id` is already known without mounting
 (inherited parent context, or exactly one mesh store name):
 
-1. A checkout that merely contains `SCHEMA.json` is not the Atlas root.
-2. Run `atlas resolve <atlas_id>` read-only. Do not mount, remount,
-   authenticate, init, or repair. Use only the path that command returns.
-3. Verify `<returned-root>/SCHEMA.json`. If resolve fails, returns nothing,
-   or the schema is missing, stop as unavailable.
+1. A checkout that merely contains `CONTRACT.json` or `SCHEMA.json` is not
+   the Atlas root.
+2. Apply the multi-harness substrate contract to the external `atlas` skill
+   and load it with the harness skill loader before using its tools. Run
+   `atlas resolve <atlas_id>` read-only. Do not mount, remount, authenticate,
+   init, or repair. Use only the path that command returns.
+3. Require exactly one readable regular contract file:
+   `<returned-root>/CONTRACT.json` or `<returned-root>/SCHEMA.json`. Run the
+   loaded Atlas CLI's `validate --root <returned-root> --dry-run --json`;
+   file presence alone is not validity. Both files, neither file, symlinked
+   contracts (including broken symlinks), malformed JSON, and unsupported
+   stamp/shape fail closed. Do not rename, duplicate, or rewrite a contract
+   to pass this gate. If resolve fails, returns nothing, or validation fails,
+   stop as unavailable and return limited help.
 
 If no `atlas_id` is already known, the mesh is ambiguous, or resolve is
 blocked, do not guess a root. Return limited help and the reason (missing
-id, missing checkout, ambiguous mesh, missing schema, missing tool, denied
+id, missing checkout, ambiguous mesh, invalid contract, missing tool, denied
 access, timeout, or unknown).
 
-When a root is the resolve result, apply the multi-harness substrate
-contract to the external `atlas` skill and load it with the harness skill
-loader. Follow only a read-only recall tool or a page-read against that
-root. Do not follow mount, init, remember, compile-for-write, or install
+When a root is the validated resolve result, follow only a read-only recall
+tool or a page-read against that root.
+Do not follow mount, init, remember, compile-for-write, or install
 paths, and do not enter path `recall` as this operation. The tool is:
 
 ```text

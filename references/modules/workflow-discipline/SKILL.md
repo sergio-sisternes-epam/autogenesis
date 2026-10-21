@@ -201,8 +201,14 @@ The active subject git root is the write-home boundary.
    `mount` path module, and mount if missing with no `--target`.
    Do not remount an already registered dirty checkout containing this Run's
    writes; resolve that existing mount instead.
-4. Run `atlas resolve <atlas_id>`, set `atlas_root` only to that result, and
-   verify `<atlas_root>/SCHEMA.json`.
+4. Run `atlas resolve <atlas_id>` and set `atlas_root` only to that result.
+   Require exactly one readable regular contract file:
+   `<atlas_root>/CONTRACT.json` or `<atlas_root>/SCHEMA.json`. Run the loaded
+   Atlas CLI's `validate --root <atlas_root> --dry-run --json`; file presence
+   alone is not validity. Both files, neither file, symlinked contracts
+   (including broken symlinks), malformed JSON, and unsupported stamp/shape
+   fail closed. Do not rename, duplicate, or rewrite a contract to pass
+   this gate.
 5. Persist only there and pass the exact resolved root to every Atlas CLI call.
 6. A legacy `<subject>/references/atlas` gitlink requires Atlas path `migrate` before the Run continues. A legacy okf-wiki may then be ingested through Autogenesis operation `atlas-migrate`. A plain `references/atlas` directory is not a gitlink and is not a block once resolution has succeeded. A user-named plan path is not a block once resolution has succeeded. Missing, ambiguous, or failed Atlas states still block normal work; use Atlas init/migrate rather than guessing, symlinking, or dual-writing.
 7. A user-named plan location outside the resolved subject Atlas is not a storage override and is not invalid storage. When steps 1–4 have succeeded and the gitlink rule in step 6 does not apply, persist only in the resolved store, tell the user the Atlas-relative path written and why the named path was not used, and do not stop to ask. Stopping remains correct only when resolution itself fails. Fail-closed applies to resolution, not to a declined override.

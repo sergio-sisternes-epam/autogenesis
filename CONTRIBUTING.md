@@ -119,6 +119,21 @@ claims. Current suites come from
 Local checks support implementation; final acceptance is GitHub CI, including
 the pinned Linux APM artifact and both consumer profiles.
 
+The additive `atlas-contract-compatibility-adversarial-v1` scenario covers
+current and legacy contract admission, including rejected storage cases.
+Its source-test smokes use the normal Python 3.12 test environment. For its
+storage-matrix smoke, set `ATLAS_CLI` to `scripts/atlas.py` in a disposable
+Atlas v0.13.1 checkout at `b012e92ef10aaaee451e99253ea2968066521ec7`, set
+`PKG_subject` to this candidate root, and execute that smoke's `cmd` with
+the same interpreter. It verifies the exact checkout/version, uses native
+init and the pinned public legacy contract, byte-preserved in a disposable
+init scaffold without the fixture's unrelated example pages, and
+checks rejected cases and zero writes with `validate --dry-run --json`.
+No ambient installed Atlas fallback is allowed. A missing prerequisite or
+symlink privilege is a reported failure, not a passing skip; Linux can run
+the symlink cases when Windows cannot. These are deterministic CLI/source
+checks, not a behavioural evaluation or an Atlas CLI crash reproduction.
+
 S8 (`autogenesis:S8`) is a draft pattern resource, not a new module export.
 Keep applicability reasons and draft/active admission explicit in design and
 review guidance. Known-use entries need actual evidence; do not count the

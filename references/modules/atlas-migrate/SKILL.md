@@ -55,7 +55,8 @@ This operation does not reimplement those mechanics.
 4. A migration is single-writer: no symlink, copy, dual-write, or fallback at
    `<subject>/references/atlas`.
 5. Legacy okf-wiki intake is optional and starts only after the new root
-   resolves and contains `SCHEMA.json`.
+   resolves and Atlas validation accepts exactly one supported contract:
+   `CONTRACT.json` or legacy `SCHEMA.json`.
 6. Every staged content file becomes a claim-bearing page under
    `autogenesis/` before Exit; no bulk defer.
 7. Thorough relationship review is mandatory after claim conversion. Exit is
@@ -96,8 +97,14 @@ Then load Atlas path `mount` and run mount with no `--target`. Set
 python3 <atlas-skill>/scripts/atlas.py resolve <atlas_id>
 ```
 
-Verify `<subject_atlas>/SCHEMA.json`. A dirty existing checkout, mismatched
-origin, failed mount/resolve, or missing schema stops the Run.
+Require exactly one readable regular contract file:
+`<subject_atlas>/CONTRACT.json` or `<subject_atlas>/SCHEMA.json`. Run the loaded
+Atlas CLI's `validate --root <subject_atlas> --dry-run --json`; file presence
+alone is not validity. Both files, neither file, symlinked contracts (including
+broken symlinks), malformed JSON, and unsupported stamp/shape fail closed.
+Do not rename, duplicate, or rewrite a contract to pass this gate. A dirty
+existing checkout, mismatched origin, failed mount/resolve, or invalid
+contract stops the Run before content intake.
 
 ### 3. Optional legacy okf-wiki intake
 

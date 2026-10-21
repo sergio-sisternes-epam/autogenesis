@@ -75,7 +75,8 @@ remains this repository's final release gate.
 Process memory is **not** authored in the skill package. Each Run writes home
 to the subject repository's declared Atlas. The Autogenesis subject store is
 `github.com/sergio-sisternes-epam/autogenesis-atlas`; its git root is the OKF
-root (`SCHEMA.json`).
+root, with exactly one Atlas-owned contract (`CONTRACT.json` or supported
+legacy `SCHEMA.json`).
 
 ```text
 python3 <atlas-skill>/scripts/atlas.py mount github.com/sergio-sisternes-epam/autogenesis-atlas --ref main
@@ -105,8 +106,13 @@ Always pass the path returned by `atlas resolve` as card `atlas_root` /
    is a blocking ambiguity; never select the first row.
 3. Load Atlas path `mount`, mount `atlas_id` with its `ref` and **no
    `--target`**, then run `atlas resolve <atlas_id>`.
-4. Set `subject_atlas` only from the resolved path and verify
-   `<subject_atlas>/SCHEMA.json`.
+4. Set `subject_atlas` only from the resolved path. Require exactly one
+   readable regular contract file: `<subject_atlas>/CONTRACT.json` or
+   `<subject_atlas>/SCHEMA.json`. Run the loaded Atlas CLI's
+   `validate --root <subject_atlas> --dry-run --json`; file presence alone
+   is not validity. Both files, neither file, symlinked contracts (including
+   broken symlinks), malformed JSON, and unsupported stamp/shape fail closed.
+   Do not rename, duplicate, or rewrite a contract to pass this gate.
 5. A legacy `<subject>/references/atlas` gitlink requires Atlas path `migrate`
    before the Run continues. A legacy okf-wiki may then be ingested through
    Autogenesis operation `atlas-migrate`.
