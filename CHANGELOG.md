@@ -7,6 +7,15 @@ in `SKILL.md`.
 
 ## [Unreleased]
 
+### Fixed
+
+- Accept current `CONTRACT.json` and supported legacy `SCHEMA.json` subject
+  stores through the pinned Atlas validator instead of requiring the legacy
+  filename. Root resolution, workflow discipline, migration and optional help
+  require exactly one valid contract and use `validate --dry-run` to avoid
+  writes. Ambiguous, missing, symlinked, malformed and unsupported contracts
+  still fail closed. Consumers do not rename or duplicate contracts.
+
 ## [0.9.0] - 2026-10-13
 
 ### Changed

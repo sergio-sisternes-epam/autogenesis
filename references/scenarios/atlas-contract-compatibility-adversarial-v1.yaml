@@ -1,0 +1,139 @@
+id: atlas-contract-compatibility-adversarial-v1
+kind: skill-discipline
+version: "1"
+work_id: 2026-10-21-atlas-contract-compatibility
+adversarial: true
+description: >
+  Admit current and supported legacy subject contracts through the pinned
+  Atlas reader. Preserve fail-closed validation and read-only help without
+  renaming, duplicating or rewriting a consumer contract. CLI results are
+  deterministic storage evidence, not evidence of agent adherence.
+packages:
+  - id: subject
+    root: "<candidate-root>"
+    mode: mount
+project:
+  seed_knowledge: []
+smokes:
+  - id: all-subject-admission-surfaces
+    source: C-drift; root, authority, migration and help instruction assets
+    cmd: >
+      python3 -m unittest discover -s "$PKG_subject/scripts"
+      -p test_source_contract.py -k test_subject_atlas_contract_admission_guidance
+    expect:
+      exit_code: 0
+  - id: single-contract-storage-matrix
+    source: C-filename and C-proxy; pinned Atlas reader and validator
+    cmd: |
+      python3 - << 'PY'
+      import json, os, shutil, subprocess, sys, tempfile
+      from pathlib import Path
+
+      cli = Path(os.environ["ATLAS_CLI"]).resolve()
+      atlas = cli.parents[1]
+      expected = "b012e92ef10aaaee451e99253ea2968066521ec7"
+      actual = subprocess.run(
+          ["git", "-C", str(atlas), "rev-parse", "HEAD"],
+          check=True, capture_output=True, text=True,
+      ).stdout.strip()
+      assert actual == expected, (actual, expected)
+      version = subprocess.run(
+          [sys.executable, str(cli), "--version"],
+          check=True, capture_output=True, text=True,
+      ).stdout.strip()
+      assert version == "atlas, version 0.13.1", version
+
+      def snapshot(root):
+          return {
+              p.relative_to(root).as_posix():
+                  ("symlink", os.readlink(p)) if p.is_symlink()
+                  else ("directory",) if p.is_dir()
+                  else ("file", p.read_bytes())
+              for p in root.rglob("*")
+          }
+
+      def validate(root, finding=None):
+          before = snapshot(root)
+          result = subprocess.run(
+              [sys.executable, str(cli), "validate", "--root", str(root),
+               "--dry-run", "--json"],
+              capture_output=True, text=True,
+          )
+          payload = json.loads(result.stdout)
+          assert snapshot(root) == before, (root.name, "validation wrote files")
+          if finding is None:
+              assert result.returncode == 0 and payload["ok"] is True, payload
+              assert not payload["warnings"], payload
+          else:
+              assert result.returncode != 0, payload
+              assert finding in {row["id"] for row in payload["critical"]}, payload
+
+      with tempfile.TemporaryDirectory(prefix="atlas-contract-") as name:
+          base = Path(name)
+          current = base / "current"
+          subprocess.run(
+              [sys.executable, str(cli), "init", "--root", str(current)],
+              check=True, capture_output=True, text=True,
+          )
+          assert (current / "CONTRACT.json").is_file()
+          assert not (current / "SCHEMA.json").exists()
+          contract = json.loads((current / "CONTRACT.json").read_text())
+          assert contract["atlas_release"] == "0.13.0"
+          assert contract["memory"]["layers"] == ["schema", "gist", "memory"]
+          validate(current)
+          legacy = base / "legacy"
+          shutil.copytree(current, legacy)
+          (legacy / "CONTRACT.json").unlink()
+          legacy_contract = atlas / "fixtures" / "mini-atlas" / "SCHEMA.json"
+          shutil.copy2(legacy_contract, legacy / "SCHEMA.json")
+          assert (legacy / "SCHEMA.json").read_bytes() == legacy_contract.read_bytes()
+          validate(legacy)
+          rejected = []
+          for case in ("both", "neither", "malformed", "non-object",
+                       "unknown-stamp", "current-stamp-on-schema",
+                       "symlink", "broken-symlink"):
+              root = base / case
+              shutil.copytree(current, root)
+              path = root / "CONTRACT.json"
+              expected_finding = "schema_present"
+              if case == "both":
+                  shutil.copy2(path, root / "SCHEMA.json")
+              elif case == "neither":
+                  path.unlink()
+              elif case == "malformed":
+                  path.write_text("{not-json", encoding="utf-8")
+              elif case == "non-object":
+                  path.write_text("[]", encoding="utf-8")
+              elif case == "unknown-stamp":
+                  data = json.loads(path.read_text())
+                  data["atlas_release"] = "0.13.1"
+                  path.write_text(json.dumps(data), encoding="utf-8")
+                  expected_finding = "stamp_shape"
+              elif case == "current-stamp-on-schema":
+                  path.rename(root / "SCHEMA.json")
+                  expected_finding = "stamp_shape"
+              else:
+                  path.unlink()
+                  target = current / (
+                      "CONTRACT.json" if case == "symlink" else "missing.json"
+                  )
+                  try:
+                      path.symlink_to(target)
+                  except OSError as error:
+                      raise RuntimeError(
+                          f"{case} blocked by platform symlink privilege"
+                      ) from error
+              validate(root, expected_finding)
+              rejected.append(case)
+          print(json.dumps({"ok": True, "accepted": ["current", "legacy"],
+                            "rejected": rejected, "validation_writes": 0}))
+      PY
+    expect:
+      ok: true
+  - id: read-only-and-identity-fences
+    source: C-side-effects; read-only help and existing write-home boundaries
+    cmd: >
+      python3 -m unittest discover -s "$PKG_subject/scripts"
+      -p test_source_contract.py -k test_help_contract_admission_stays_read_only
+    expect:
+      exit_code: 0

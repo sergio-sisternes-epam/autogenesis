@@ -1,6 +1,7 @@
 {
   "schema": "autogenesis.scenario-index/v1",
   "current": [
+    "atlas-contract-compatibility-adversarial-v1.yaml",
     "activation-card-extend-adversarial-v2.yaml",
     "atlas-migrate-activation-adherence-v5.yaml",
     "atlas-storage-semantics-adversarial-v5.yaml",
