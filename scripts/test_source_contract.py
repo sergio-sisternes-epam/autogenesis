@@ -549,9 +549,10 @@ class SourceContractTests(unittest.TestCase):
             encoding="utf-8"
         )
         for required in (
-            "0.38.9",
-            "774df00",
-            "schemaVersion",
+            "0.40.0",
+            "93e80d7fdcbf9206215366d6ecca7ed08d26b2b3",
+            'eval `schemaVersion: "1.4"`',
+            'results `schemaVersion: "1.8"`',
             "WAZA_NO_UPDATE_CHECK=1",
             "left_to_runner",
             "not-run-by-autogenesis",
