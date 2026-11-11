@@ -7,6 +7,8 @@ in `SKILL.md`.
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-11-11
+
 ### Fixed
 
 - Accept current `CONTRACT.json` and supported legacy `SCHEMA.json` subject
@@ -400,7 +402,8 @@ in `SKILL.md`.
 - **Canonical decision:** `wiki-folder-deletion-policy` — no auto-delete on migrate; human-gated archive removal.
 - **Package metadata:** `apm.yml` deps on atlas + okf (not okf-wiki).
 
-[Unreleased]: https://github.com/sergio-sisternes-epam/autogenesis/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/sergio-sisternes-epam/autogenesis/compare/v0.9.1...HEAD
+[0.9.1]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.9.1
 [0.9.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.9.0
 [0.8.1]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.8.1
 [0.8.0]: https://github.com/sergio-sisternes-epam/autogenesis/releases/tag/v0.8.0
