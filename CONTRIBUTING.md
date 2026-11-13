@@ -145,8 +145,9 @@ commands through tools already available in the repository and retain actual
 output; no separate evaluator is required. GitHub CI remains the final
 release gate.
 
-Behavioural suites are authored in the upstream Waza format (Waza 0.38.9,
-`schemaVersion: "1.4"`) at `<subject>/evals/<skill>/`, or at
+Behavioural suites are authored in the upstream Waza format (Waza 0.40.0,
+eval `schemaVersion: "1.4"`, results `schemaVersion: "1.8"`) at
+`<subject>/evals/<skill>/`, or at
 `<subject>/.apm/evals/<skill>/` when the subject is an APM package with a root
 `SKILL.md` (this repository's dogfood suite is `.apm/evals/autogenesis/`),
 following `references/waza-authoring.md`. Autogenesis never runs suite tasks

@@ -12,8 +12,9 @@ model-free validity checks below are **not behavioural evidence**.
 
 ## Format pin
 
-- Target: upstream Waza (`microsoft/waza`, MIT) **0.38.9**, commit
-  `774df00`; eval `schemaVersion: "1.4"`.
+- Target: upstream Waza (`microsoft/waza`, MIT) **0.40.0**, commit
+  `93e80d7` (`93e80d7fdcbf9206215366d6ecca7ed08d26b2b3`);
+  eval `schemaVersion: "1.4"`, results `schemaVersion: "1.8"`.
 - Waza is a **format target and model-free validator**. It is never an APM
   dependency of Autogenesis or of a derived skill, and no wrapper around it is
   used or named.
@@ -43,7 +44,7 @@ and are never read at skill runtime:
   in a local copy of `eval.yaml`, and starts Waza from a working directory with
   no `SKILL.md` and none of the suite's answer fixtures, because Waza adds its
   working directory to the agent's skill directories. Set
-  `config.inject_skill_body: false` (the 0.38.9 default is true, which pastes
+  `config.inject_skill_body: false` (the 0.40.0 default is true, which pastes
   the skill body into the prompt and does not measure natural dispatch). The
   candidate stays discoverable through those skill directories. Do not set
   `trigger_skill_routing`.
@@ -106,8 +107,9 @@ fixtures/<task-id>/negative.results.json
 ```
 
 The `.results.json` files are hand-authored outcome files in Waza's results
-format (final output, transcript, tool events, skill invocations). They are
-not the output of a run. A fixture change bumps `suite_version` with a reason.
+format (`schemaVersion: "1.8"`; final output, transcript, tool events, skill
+invocations). They are not the output of a run. A fixture change bumps
+`suite_version` with a reason.
 
 ## Authored pass-bar metadata
 
@@ -126,7 +128,7 @@ Autogenesis may run only these checks, locally, against suites it wrote.
 Every call sets `WAZA_NO_UPDATE_CHECK=1`. First verify the binary:
 
 ```text
-WAZA_NO_UPDATE_CHECK=1 waza --version     # must report 0.38.9
+WAZA_NO_UPDATE_CHECK=1 waza --version     # must report 0.40.0
 ```
 
 | # | Command | Rule |
@@ -168,8 +170,8 @@ Everything else is out of scope and never run by Autogenesis:
 - never `--semantic` and never `--judge-model`;
 - never any Waza command without `WAZA_NO_UPDATE_CHECK=1`.
 
-If the version check does not report 0.38.9, or Waza is not installed, record
-`validity: deferred: waza 0.38.9 unavailable` plus repository-native
+If the version check does not report 0.40.0, or Waza is not installed, record
+`validity: deferred: waza 0.40.0 unavailable` plus repository-native
 structural checks (YAML parses, files referenced by `eval.yaml` exist, every
 gate task has both fixtures). Never install a different version and never fall
 back to a model.
@@ -182,12 +184,12 @@ Record under `## Evaluation evidence`, after the deterministic smoke block:
 waza_suite:
   path: evals/<skill>/ @ <commit>
   suite_version: <n>   (bumped on any grader, threshold, prompt or fixture change, with reason)
-  format: waza 0.38.9, schemaVersion 1.4
+  format: waza 0.40.0, eval schemaVersion 1.4, results schemaVersion 1.8
   tasks: <n> (gate <g>, quality <q>, trigger <t>)
   coverage: USE FOR <a>/<b>, DO NOT USE FOR <c>/<d> (authored mapping)
   grader_controls: reference + negative fixture for <g>/<g> gate tasks
   validity:                       # model-free checks only
-    waza: 0.38.9 (774df00)        # from the version check; any other version is deferred, not a pass
+    waza: 0.40.0 (93e80d7)        # from the version check; any other version is deferred, not a pass
     env: WAZA_NO_UPDATE_CHECK=1
     check:
       cmd: WAZA_NO_UPDATE_CHECK=1 waza check <skill-path> --format json

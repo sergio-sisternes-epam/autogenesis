@@ -19,7 +19,7 @@
     "skill-module-pattern-happy-v1.yaml",
     "solid-skill-design-adversarial-v1.yaml",
     "help-getting-started-adversarial-v2.yaml",
-    "waza-evaluation-adversarial-v1.yaml"
+    "waza-evaluation-adversarial-v2.yaml"
   ],
   "historical": [
     "module-invocation-adversarial-v1.yaml",
@@ -45,7 +45,8 @@
     "specify-only-adversarial-v2.yaml",
     "help-getting-started-adversarial-v1.yaml",
     "explicit-discuss-integration-adversarial-v1.yaml",
-    "atlas-storage-semantics-adversarial-v4.yaml"
+    "atlas-storage-semantics-adversarial-v4.yaml",
+    "waza-evaluation-adversarial-v1.yaml"
   ],
   "successors": {
     "autogenesis-adversarial-v3.yaml": "autogenesis-adversarial-v4.yaml",
@@ -67,6 +68,7 @@
     "specify-only-adversarial-v2.yaml": "waza-evaluation-adversarial-v1.yaml",
     "help-getting-started-adversarial-v1.yaml": "help-getting-started-adversarial-v2.yaml",
     "explicit-discuss-integration-adversarial-v1.yaml": "explicit-discuss-integration-adversarial-v2.yaml",
-    "atlas-storage-semantics-adversarial-v4.yaml": "atlas-storage-semantics-adversarial-v5.yaml"
+    "atlas-storage-semantics-adversarial-v4.yaml": "atlas-storage-semantics-adversarial-v5.yaml",
+    "waza-evaluation-adversarial-v1.yaml": "waza-evaluation-adversarial-v2.yaml"
   }
 }

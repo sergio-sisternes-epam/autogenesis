@@ -399,7 +399,7 @@ class SourceContractTests(unittest.TestCase):
         indexed_scenarios = (
             scenario_index["current"] + scenario_index["historical"]
         )
-        self.assertEqual(len(indexed_scenarios), 43)
+        self.assertEqual(len(indexed_scenarios), 44)
         self.assertEqual(len(indexed_scenarios), len(set(indexed_scenarios)))
         for scenario in indexed_scenarios:
             self.assertTrue((ROOT / "references/scenarios" / scenario).is_file())
@@ -549,9 +549,10 @@ class SourceContractTests(unittest.TestCase):
             encoding="utf-8"
         )
         for required in (
-            "0.38.9",
-            "774df00",
-            "schemaVersion",
+            "0.40.0",
+            "93e80d7fdcbf9206215366d6ecca7ed08d26b2b3",
+            'eval `schemaVersion: "1.4"`',
+            'results `schemaVersion: "1.8"`',
             "WAZA_NO_UPDATE_CHECK=1",
             "left_to_runner",
             "not-run-by-autogenesis",
@@ -574,6 +575,59 @@ class SourceContractTests(unittest.TestCase):
             text = path.read_text(encoding="utf-8")
             for match in re.finditer(r"\bwaza-[a-z][a-z0-9-]*", text):
                 self.assertIn(match.group(0), own_names, path)
+
+    def test_waza_current_scenario_and_modules_use_same_pin(self) -> None:
+        yaml = self._require_yaml()
+        scenario_root = ROOT / "references/scenarios"
+        index = json.loads((scenario_root / "suite-index.json").read_text(
+            encoding="utf-8"
+        ))
+        old = "waza-evaluation-adversarial-v1.yaml"
+        current = "waza-evaluation-adversarial-v2.yaml"
+        self.assertIn(current, index["current"])
+        self.assertIn(old, index["historical"])
+        self.assertEqual(index["successors"][old], current)
+        scenario = yaml.safe_load((scenario_root / current).read_text(
+            encoding="utf-8"
+        ))
+        smoke = next(
+            item for item in scenario["smokes"]
+            if item["id"] == "waza-format-version-pinned"
+        )
+        for expected in (
+            "0.40.0",
+            "93e80d7fdcbf9206215366d6ecca7ed08d26b2b3",
+            'schemaVersion: "1.4"',
+            'schemaVersion: "1.8"',
+        ):
+            self.assertIn(expected, smoke["cmd"])
+        def run_smoke(root: Path) -> dict:
+            result = subprocess.run(
+                ["sh", "-c", smoke["cmd"]],
+                env={**os.environ, "PKG_subject": str(root)},
+                check=True, capture_output=True, text=True,
+            )
+            return json.loads(result.stdout)
+
+        self.assertEqual(run_smoke(ROOT), smoke["expect"])
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "references").mkdir()
+            guide = (ROOT / "references/waza-authoring.md").read_text(
+                encoding="utf-8"
+            )
+            (root / "references/waza-authoring.md").write_text(
+                guide.replace("0.40.0", "0.38.9"), encoding="utf-8"
+            )
+            self.assertFalse(run_smoke(root)["ok"])
+        for module in ("implement", "workflow-discipline"):
+            text = " ".join(
+                (ROOT / "references/modules" / module / "SKILL.md")
+                .read_text(encoding="utf-8").split()
+            )
+            self.assertIn("Waza 0.40.0", text)
+            self.assertIn("validity: deferred: waza 0.40.0 unavailable", text)
+            self.assertNotIn("0.38.9", text)
 
     def test_dogfood_eval_suite_structure(self) -> None:
         yaml = self._require_yaml()

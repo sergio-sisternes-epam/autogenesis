@@ -7,6 +7,13 @@ in `SKILL.md`.
 
 ## [Unreleased]
 
+### Changed
+
+- Move Waza authoring guidance to 0.40.0 (`93e80d7`) and results schema
+  1.8. Eval-suite schemaVersion stays 1.4. Existing fixtures and historical
+  validity evidence remain unchanged; validation against 0.40.0 is deferred.
+  Package version stays 0.9.1 for this guidance-only update.
+
 ## [0.9.1] - 2026-11-11
 
 ### Fixed

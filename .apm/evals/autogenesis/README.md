@@ -10,12 +10,12 @@ advisory quality signal on plan depth.
 ```text
 suite_version: 21
 suite_version_reason: additive trigger tasks — an agreed skill-package change must activate and persist a proposed or designed plan, and a mere mention of SKILL.md must not
-format: waza 0.38.9 (774df00), schemaVersion "1.4"
+format: waza 0.40.0 (93e80d7), eval schemaVersion "1.4", results schemaVersion "1.8"
 work_id: 2026-10-08-waza-evaluation (Phase 2)
 run_status: not-run-by-autogenesis
 ```
 
-Waza 0.38.9 has no `suite_version` field, so the version is recorded here and
+Waza 0.40.0 has no `suite_version` field, so the version is recorded here and
 as a comment at the top of `eval.yaml`. Any grader, threshold, prompt or
 fixture change bumps `suite_version` with a recorded reason, never bundled
 silently with the skill change it describes.
@@ -94,7 +94,7 @@ Reason for 17: the declined-path reply grader resolves the written plan's
 path. A different valid date, or an invalid date such as `2026-99-99`,
 fails. The reply must also refuse `references/atlas` and tie that refusal
 to the resolved subject Atlas or the resolved store. An instruction to use
-the named legacy storage does not pass. Waza 0.38.9 passes the final output
+the named legacy storage does not pass. Waza 0.40.0 passes the final output
 on stdin and the workspace as `WAZA_WORKSPACE_DIR`; it does not pass a
 transcript path, so this check is a program grader rather than a text
 pattern over any date-shaped string.
@@ -165,7 +165,8 @@ root `.waza.yaml` sets `paths.evals: .apm/evals`, so `waza check .` finds this
 suite. CI fails if an installed `autogenesis` carries `evals/`, `.apm/` or any
 `eval.yaml`.
 
-1. Use upstream Waza 0.38.9 (`microsoft/waza`, commit `774df00`). Do not use a
+1. Use upstream Waza 0.40.0 (`microsoft/waza`, commit `93e80d7`,
+   full SHA `93e80d7fdcbf9206215366d6ecca7ed08d26b2b3`). Do not use a
    wrapper.
 2. Install the skill under test and the skills it uses with a disposable
    consumer `apm install`:
@@ -180,7 +181,7 @@ suite. CI fails if an installed `autogenesis` carries `evals/`, `.apm/` or any
    result. The suite graders themselves are standard-library only.
 4. Point Waza at the installed skills with `config.skill_directories` in a
    local copy of `eval.yaml` (see "Run layout"). Do not rely on
-   `paths.skills`: Waza 0.38.9 walks it recursively and registers this
+   `paths.skills`: Waza 0.40.0 walks it recursively and registers this
    repository's parent-routed modules and fixture `SKILL.md` folders as
    skills, shadowing real skills by name. The suite does not declare
    `required_skills`, because Waza's preflight rejects it unless
@@ -190,7 +191,7 @@ suite. CI fails if an installed `autogenesis` carries `evals/`, `.apm/` or any
    value in `eval.yaml` is only a schema-required placeholder), judge model
    (`--judge-model`; a different model family from the agent is recommended),
    judge timeout and budget.
-6. `eval.yaml` sets `config.inject_skill_body: false`. Waza 0.38.9 defaults
+6. `eval.yaml` sets `config.inject_skill_body: false`. Waza 0.40.0 defaults
    this to true, which pastes the full skill body into the system prompt, so
    trigger tasks would not measure natural dispatch. False suppresses that
    body. The candidate stays discoverable through the harness skill
@@ -313,7 +314,7 @@ doing nothing. `just-discuss-does-not-start-design` does not require an
 Autogenesis invocation: activating catalog discuss and writing nothing is a
 pass, and the zero-change allowlist is the absence check.
 `declined-plan-path-explained` does not grade tool names. Its reply grader
-is a program grader: Waza 0.38.9 passes the final output on stdin and the
+is a program grader: Waza 0.40.0 passes the final output on stdin and the
 workspace as `WAZA_WORKSPACE_DIR`, and does not pass a transcript path.
 The grader resolves the written plan date and reads only that reply.
 Its use guard is a bounded lexical check and cannot prove meaning. It
@@ -345,7 +346,7 @@ a bad one, and resolves `skill_path` from the working directory.
 
 ### Reading skill_invocation scores
 
-Waza 0.38.9 scores `skill_invocation` as the F1 of precision and recall over
+Waza 0.40.0 scores `skill_invocation` as the F1 of precision and recall over
 the required list, so companion skills (`genesis`, `atlas`, `think-*`,
 `okf`) loaded alongside `autogenesis` lower the score of a run that passed.
 Waza has no recall-only option, so the graders are left as they are:
@@ -480,8 +481,10 @@ skeletons and the whole `graders/` directory, not the answer fixtures.
 Reference directories are the subject fixture plus only the paths that task
 allows. Negative directories are that tree plus the change the negative
 demonstrates. The `.results.json` files are
-hand-authored in Waza's results format (schemaVersion 1.4, one run each, with
-`final_output` and `skill_invocations`). They are not the output of a run.
+hand-authored in Waza's legacy results format (schemaVersion 1.4, one run each,
+with `final_output` and `skill_invocations`). They are not the output of a run.
+The current results schema is 1.8; these existing fixtures are unchanged by
+the guidance update. Eval-suite schemaVersion stays 1.4.
 They omit transcripts and tool events. No grader reads a transcript. The
 declined-path reply grader reads `final_output`, which Waza passes on
 stdin. Each negative records the run as passed so the graders, not the claim,
@@ -514,6 +517,10 @@ to every reference and negative plan.
 Model-free checks only (V1-V3 in `references/waza-authoring.md`), each with
 `WAZA_NO_UPDATE_CHECK=1`. This record is validity evidence, **not behavioural
 evidence**: no model call was made and no `waza run` was used.
+
+The record below is historical evidence from Waza 0.38.9, not validation
+against the current 0.40.0 pin. Validity for 0.40.0 is deferred pending
+model-free checks with that version.
 
 ```text
 validity:
