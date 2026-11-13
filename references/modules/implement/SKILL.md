@@ -74,7 +74,7 @@ or mismatched value.
      scope and must not add a task the approved drafts did not include.
    - When suite files were authored under that scope, run only the allowlisted
      model-free validity checks V1-V3 from the guide, each with
-     `WAZA_NO_UPDATE_CHECK=1` and Waza 0.38.9. Never run suite tasks against
+     `WAZA_NO_UPDATE_CHECK=1` and Waza 0.40.0. Never run suite tasks against
      an agent and never make a model call for evaluation.
    - Record the `waza_suite` block with its `validity` sub-block (command, Waza
      version, exit code, coverage, grader-fixture counts, `left_to_runner`)
@@ -83,7 +83,7 @@ or mismatched value.
    - A failing reference or a passing negative makes the suite invalid and
      keeps implementation incomplete until the grader or fixture is fixed and
      `suite_version` is bumped with a reason.
-   - Without Waza 0.38.9, record `validity: deferred: waza 0.38.9 unavailable`
+   - Without Waza 0.40.0, record `validity: deferred: waza 0.40.0 unavailable`
      plus repository-native structural checks; do not install another version
      or fall back to a model.
    - Running belongs to the subject owner. Cite owner-supplied results only in

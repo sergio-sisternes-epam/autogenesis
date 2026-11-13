@@ -244,11 +244,11 @@ module-specific behaviour:
   behavioural evidence.
 - The only Waza it executes is the closed model-free allowlist V1-V3 in
   `<skill_root>/references/waza-authoring.md`, each call with
-  `WAZA_NO_UPDATE_CHECK=1` and Waza 0.38.9. Record the `waza_suite` block with
+  `WAZA_NO_UPDATE_CHECK=1` and Waza 0.40.0. Record the `waza_suite` block with
   its `validity` sub-block (command, Waza version, exit code, coverage,
   grader-fixture counts, `left_to_runner`) and
   `run_status: not-run-by-autogenesis`. The validity block is not behavioural
-  evidence. Missing Waza 0.38.9 yields `validity: deferred: waza 0.38.9
+  evidence. Missing Waza 0.40.0 yields `validity: deferred: waza 0.40.0
   unavailable` plus repository-native structural checks.
 - Running belongs to the subject owner or its CI; the intended runner is a
   separate on-demand evaluator bot outside Autogenesis. Supplied results may
