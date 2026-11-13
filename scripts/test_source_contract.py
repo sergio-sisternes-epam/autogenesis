@@ -168,14 +168,14 @@ class SourceContractTests(unittest.TestCase):
         ignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
         agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
         self.assertIn("name: autogenesis\n", manifest)
-        self.assertIn("version: 0.9.0\n", manifest)
+        self.assertIn("version: 0.9.1\n", manifest)
         self.assertIn("license: Apache-2.0\n", manifest)
         self.assertIn(
             "repository: https://github.com/sergio-sisternes-epam/autogenesis\n",
             manifest,
         )
         self.assertIn("name: autogenesis\n", skill)
-        self.assertIn("version: 0.9.0\n", skill)
+        self.assertIn("version: 0.9.1\n", skill)
         self.assertTrue((ROOT / "apm.lock.yaml").is_file())
         self.assertIn("apm_modules/", ignore)
         self.assertIn("Commit `apm.lock.yaml`", agents)
@@ -399,7 +399,7 @@ class SourceContractTests(unittest.TestCase):
         indexed_scenarios = (
             scenario_index["current"] + scenario_index["historical"]
         )
-        self.assertEqual(len(indexed_scenarios), 43)
+        self.assertEqual(len(indexed_scenarios), 44)
         self.assertEqual(len(indexed_scenarios), len(set(indexed_scenarios)))
         for scenario in indexed_scenarios:
             self.assertTrue((ROOT / "references/scenarios" / scenario).is_file())
@@ -549,9 +549,10 @@ class SourceContractTests(unittest.TestCase):
             encoding="utf-8"
         )
         for required in (
-            "0.38.9",
-            "774df00",
-            "schemaVersion",
+            "0.40.0",
+            "93e80d7fdcbf9206215366d6ecca7ed08d26b2b3",
+            'eval `schemaVersion: "1.4"`',
+            'results `schemaVersion: "1.8"`',
             "WAZA_NO_UPDATE_CHECK=1",
             "left_to_runner",
             "not-run-by-autogenesis",
@@ -574,6 +575,59 @@ class SourceContractTests(unittest.TestCase):
             text = path.read_text(encoding="utf-8")
             for match in re.finditer(r"\bwaza-[a-z][a-z0-9-]*", text):
                 self.assertIn(match.group(0), own_names, path)
+
+    def test_waza_current_scenario_and_modules_use_same_pin(self) -> None:
+        yaml = self._require_yaml()
+        scenario_root = ROOT / "references/scenarios"
+        index = json.loads((scenario_root / "suite-index.json").read_text(
+            encoding="utf-8"
+        ))
+        old = "waza-evaluation-adversarial-v1.yaml"
+        current = "waza-evaluation-adversarial-v2.yaml"
+        self.assertIn(current, index["current"])
+        self.assertIn(old, index["historical"])
+        self.assertEqual(index["successors"][old], current)
+        scenario = yaml.safe_load((scenario_root / current).read_text(
+            encoding="utf-8"
+        ))
+        smoke = next(
+            item for item in scenario["smokes"]
+            if item["id"] == "waza-format-version-pinned"
+        )
+        for expected in (
+            "0.40.0",
+            "93e80d7fdcbf9206215366d6ecca7ed08d26b2b3",
+            'schemaVersion: "1.4"',
+            'schemaVersion: "1.8"',
+        ):
+            self.assertIn(expected, smoke["cmd"])
+        def run_smoke(root: Path) -> dict:
+            result = subprocess.run(
+                ["sh", "-c", smoke["cmd"]],
+                env={**os.environ, "PKG_subject": str(root)},
+                check=True, capture_output=True, text=True,
+            )
+            return json.loads(result.stdout)
+
+        self.assertEqual(run_smoke(ROOT), smoke["expect"])
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "references").mkdir()
+            guide = (ROOT / "references/waza-authoring.md").read_text(
+                encoding="utf-8"
+            )
+            (root / "references/waza-authoring.md").write_text(
+                guide.replace("0.40.0", "0.38.9"), encoding="utf-8"
+            )
+            self.assertFalse(run_smoke(root)["ok"])
+        for module in ("implement", "workflow-discipline"):
+            text = " ".join(
+                (ROOT / "references/modules" / module / "SKILL.md")
+                .read_text(encoding="utf-8").split()
+            )
+            self.assertIn("Waza 0.40.0", text)
+            self.assertIn("validity: deferred: waza 0.40.0 unavailable", text)
+            self.assertNotIn("0.38.9", text)
 
     def test_dogfood_eval_suite_structure(self) -> None:
         yaml = self._require_yaml()
@@ -3601,15 +3655,15 @@ class SourceContractTests(unittest.TestCase):
                 content = path.read_text(encoding="utf-8")
                 self.assertIn(reference, content)
 
-    def test_actual_root_version_surface_is_v0_9_0(self) -> None:
+    def test_actual_root_version_surface_is_v0_9_1(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         manifest = (ROOT / "apm.yml").read_text(encoding="utf-8")
 
         self.assertRegex(skill, r"(?m)^name: autogenesis$")
-        self.assertRegex(skill, r'(?m)^version: "?0\.9\.0"?$')
+        self.assertRegex(skill, r'(?m)^version: "?0\.9\.1"?$')
         self.assertRegex(skill, r"(?m)^activation_card: on$")
         self.assertIn("name: autogenesis\n", manifest)
-        self.assertIn("version: 0.9.0\n", manifest)
+        self.assertIn("version: 0.9.1\n", manifest)
 
     def test_optional_module_template_is_instruction_only(self) -> None:
         template = (

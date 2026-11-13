@@ -52,7 +52,8 @@ portable specifications; run applicable commands with repository tools and
 record actual evidence. GitHub CI remains the final release gate.
 
 Behavioural evaluation is authored, not run. Autogenesis designs and authors
-upstream Waza eval suites (pinned at Waza 0.38.9, `schemaVersion: "1.4"`)
+upstream Waza eval suites (pinned at Waza 0.40.0, eval `schemaVersion: "1.4"`,
+results `schemaVersion: "1.8"`)
 following `references/waza-authoring.md`, and never runs suite tasks against
 an agent or makes a model call for evaluation. The only Waza commands it may
 run are the model-free validity checks V1-V3 in that guide, each with

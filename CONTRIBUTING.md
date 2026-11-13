@@ -145,8 +145,9 @@ commands through tools already available in the repository and retain actual
 output; no separate evaluator is required. GitHub CI remains the final
 release gate.
 
-Behavioural suites are authored in the upstream Waza format (Waza 0.38.9,
-`schemaVersion: "1.4"`) at `<subject>/evals/<skill>/`, or at
+Behavioural suites are authored in the upstream Waza format (Waza 0.40.0,
+eval `schemaVersion: "1.4"`, results `schemaVersion: "1.8"`) at
+`<subject>/evals/<skill>/`, or at
 `<subject>/.apm/evals/<skill>/` when the subject is an APM package with a root
 `SKILL.md` (this repository's dogfood suite is `.apm/evals/autogenesis/`),
 following `references/waza-authoring.md`. Autogenesis never runs suite tasks
@@ -203,16 +204,16 @@ and target-specific consumer commands stay here.
 Keep these commands on the same version as `apm.yml`:
 
 ```text
-apm install sergio-sisternes-epam/autogenesis#v0.9.0 --target agent-skills
+apm install sergio-sisternes-epam/autogenesis#v0.9.1 --target agent-skills
 ```
 
 ```text
-apm install sergio-sisternes-epam/autogenesis#v0.9.0 --target claude,codex,copilot,cursor,gemini,grok-build,kiro,opencode,windsurf
+apm install sergio-sisternes-epam/autogenesis#v0.9.1 --target claude,codex,copilot,cursor,gemini,grok-build,kiro,opencode,windsurf
 ```
 
 Do not update any global consumer yet. After a release, and only with
 explicit approval, prefer an immutable dependency:
-  `sergio-sisternes-epam/autogenesis#v0.9.0`.
+  `sergio-sisternes-epam/autogenesis#v0.9.1`.
 
 ## Release handoff
 
