@@ -1,24 +1,30 @@
-# autogenesis
+# Autogenesis
 
-Autogenesis is an expanded discipline of [`danielmeppiel/genesis`](https://github.com/danielmeppiel/genesis) that uses Atlas as long-term memory for the skill, wherever it is used, pairs with skills such as `discuss` and `think` and incorporates minor new patterns and disciplines, such as Activation Cards, Modules, or a skill-native SOLID design lens.
+Autogenesis is a skill-design discipline for designing, evolving, reviewing, and implementing agent skill packages from durable experience.
 
 ## Why / what this is not
 
-Autogenesis is a root APM skill (`SKILL.md` + `apm.yml` at the repository
-root). Use it to evolve, design, review, or initialise agent skills from
-durable experience. Also use it to change an existing skill package,
-including an agreed change or a request to skip ceremony. Genesis remains
-the design process; Autogenesis fuses and extends it. Derived skills
-receive the runtime capabilities their purpose needs, not an Autogenesis
-framework by default. Design stops for explicit approval. Discussion does
-not implement.
+Autogenesis extends the Genesis design process with Atlas-backed experience and parent-routed operations. Design produces a challenged, persisted plan and stops for explicit approval; implementation applies only an approved plan. Discussion does not implement. Autogenesis is not for ordinary application refactoring and does not auto-implement from reflection.
 
-Do not use it for ordinary application refactoring, a mere mention of
-SKILL.md, automatic wiring, or bypassing parent-routed help to load
-private support modules. Public
-module overview is the `help` operation. It does not supersede Genesis,
-auto-implement from reflection, or author process memory into the
-installed skill package.
+## Modules
+
+| Module | What you get |
+| --- | --- |
+| `design` | Design a skill change through Genesis and stop for approval. |
+| `initialise` | Confirm a skill's purpose and initialise it; stop for approval. |
+| `implement` | Apply an explicitly approved persisted plan. |
+| `research` | Expand the subject Atlas with sourced knowledge. |
+| `review-package` | Review package composition and applicable conformance. |
+| `reflect-challenge` | Challenge observed behavior without implementation authority. |
+| `learn-skill` | Record peer skill usage without mutating the peer. |
+| `reevaluate` | Assess material knowledge impact; advisory only. |
+| `aware-runtime` | Maintain governed runtime awareness. |
+| `wire` | Record approved wiring with version provenance. |
+| `atlas-migrate` | Migrate legacy Atlas storage and preserve knowledge. |
+| `help` | Explain Autogenesis modules without executing them. |
+| `getting-started` | Explain purpose, prerequisites, and a first journey. |
+
+These are the public operations; support and validation procedures are internal modules.
 
 ## Install
 
@@ -27,59 +33,31 @@ apm marketplace add sergio-sisternes-epam/atlas-marketplace --name atlas
 apm install autogenesis@atlas
 ```
 
-`--name atlas` is required so the package resolves as `autogenesis@atlas`.
-
 ## Use
 
-```text
-/autogenesis Let's discuss how we can <objective>
-```
+- `/autogenesis Design a change to <skill> that <objective>.`
+- `/autogenesis Review the composition and conformance of <package>.`
+- `/autogenesis Help me get started with Autogenesis.`
 
-Procedures and invocation rules live in `SKILL.md`.
+Design stops for explicit approval before implementation. For a live durable discussion, activate the catalog `discuss` package directly.
 
-## Modules
+## Prerequisites
 
-| Module | Summary |
-| --- | --- |
-| design | Design a skill change through Genesis; stop for approval |
-| initialise | Confirm purpose and initialise a skill; stop for approval |
-| implement | Apply only an explicitly approved persisted plan |
-| research | Expand the subject Atlas with sourced knowledge |
-| review-package | Review a package's composition and applicable conformance |
-| reflect-challenge | Challenge observed behaviour without implementing |
-| learn-skill | Record peer skill usage without mutating the peer |
-| reevaluate | Assess material knowledge impact; advisory only |
-| aware-runtime | Maintain governed runtime awareness |
-| wire | Record approved wiring with version provenance |
-| atlas-migrate | Migrate legacy Atlas storage and preserve knowledge |
-| help | Explain Autogenesis modules without executing them |
-| getting-started | First-use purpose, prerequisites, and shortest useful journey |
-
-The table lists the public operations. Support, validation, and think
-helpers remain in `SKILL.md` and `references/modules/`.
+Autogenesis uses Atlas as its durable subject store for design plans and process memory. Its APM manifest declares dependencies on `atlas`, `okf`, `discuss`, and `think`.
 
 ## Related
 
-- [atlas](https://github.com/sergio-sisternes-epam/atlas) — durable knowledge substrate
-- [okf](https://github.com/sergio-sisternes-epam/okf) — Open Knowledge Format
-- [discuss](https://github.com/sergio-sisternes-epam/discuss) — durable discussion; activate the catalog Discuss package directly
-- [think](https://github.com/sergio-sisternes-epam/think) — ramble, grill, and challenge
-- Companion store: [autogenesis-atlas](https://github.com/sergio-sisternes-epam/autogenesis-atlas)
+- [Atlas marketplace](https://github.com/sergio-sisternes-epam/atlas-marketplace) — package catalog.
+- [`atlas`](https://github.com/sergio-sisternes-epam/atlas) — durable knowledge substrate.
+- [`okf`](https://github.com/sergio-sisternes-epam/okf) — Open Knowledge Format.
+- [`discuss`](https://github.com/sergio-sisternes-epam/discuss) — durable discussion; activate it directly.
+- [`think`](https://github.com/sergio-sisternes-epam/think) — capture, question, and challenge thinking.
+- [`SKILL.md`](SKILL.md) — operation routing and approval boundaries.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for local checks and release handoff.
-Report vulnerabilities through a
-[private GitHub security advisory](https://github.com/sergio-sisternes-epam/autogenesis/security/advisories/new).
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for local checks and release handoff. Report vulnerabilities through a [private GitHub security advisory](https://github.com/sergio-sisternes-epam/autogenesis/security/advisories/new).
 
 ## License
 
-Autogenesis is Copyright 2026 Sergio Sisternes and is licensed under the
-[Apache License 2.0](LICENSE), as declared in `apm.yml`.
-
-Autogenesis integrates with and builds upon concepts from
-[Genesis](https://github.com/danielmeppiel/genesis), Copyright 2025 Daniel
-Meppiel. The Genesis repository code is licensed under Apache-2.0. Its
-long-form book is a separate work licensed under CC BY-NC 4.0; that book
-license does not apply to the Genesis repository code or to Autogenesis.
-See [NOTICE](NOTICE) for the preserved attribution.
+Autogenesis is licensed under the [Apache License 2.0](LICENSE), as declared in `apm.yml`. The Genesis repository code it builds on is Apache-2.0; the Genesis book is a separate work licensed under CC BY-NC 4.0, which does not apply to the code or to Autogenesis. See [`NOTICE`](NOTICE) for attribution.

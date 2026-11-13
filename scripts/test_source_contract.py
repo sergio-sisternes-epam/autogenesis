@@ -208,7 +208,7 @@ class SourceContractTests(unittest.TestCase):
         self.assertNotIn("references/modules/discuss/SKILL.md", skill)
         self.assertNotIn("path: discuss", discipline)
         self.assertIn("Activate the\ncatalog **discuss** package directly", skill)
-        self.assertIn("activate the catalog Discuss package directly", readme)
+        self.assertIn("activate the catalog `discuss` package directly", readme)
 
     def test_think_wrappers_nest_load_catalog_think(self) -> None:
         manifest = (ROOT / "apm.yml").read_text(encoding="utf-8")
@@ -3624,8 +3624,8 @@ class SourceContractTests(unittest.TestCase):
         self.assertNotIn("validate-okf-conformance", catalog)
         self.assertIn("| getting-started |", catalog)
         self.assertIn("Never implement from discussion", journey)
-        self.assertIn("| help |", readme)
-        self.assertIn("| getting-started |", readme)
+        self.assertIn("| `help` |", readme)
+        self.assertIn("| `getting-started` |", readme)
         self.assertIn("## Modules", readme)
         self.assertNotIn("activation path", readme.lower())
         self.assertNotIn("visualise", help_skill.lower())
